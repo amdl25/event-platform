@@ -1,52 +1,64 @@
 import React from 'react';
+import '../styles/EventCard.css';
 
-const EventCard = ({ event, onJoin }) => {
+const EventCard = ({ event, onJoin, variant = 'default' }) => {
   const isPublic = !!event.org_id;
-  const occupancyRate = (event.current_occupancy / event.max_capacity) * 100;
-  const isFull = event.current_occupancy >= event.max_capacity;
+  const maxCapacity = event.max_capacity || 1;
+  const occupancyRate = Math.min(100, (event.current_occupancy / maxCapacity) * 100);
+  const isFull = event.current_occupancy >= maxCapacity;
 
-  return (
-    <div className={`event-card ${isPublic ? 'card-public' : 'card-private'}`}>
-      <div className="card-content">
-        {event.points_value > 0 && (
-          <span className="points-pill">🪙 {event.points_value} pts</span>
-        )}
-        
-        <span className={`type-badge ${isPublic ? 'badge-public' : 'badge-private'}`}>
-          {isPublic ? '🏢 Business / Public' : '👥 Community / Private'}
-        </span>
+  const handleJoin = () => {
+    if (typeof onJoin === 'function') onJoin(event.id);
+  };
 
-        <h3>{event.title}</h3>
-        <p style={{color: '#666', fontSize: '14px'}}>📍 {event.location}</p>
+  if (variant === 'compact') {
+    const dateObj = new Date(event.start_date);
+    const month = dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    const day = dateObj.getDate();
 
-        <div className="occupancy-container">
-          <span>{event.current_occupancy} / {event.max_capacity} locuri ocupate</span>
-          <div className="progress-bg">
-            <div 
-              className="progress-fill" 
-              style={{ 
-                width: `${occupancyRate}%`, 
-                backgroundColor: isFull ? '#dc3545' : (isPublic ? '#007bff' : '#28a745') 
-              }}
-            ></div>
+    return (
+      <div className="event-card compact">
+        <div className="card-image-container">
+          <div className="card-image-placeholder"></div>
+          {Number(event.price) > 0 && <span className="price-badge-left">€{Number(event.price).toFixed(2)}</span>}
+          <div className="card-badges-icons">
+            <button className="icon-badge share-icon">↗</button>
+            <button className="icon-badge heart-badge">♡</button>
           </div>
         </div>
+        <div className="card-info">
+          <div className="card-date-column">
+            <span className="date-month">{month}</span>
+            <span className="date-day">{day}</span>
+          </div>
+          <div className="card-text-column">
+            <h4 className="card-event-title">{event.title}</h4>
+            <p className="card-event-location">{event.location}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-        <button 
-          className="btn-join"
-          onClick={() => onJoin(event.id)}
-          disabled={isFull}
-          style={{
-            width: '100%',
-            padding: '10px',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: isFull ? '#ccc' : '#222',
-            color: '#fff',
-            cursor: isFull ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {isFull ? 'Sold Out' : 'Rezervă Loc'}
+  return (
+    <div className="event-card">
+      <div className="card-image-container">
+        {event.image_url ? (
+          <img src={event.image_url} alt={event.title} className="card-image-real" />
+        ) : (
+          <div className="card-image-placeholder"></div>
+        )}
+        <span className={`card-badge ${isPublic ? 'badge-public' : 'badge-private'}`}>
+          {isPublic ? 'PUBLIC' : 'Private'}
+        </span>
+        {event.points_value > 0 && <span className="card-points-badge">+{event.points_value}pts</span>}
+      </div>
+
+      <div className="card-content">
+        <h3 className="card-title">{event.title}</h3>
+
+        <button className="btn-reserve" onClick={handleJoin} disabled={isFull}>
+          {isFull ? 'Complet' : 'Rezervă'}
         </button>
       </div>
     </div>

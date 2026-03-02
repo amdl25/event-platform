@@ -9,6 +9,8 @@ const seedDatabase = async () => {
     const catCoffee = await Category.create({ name: 'Coffee & Chill' });
     const catTech = await Category.create({ name: 'Tech Workshops' });
     const catSport = await Category.create({ name: 'Outdoor Sports' });
+    const catArt = await Category.create({ name: 'Arts & Culture' });
+    const catMusic = await Category.create({ name: 'Live Music' });
 
     const testUser = await Account.create({
       email: 'andrei@test.com',
@@ -61,6 +63,51 @@ const seedDatabase = async () => {
       org_id: null
     });
     await event2.addCategory(catSport);
+
+    const eventArt = await Event.create({
+    title: 'Vernisaj: Lumini Urbane',
+    description: 'O expoziție de fotografie contemporană care surprinde pulsul orașului noaptea. Vin și gustări incluse.',
+    location: 'Galeria de Artă "Metropolis"',
+    start_date: new Date(2026, 3, 15, 18, 30),
+    end_date: new Date(2026, 3, 15, 21, 0),
+    max_capacity: 40,
+    current_occupancy: 25,
+    price: 35.00,
+    points_value: 150,
+    creator_id: organizer.id,
+    org_id: coffeeShop.id
+    });
+    await eventArt.addCategory(catArt);
+
+const eventMusic = await Event.create({
+  title: 'Jazz in the Garden',
+  description: 'O seară relaxantă de jazz live în aer liber. Perfect pentru networking și relaxare.',
+  location: 'Grădina Botanică - Terasa Verde',
+  start_date: new Date(2026, 3, 20, 19, 0),
+  end_date: new Date(2026, 3, 20, 22, 30),
+  max_capacity: 100,
+  current_occupancy: 42,
+  price: 65.00,
+  points_value: 200, 
+  creator_id: organizer.id,
+  org_id: coffeeShop.id
+});
+await eventMusic.addCategory(catMusic);
+
+const eventWorkshop = await Event.create({
+  title: 'Atelier de Pictură cu Acuarelă',
+  description: 'Exprimă-ți creativitatea sub îndrumarea unui artist local. Toate materialele sunt asigurate.',
+  location: 'Studio Creative Flow',
+  start_date: new Date(2026, 3, 10, 11, 0),
+  end_date: new Date(2026, 3, 10, 14, 0),
+  max_capacity: 12,
+  current_occupancy: 11,
+  price: 90.00,
+  points_value: 120,
+  creator_id: organizer.id,
+  org_id: coffeeShop.id
+});
+await eventWorkshop.addCategory(catArt);
 
     await LoyaltyWallet.create({
       account_id: testUser.id,

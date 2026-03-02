@@ -1,42 +1,36 @@
+:root {
+  --primary: #FF7F50;
+  --primary-dark: #FF6347;
+  --secondary: #FFB347;
+  --accent: #FFDAB9;
+  
+  --light-bg: #FFF9F6;
+  --neutral-100: #ffffff;
+  --neutral-200: #FFE4E1;
+  
+  --neutral-600: #71717a;       
+  --neutral-800: #3f3f46;       
+  --neutral-900: #18181b;
+  
+  --shadow-sm: 0 1px 3px rgba(255, 127, 80, 0.1);
+  --shadow-md: 0 10px 25px -5px rgba(255, 127, 80, 0.15);
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.App {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--light-bg);
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+.app-main {
+  flex: 1;
+  width: 100%;
 }
