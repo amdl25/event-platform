@@ -1,0 +1,67 @@
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.event-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  border: 1px solid #eee;
+  text-align: left;
+}
+
+.event-card:hover {
+  transform: translateY(-8px);
+}
+
+.card-public { border-top: 6px solid #007bff; }
+.card-private { border-top: 6px solid #28a745; }
+
+.card-content {
+  padding: 20px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.badge-public { background: #e7f1ff; color: #007bff; }
+.badge-private { background: #e6ffed; color: #28a745; }
+
+.points-pill {
+  float: right;
+  background: #fff3cd;
+  color: #856404;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.progress-container {
+  margin: 20px 0;
+  background: #f0f0f0;
+  border-radius: 10px;
+  height: 10px;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
