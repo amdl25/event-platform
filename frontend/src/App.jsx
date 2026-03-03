@@ -3,6 +3,8 @@ import DiscoveryFeed from './pages/DiscoveryFeed';
 import AuthModal from './components/AuthModal';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import Benefits from './components/Benefits';
 import './App.css';
 
 function App() {
@@ -37,7 +39,7 @@ function App() {
         <DiscoveryFeed user={user} />
       </main>
 
-      <Footer />
+
     </div>
   );
 }

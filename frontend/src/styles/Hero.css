@@ -1,0 +1,168 @@
+.hero-featured {
+  position: relative;
+  padding: 40px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.hero-image {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 550px;
+  width: 100%;
+}
+
+.hero-image > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.hero-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 100%);
+  z-index: 2;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  position: absolute;
+  top: 50%;
+  left: 6%;
+  transform: translateY(-50%);
+  font-size: 4.2rem;
+  font-weight: 700;
+  color: white;
+  z-index: 5;
+  line-height: 1.1;
+  max-width: 500px;
+  text-transform: none;
+}
+
+.hero-title .highlight {
+  font-family: 'Poppins', sans-serif;
+  display: block;
+  font-size: 0.85rem;
+  color: var(--primary); 
+  margin-top: 24px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.featured-card {
+  position: absolute;
+  right: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 380px;
+  width: 90%;
+  z-index: 10;
+  border: none;
+}
+
+.featured-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.featured-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  color: #1A1A1A;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.featured-org {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: -5px;
+}
+
+.featured-details {
+  padding: 10px 0;
+  border: none; 
+}
+
+.detail-label {
+  display: none;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.featured-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-book {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient-end) 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.btn-book:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 127, 80, 0.3);
+}
+
+.btn-add-calendar {
+  background: transparent;
+  color: #777;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-add-calendar:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}

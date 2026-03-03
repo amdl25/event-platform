@@ -1,9 +1,3 @@
-.event-card {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-  gap: 24px;
-  align-items: stretch; 
-}
-
 .event-card.compact {
   width: 100%;
   height: 100%;
@@ -16,18 +10,18 @@
   border: 1px solid var(--neutral-200);
   display: flex;
   flex-direction: column;
+  min-height: 380px;
 }
 
 .event-card.compact:hover {
   transform: translateY(-6px);
-  box-shadow: 0 15px 35px rgba(0, 122, 255, 0.12);
+  box-shadow: 0 15px 35px rgba(255, 127, 80, 0.15);
 }
 
 .event-card.compact .card-image-container {
   position: relative;
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   overflow: hidden;
 }
 
@@ -41,7 +35,6 @@
 }
 
 .card-image-placeholder::after {
-  content: '📸';
   font-size: 2.5rem;
   opacity: 0.2;
 }
@@ -92,10 +85,6 @@
   transform: scale(1.1);
 }
 
-.icon-badge.heart-badge:hover {
-  background: #ef4444;
-}
-
 .event-card.compact .card-info {
   flex-grow: 1;
   padding: 20px;
@@ -137,8 +126,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  text-align: left;
+  height: 100%; 
 }
 
 .card-event-title {
@@ -154,9 +142,17 @@
   font-size: 0.9rem;
   color: var(--neutral-600);
   font-weight: 500;
-  display: flex;
-  align-items: center;
 }
 
-
-
+.card-event-points {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: auto;
+  padding-bottom: 20px;
+  letter-spacing: 0.3px;
+}

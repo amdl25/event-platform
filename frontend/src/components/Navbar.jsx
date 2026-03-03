@@ -9,10 +9,10 @@ const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
           <h1 className="logo">Event<span>Hub</span></h1>
           
           <nav className="header-categories">
-            <span className="nav-link">Arts</span>
-            <span className="nav-link">Music</span>
+            <span className="nav-link">Artă</span>
+            <span className="nav-link">Muzică</span>
             <span className="nav-link">Tech</span>
-            <span className="nav-link">Food</span>
+            <span className="nav-link">Sport</span>
           </nav>
         </div>
 
@@ -37,13 +37,13 @@ const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
                 className="btn-login-header btn-login" 
                 onClick={() => setShowAuthModal(true)}
               >
-                Login
+                Autentificare
               </button>
               <button 
                 className="btn-login-header btn-signup" 
                 onClick={() => setShowAuthModal(true)}
               >
-                Sign Up
+                Cont nou
               </button>
             </>
           )}
