@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import DiscoveryFeed from './pages/DiscoveryFeed';
+import { Routes, Route } from 'react-router-dom';
 import AuthModal from './components/AuthModal';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Benefits from './components/Benefits';
+import Home from './pages/Home';
+import EventDetailsPage from './pages/EventDetailsPage';
 import './App.css';
 
 function App() {
@@ -36,7 +36,11 @@ function App() {
       )}
       
       <main className="app-main">
-        <DiscoveryFeed user={user} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          
+          <Route path="/event/:id" element={<EventDetailsPage />} />
+        </Routes>
       </main>
 
 

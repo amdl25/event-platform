@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import EventCard from '../components/EventCard';
-import Hero from '../components/Hero'; 
-import Benefits from '../components/Benefits'; 
 import '../styles/DiscoveryFeed.css';
 
-const DiscoveryFeed = ({ user }) => {
+const DiscoveryFeed = ({onSelectEvent}) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState(null);
   const [filters, setFilters] = useState({
     weekday: 'Any date',
     eventType: 'Any Type',
@@ -18,18 +15,17 @@ const DiscoveryFeed = ({ user }) => {
   useEffect(() => {
     setLoading(true);
     fetch('http://localhost:5000/api/events')
-      .then((res) => {
-        if (!res.ok) throw new Error('Could not load events.');
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setEvents(data);
         const featured = data.find(e => !!e.org_id);
-        if (featured) setSelectedEvent(featured);
+        if (featured && onSelectEvent) {
+          onSelectEvent(featured); 
+        }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [onSelectEvent]);
 
   const handleFilterChange = (filterKey, value) => {
     setFilters(prev => ({ ...prev, [filterKey]: value }));
@@ -39,9 +35,6 @@ const DiscoveryFeed = ({ user }) => {
 
   return (
     <div className="discovery-page">
-      <Hero featuredEvent={selectedEvent} />
-
-      <Benefits />
 
       <section className="filters-section">
         <div className="container-max">
@@ -97,7 +90,7 @@ const DiscoveryFeed = ({ user }) => {
                 <div
                   key={event.id}
                   className="event-card-wrapper"
-                  onClick={() => setSelectedEvent(event)}
+                  onClick={() => onSelectEvent(event)}
                 >
                   <EventCard event={event} variant="compact" />
                 </div>

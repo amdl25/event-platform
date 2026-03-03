@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/Hero.css';
 import heroImage from '../../public/hero-image.jpg';
+import { Link } from 'react-router-dom';
 
 const Hero = ({ featuredEvent }) => {
   return (
@@ -41,9 +42,9 @@ const Hero = ({ featuredEvent }) => {
           </div>
 
           <div className="featured-actions">
-            <button className="btn-book">
-              Rezervă acum
-            </button>
+            <Link to={`/event/${featuredEvent.id}`} className="btn-book">
+                Rezervă acum
+            </Link>
             <button className="btn-add-calendar">+ Adaugă în calendar</button>
           </div>
         </div>

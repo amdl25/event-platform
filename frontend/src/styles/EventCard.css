@@ -156,3 +156,13 @@
   padding-bottom: 20px;
   letter-spacing: 0.3px;
 }
+
+.event-card-anchor {
+  text-decoration: none !important;
+  color: inherit;
+  display: block;
+}
+
+.event-card-anchor:hover {
+  text-decoration: none;
+}
