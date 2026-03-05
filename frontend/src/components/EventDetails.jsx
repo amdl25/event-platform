@@ -2,43 +2,89 @@ import React from 'react';
 import '../styles/EventDetails.css';
 
 const EventDetails = ({ event }) => {
-  if (!event) return <div className="loading">Se încarcă...</div>;
+  if (!event) return <div className="loading-state">Se încarcă evenimentul...</div>;
 
   return (
-    <div className="event-page-standard">
-      <div className="container-max">
-        <header className="event-header-simple">
-          <h1 className="event-title-specific">{event.title}</h1>
-          <p className="event-subtitle-specific">
-            📍 {event.location} • 📅 {new Date(event.start_date).toLocaleDateString('ro-RO')}
-          </p>
-        </header>
-
-        <div className="event-main-grid">
-          <div className="event-left-col">
-            <div className="event-image-container-detail">
-               <img src={event.image_url || 'https://via.placeholder.com/800x400'} alt={event.title} />
-            </div>
-            <div className="description-text">
-              <h3>Despre eveniment</h3>
-              <p>{event.description}</p>
-            </div>
+    <div className="event-details-wrapper">
+      <header className="event-hero-header">
+        <div className="hero-inner-container">
+          <img 
+            src={event.image_url?.startsWith('https') 
+              ? event.image_url 
+              : `http://localhost:5000${event.image_url}`} 
+            alt={event.title} 
+            className="hero-image"
+          />
+          <div className="hero-overlay-info">
+            <span className="event-label-tag">Eveniment Oficial</span>
+            <h1 className="event-display-title">{event.title}</h1>
           </div>
+        </div>
+      </header>
 
-          <aside className="event-sidebar">
-            <div className="booking-card-solid">
-              <div className="price-display-large">
-                {Number(event.price) > 0 ? `${Number(event.price).toFixed(2)} lei` : 'Gratuit'}
+      <div className="event-main-layout">
+        <div className="event-columns-grid">
+          
+          <main className="event-info-column">
+            <div className="brand-identity-header">
+               <div className="brand-info">
+                  <span className="brand-prefix">Organizat de</span>
+                  <h2 className="brand-name-text">
+                    {event.organization ? event.organization.name : 'Organizator Partener'}
+                  </h2>
+               </div>
+               <button className="contact-brand-btn">Contact</button>
+            </div>
+
+            <div className="event-logistics-bar">
+              <div className="logistic-block">
+                <span className="logistic-label">Când</span>
+                <div className="logistic-value">
+                  {new Date(event.start_date).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </div>
+                <div className="logistic-sub">Ora 18:00 - 21:00</div>
               </div>
-              <p className="seats-left">Locuri: {event.max_capacity - event.current_occupancy}</p>
+
+              <div className="logistic-block">
+                <span className="logistic-label">Unde</span>
+                <div className="logistic-value">{event.location}</div>
+                <button className="map-btn-link">Deschide în Maps</button>
+              </div>
+            </div>
+
+            <section className="event-description-section">
+              <h3 className="section-title">Despre acest eveniment</h3>
+              <p className="event-body-text">{event.description}</p>
+            </section>
+          </main>
+
+          <aside className="event-booking-sidebar">
+            <div className="booking-sticky-card">
+              <div className="booking-card-header">
+                <span className="price-label">Preț Bilet</span>
+                <div className="price-display-bold">
+                  {Number(event.price) > 0 ? `${Number(event.price).toFixed(2)} lei` : 'Gratuit'}
+                </div>
+              </div>
+
+              <div className="availability-tracker">
+                <div className="availability-labels">
+                  <span>Capacitate</span>
+                  <strong>{event.max_capacity - event.current_occupancy} locuri rămase</strong>
+                </div>
+                <div className="availability-progress">
+                  <div className="progress-bar-fill" style={{width: '65%'}}></div>
+                </div>
+              </div>
+
+              <button className="btn-book-primary">Rezervă Bilet</button>
               
-              <button className="btn-action-coral">Rezervă acum</button>
-              
-              <div className="points-reward-detail">
-                + {event.points_value || 50} puncte de fidelitate
+              <div className="reward-points-footer">
+                +100 puncte de fidelitate
               </div>
             </div>
           </aside>
+          
         </div>
       </div>
     </div>

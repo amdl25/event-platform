@@ -12,7 +12,17 @@ const EventCard = ({ event, variant = 'default' }) => {
       <Link to={`/event/${event.id}`} className="event-card-anchor">
         <div className="event-card compact">
           <div className="card-image-container">
-            <div className="card-image-placeholder"></div>
+            {event.image_url ? (
+              <img 
+                src={event.image_url} 
+                alt={event.title} 
+                className="card-main-image" 
+              />
+            ) : (
+              <div className="card-image-placeholder no-image">
+                {event.title.charAt(0)}
+              </div>
+            )}
             {Number(event.price) > 0 && (
               <span className="price-badge-left">{Number(event.price).toFixed(2)} lei</span>
             )}

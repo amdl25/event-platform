@@ -9,7 +9,7 @@ const EventDetailsPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5000/api/events/${id}`)
+    fetch(`http://localhost:5000/events/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setEvent(data);

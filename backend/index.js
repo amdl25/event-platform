@@ -3,7 +3,7 @@ import cors from 'cors';
 import sequelize from './config/database.js';
 
 import './models/relationships.js';
-import apiRoutes from './routes/api.js';
+import eventRoutes from './routes/eventRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', apiRoutes);
+app.use('/events', eventRoutes);
 
 const startServer = async () => {
   try {

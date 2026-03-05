@@ -44,6 +44,7 @@ const seedDatabase = async () => {
       current_occupancy: 8,
       price: 50.00,
       points_value: 100,
+      image_url:'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80',
       creator_id: organizer.id,
       org_id: coffeeShop.id
     });
@@ -59,6 +60,7 @@ const seedDatabase = async () => {
       current_occupancy: 2,
       price: 0.00,
       points_value: 0,
+      image_url: null,
       creator_id: testUser.id,
       org_id: null
     });
@@ -74,6 +76,7 @@ const seedDatabase = async () => {
     current_occupancy: 25,
     price: 35.00,
     points_value: 150,
+    image_url:'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1200&q=80',
     creator_id: organizer.id,
     org_id: coffeeShop.id
     });
@@ -89,6 +92,7 @@ const eventMusic = await Event.create({
   current_occupancy: 42,
   price: 65.00,
   points_value: 200, 
+  image_url:'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=1200&q=80',
   creator_id: organizer.id,
   org_id: coffeeShop.id
 });
@@ -104,6 +108,7 @@ const eventWorkshop = await Event.create({
   current_occupancy: 11,
   price: 90.00,
   points_value: 120,
+  image_url:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80',
   creator_id: organizer.id,
   org_id: coffeeShop.id
 });

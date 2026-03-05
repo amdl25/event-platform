@@ -14,7 +14,7 @@ const DiscoveryFeed = ({onSelectEvent}) => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:5000/api/events')
+    fetch('http://localhost:5000/events')
       .then((res) => res.json())
       .then((data) => {
         setEvents(data);

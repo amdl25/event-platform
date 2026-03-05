@@ -17,6 +17,11 @@ const Event = sequelize.define('Event', {
     defaultValue: 0
   },
   
+  image_url: { 
+    type: DataTypes.STRING, 
+    allowNull: true
+  },
+  
   creator_id: { 
     type: DataTypes.UUID, 
     allowNull: false,
