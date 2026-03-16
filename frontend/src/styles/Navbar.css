@@ -33,6 +33,23 @@
   letter-spacing: -1px;
 }
 
+.navbar-logo-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo-link:hover {
+  text-decoration: none;
+}
+
+.navbar-logo:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
 .header-categories {
   display: flex;
   gap: 25px;

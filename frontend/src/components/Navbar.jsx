@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
 
 const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
@@ -6,7 +7,9 @@ const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
     <header className="app-header">
       <div className="header-content">
         <div className="nav-left">
-          <h1 className="logo">Event<span>Hub</span></h1>
+          <Link to="/" className="navbar-logo-link">
+            <h1 className="logo">Event<span>Hub</span></h1>
+          </Link>
           
           <nav className="header-categories">
             <span className="nav-link">Artă</span>

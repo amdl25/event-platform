@@ -4,6 +4,11 @@ import '../styles/EventDetails.css';
 const EventDetails = ({ event }) => {
   if (!event) return <div className="loading-state">Se încarcă evenimentul...</div>;
 
+  const occupancyPercentage = Math.min(
+    (event.current_occupancy / event.max_capacity) * 100, 
+    100
+  );
+
   return (
     <div className="event-details-wrapper">
       <header className="event-hero-header">
@@ -48,13 +53,28 @@ const EventDetails = ({ event }) => {
               <div className="logistic-block">
                 <span className="logistic-label">Unde</span>
                 <div className="logistic-value">{event.location}</div>
-                <button className="map-btn-link">Deschide în Maps</button>
               </div>
             </div>
 
             <section className="event-description-section">
               <h3 className="section-title">Despre acest eveniment</h3>
               <p className="event-body-text">{event.description}</p>
+              
+              <section className="event-map-section">
+                <h3 className="section-title">Locație</h3>
+                <div className="map-container-frame">
+                  <iframe
+                    title="event-location"
+                    width="100%"
+                    height="350"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(event.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                  ></iframe>
+                </div>
+              </section>
             </section>
           </main>
 
@@ -73,7 +93,9 @@ const EventDetails = ({ event }) => {
                   <strong>{event.max_capacity - event.current_occupancy} locuri rămase</strong>
                 </div>
                 <div className="availability-progress">
-                  <div className="progress-bar-fill" style={{width: '65%'}}></div>
+                  <div className="progress-bar-fill" 
+                  style={{ width: `${occupancyPercentage}%` }}
+                  ></div>
                 </div>
               </div>
 
