@@ -1,0 +1,8 @@
+{
+  "build": {
+    "builder": "static",
+    "installCommand": "npm ci",
+    "buildCommand": "npm run build",
+    "distDir": "dist"
+  }
+}

@@ -17,6 +17,9 @@ app.use('/events', eventRoutes);
 console.log("Rutele de Auth sunt încărcate la /auth");
 app.use('/auth', authRoutes);
 app.use('/categories', categoryRoutes);
+if (!process.env.CLOUDINARY_URL && !process.env.CLOUDINARY_CLOUD_NAME) {
+  app.use('/uploads', express.static('uploads'));
+}
 
 const startServer = async () => {
   try {
@@ -28,7 +31,7 @@ const startServer = async () => {
 
     
     app.listen(PORT, () => {
-      console.log(`Serverul ruleaza pe: http://localhost:${PORT}`);
+      console.log(`Serverul ruleaza pe port ${PORT}`);
     });
   } catch (error) {
     console.error('Eroare la conectare:', error);

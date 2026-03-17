@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../api';
 import { useParams } from 'react-router-dom';
 import EventDetails from '../components/EventDetails';
 
@@ -12,7 +12,7 @@ const EventDetailsPage = () => {
     const fetchEvent = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`http://localhost:5000/events/${id}`);
+        const response = await API.get(`/events/${id}`);
         
         setEvent(response.data);
       } catch (err) {

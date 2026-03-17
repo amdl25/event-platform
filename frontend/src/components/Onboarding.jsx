@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api';
 import '../styles/Onboarding.css';
 
 const Onboarding = ({ user, onFinish }) => {
@@ -8,7 +8,7 @@ const Onboarding = ({ user, onFinish }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/categories')
+    API.get('/categories')
       .then(res => setCategories(res.data))
       .catch(err => console.error("Eroare categorii:", err));
   }, []);
@@ -22,7 +22,7 @@ const Onboarding = ({ user, onFinish }) => {
   const handleFinalize = async () => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/auth/set-interests', {
+      await API.post('/auth/set-interests', {
         userId: user.id,
         interests: selectedInterests
       });

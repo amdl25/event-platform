@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../api';
 import EventCard from '../components/EventCard';
 import '../styles/DiscoveryFeed.css';
 
@@ -16,7 +16,7 @@ const DiscoveryFeed = ({onSelectEvent}) => {
   useEffect(() => {
     setLoading(true);
 
-    axios.get('http://localhost:5000/events')
+    API.get('/events')
       .then((response) => {
         const data = response.data;
         

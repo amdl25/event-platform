@@ -49,7 +49,7 @@ export const getEventById = async (req, res) => {
 
 export const createEvent = async (req, res) => {
   try {
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
 
     const newEvent = await Event.create({
       ...req.body,

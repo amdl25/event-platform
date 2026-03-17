@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_BASE } from '../api';
 import '../styles/EventDetails.css';
 
 const EventDetails = ({ event }) => {
@@ -15,7 +16,7 @@ const EventDetails = ({ event }) => {
           <img 
             src={event.image_url?.startsWith('https') 
               ? event.image_url 
-              : `http://localhost:5000${event.image_url}`} 
+              : `${API_BASE}${event.image_url}`} 
             alt={event.title} 
             className="hero-image"
           />
