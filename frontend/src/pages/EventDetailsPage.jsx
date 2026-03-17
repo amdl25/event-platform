@@ -27,7 +27,7 @@ const EventDetailsPage = () => {
     }
   }, [id]);
 
-  if (loading) return <div className="loading-state">Se încarcă detaliile experienței...</div>;
+  if (loading) return <div className="loading-state"></div>;
   if (!event) return <div className="error-state">Evenimentul nu a fost găsit.</div>;
 
   return <EventDetails event={event} />;
