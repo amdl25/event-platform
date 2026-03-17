@@ -20,6 +20,13 @@ const DiscoveryFeed = ({onSelectEvent}) => {
       .then((response) => {
         const data = response.data;
         
+        if (!Array.isArray(data)) {
+          console.error('Răspuns invalid pentru /events:', data);
+          setEvents([]);
+          setError('Backend-ul a răspuns cu un format invalid pentru evenimente.');
+          return;
+        }
+
         setEvents(data);
 
         const featured = data.find(e => !!e.org_id);
@@ -29,6 +36,8 @@ const DiscoveryFeed = ({onSelectEvent}) => {
       })
       .catch((err) => {
         console.error("Eroare la încărcarea evenimentelor:", err);
+        setError('Nu am putut încărca evenimentele. Verifică conexiunea cu backend-ul.');
+        setEvents([]);
       })
       .finally(() => {
         setLoading(false);
@@ -39,7 +48,7 @@ const DiscoveryFeed = ({onSelectEvent}) => {
     setFilters(prev => ({ ...prev, [filterKey]: value }));
   };
 
-  const publicEvents = events.filter(e => !!e.org_id);
+  const publicEvents = Array.isArray(events) ? events.filter(e => !!e.org_id) : [];
 
   return (
     <div className="discovery-page">
