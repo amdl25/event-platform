@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
 
-const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
+const Navbar = ({ user, handleLogout }) => {
   return (
     <header className="app-header">
       <div className="header-content">
@@ -29,25 +29,19 @@ const Navbar = ({ user, handleLogout, setShowAuthModal }) => {
           
           {user ? (
             <div className="user-menu">
-              <span className="user-name">{user.firstName}</span>
+              <span>{user.firstName}</span>
               <button className="btn-logout-header" onClick={handleLogout}>
                 Logout
               </button>
             </div>
           ) : (
             <>
-              <button 
-                className="btn-login-header btn-login" 
-                onClick={() => setShowAuthModal(true)}
-              >
+              <Link to="/login" className="btn-login-header">
                 Autentificare
-              </button>
-              <button 
-                className="btn-login-header btn-signup" 
-                onClick={() => setShowAuthModal(true)}
-              >
+              </Link>
+              <Link to="/register" className="btn-login-header btn-signup">
                 Cont nou
-              </button>
+              </Link>
             </>
           )}
         </div>

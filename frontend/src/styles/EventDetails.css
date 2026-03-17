@@ -48,17 +48,6 @@
   padding: 30px;
 }
 
-.event-label-tag {
-  background: var(--coral-main);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 100px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  width: fit-content;
-}
-
 .event-display-title {
   color: white;
   font-size: 2.2rem;
@@ -183,7 +172,6 @@
   position: relative;
   display: inline-block;
 }
-
 
 .event-body-text {
   font-size: 1.15rem;

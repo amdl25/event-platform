@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import EventDetails from '../components/EventDetails';
 
@@ -8,17 +9,22 @@ const EventDetailsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`http://localhost:5000/events/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setEvent(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchEvent = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:5000/events/${id}`);
+        
+        setEvent(response.data);
+      } catch (err) {
         console.error("Eroare la încărcarea evenimentului:", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    if (id) {
+      fetchEvent();
+    }
   }, [id]);
 
   if (loading) return <div className="loading-state">Se încarcă detaliile experienței...</div>;

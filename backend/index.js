@@ -4,6 +4,8 @@ import sequelize from './config/database.js';
 
 import './models/relationships.js';
 import eventRoutes from './routes/eventRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/events', eventRoutes);
+console.log("Rutele de Auth sunt încărcate la /auth");
+app.use('/auth', authRoutes);
+app.use('/categories', categoryRoutes);
 
 const startServer = async () => {
   try {

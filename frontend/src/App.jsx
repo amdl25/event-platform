@@ -1,52 +1,46 @@
-import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import AuthModal from './components/AuthModal';
-import Footer from './components/Footer';
-import Navbar from './components/Navbar';
+import { useState } from 'react';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
 import EventDetailsPage from './pages/EventDetailsPage';
+import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
+import Onboarding from './components/Onboarding';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleLogin = (userData) => {
     setUser(userData);
-    setShowAuthModal(false);
+    if (userData.isNewUser && userData.role === 'user') {
+      setShowOnboarding(true);
+    }
   };
 
   const handleLogout = () => {
     setUser(null);
   };
 
+  if (showOnboarding && user) {
+    return <Onboarding user={user} onFinish={() => setShowOnboarding(false)} />;
+  }
+
   return (
     <div className="App">
       <ScrollToTop />
-      
-      <Navbar 
-        user={user} 
-        handleLogout={handleLogout} 
-        setShowAuthModal={() => setShowAuthModal(true)} 
-      />
-
-      {showAuthModal && (
-        <AuthModal 
-          onClose={() => setShowAuthModal(false)} 
-          onLogin={handleLogin}
-        />
-      )}
+      <Navbar user={user} handleLogout={handleLogout} />
       
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
-          
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/register" element={<Register onLogin={handleLogin} />} />
           <Route path="/event/:id" element={<EventDetailsPage />} />
         </Routes>
       </main>
-
-
     </div>
   );
 }

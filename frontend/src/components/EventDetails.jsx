@@ -2,7 +2,6 @@ import React from 'react';
 import '../styles/EventDetails.css';
 
 const EventDetails = ({ event }) => {
-  if (!event) return <div className="loading-state">Se încarcă evenimentul...</div>;
 
   const occupancyPercentage = Math.min(
     (event.current_occupancy / event.max_capacity) * 100, 
@@ -21,7 +20,6 @@ const EventDetails = ({ event }) => {
             className="hero-image"
           />
           <div className="hero-overlay-info">
-            <span className="event-label-tag">Eveniment Oficial</span>
             <h1 className="event-display-title">{event.title}</h1>
           </div>
         </div>
@@ -59,7 +57,7 @@ const EventDetails = ({ event }) => {
             <section className="event-description-section">
               <h3 className="section-title">Despre acest eveniment</h3>
               <p className="event-body-text">{event.description}</p>
-              
+
               <section className="event-map-section">
                 <h3 className="section-title">Locație</h3>
                 <div className="map-container-frame">

@@ -1,0 +1,80 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
+import '../styles/AuthPages.css';
+
+const Register = ({ onLogin }) => {
+  const [formData, setFormData] = useState({
+    firstName: '', 
+    lastName: '', 
+    email: '', 
+    password: '', 
+    role: 'user',
+    companyName: ''
+  });
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('http://localhost:5000/auth/register', formData);
+      onLogin(res.data);
+      navigate('/');
+    } catch (err) {
+      alert("Eroare la înregistrare");
+    }
+  };
+
+  return (
+    <div className="auth-page-container">
+      <div className="auth-card">
+        <header className="auth-header">
+          <h2>Înregistrare</h2>
+        </header>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-row">
+            <input type="text" placeholder="Prenume" required 
+              onChange={e => setFormData({...formData, firstName: e.target.value})} />
+            <input type="text" placeholder="Nume" required 
+              onChange={e => setFormData({...formData, lastName: e.target.value})} />
+          </div>
+          
+          <input type="email" placeholder="Email" required 
+            onChange={e => setFormData({...formData, email: e.target.value})} />
+          
+          <input type="password" placeholder="Parolă" required 
+            onChange={e => setFormData({...formData, password: e.target.value})} />
+
+          <div className="role-toggle">
+            <button type="button" 
+              className={formData.role === 'user' ? 'active' : ''} 
+              onClick={() => setFormData({...formData, role: 'user'})}>Participant</button>
+            <button type="button" 
+              className={formData.role === 'organizer' ? 'active' : ''} 
+              onClick={() => setFormData({...formData, role: 'organizer'})}>Organizator</button>
+          </div>
+
+          {formData.role === 'organizer' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <input 
+                type="text" 
+                placeholder="Numele organizației" 
+                required 
+                onChange={e => setFormData({...formData, companyName: e.target.value})} 
+                />
+            </div>
+            )}
+
+          <button type="submit" className="btn-auth-main">Creează Cont</button>
+        </form>
+
+        <p className="auth-footer-text">
+          Ai deja cont? <Link to="/login">Intră aici</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Register;

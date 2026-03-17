@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import EventCard from '../components/EventCard';
 import '../styles/DiscoveryFeed.css';
 
@@ -14,17 +15,24 @@ const DiscoveryFeed = ({onSelectEvent}) => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:5000/events')
-      .then((res) => res.json())
-      .then((data) => {
+
+    axios.get('http://localhost:5000/events')
+      .then((response) => {
+        const data = response.data;
+        
         setEvents(data);
+
         const featured = data.find(e => !!e.org_id);
         if (featured && onSelectEvent) {
-          onSelectEvent(featured); 
+          onSelectEvent(featured);
         }
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error("Eroare la încărcarea evenimentelor:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [onSelectEvent]);
 
   const handleFilterChange = (filterKey, value) => {
