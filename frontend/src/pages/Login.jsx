@@ -9,14 +9,21 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("1. Încep procedura de Login...");
+    console.log("2. Date trimise:", formData);
+    console.log("3. URL de bază folosit:", API.defaults.baseURL);
+
     try {
-      const res = await API.post('/auth/login', formData);
-      onLogin(res.data);
-      navigate('/');
+        const res = await API.post('/auth/login', formData);
+        console.log("4. Serverul a răspuns!", res.data);
+        onLogin(res.data);
+        navigate('/');
     } catch (err) {
-      alert("Email sau parolă incorectă!");
+        console.error("5. EROARE DETALIATĂ:", err);
+        console.log("6. Status eroare:", err.response?.status);
+        alert("Eroare la autentificare!");
     }
-  };
+};
 
   return (
     <div className="auth-page-container">

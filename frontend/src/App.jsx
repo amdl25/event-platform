@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -10,11 +10,17 @@ import Onboarding from './components/Onboarding';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('eventHubUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleLogin = (userData) => {
     setUser(userData);
+    localStorage.setItem('eventHubUser', JSON.stringify(userData));
+    
     if (userData.isNewUser && userData.role === 'user') {
       setShowOnboarding(true);
     }
@@ -22,6 +28,7 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+    localStorage.removeItem('eventHubUser');
   };
 
   if (showOnboarding && user) {
