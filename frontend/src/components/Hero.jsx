@@ -18,7 +18,6 @@ const Hero = ({ featuredEvent }) => {
         <div className="featured-card">
           <div className="featured-header">
             <span className="featured-label">Eveniment recomandat</span>
-            <button className="nav-arrow">›</button>
           </div>
 
           <h3 className="featured-title">{featuredEvent.title}</h3>
