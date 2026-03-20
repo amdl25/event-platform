@@ -1,8 +1,18 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
 
 const Navbar = ({ user, handleLogout }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim() !== "") {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm("");
+    }
+  };
+
   return (
     <header className="app-header">
       <div className="header-content">
@@ -21,11 +31,19 @@ const Navbar = ({ user, handleLogout }) => {
         </div>
 
         <div className="header-actions">
-          <div className="search-icon">
+          <div className="search-container">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
+            <input 
+              type="text" 
+              placeholder="Caută evenimente..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="search-input"
+            />
           </div>
           
           {user ? (

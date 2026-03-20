@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Onboarding from './components/Onboarding';
 import Profile from './pages/Profile';
 import CategoryPage from './pages/CategoryPage';
+import SearchResults from './pages/SearchResults';
 import './App.css';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
           <Route path="/event/:id" element={<EventDetailsPage />} />
           <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/search" element={<SearchResults />} />
         </Routes>
       </main>
     </div>
