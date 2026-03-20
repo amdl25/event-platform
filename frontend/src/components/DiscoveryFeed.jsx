@@ -7,11 +7,19 @@ const DiscoveryFeed = ({onSelectEvent}) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dbCategories, setDbCategories] = useState([]);
+
   const [filters, setFilters] = useState({
-    weekday: 'Any date',
-    eventType: 'Any Type',
-    category: 'Any Category'
-  });
+  weekday: 'Orice dată',
+  category: 'Orice categorie',
+  price: 'Toate prețurile',
+});
+
+  useEffect(() => {
+  API.get('/categories')
+    .then(res => setDbCategories(res.data))
+    .catch(err => console.error("Eroare categorii:", err));
+}, []);
 
   useEffect(() => {
     setLoading(true);
@@ -48,7 +56,57 @@ const DiscoveryFeed = ({onSelectEvent}) => {
     setFilters(prev => ({ ...prev, [filterKey]: value }));
   };
 
-  const publicEvents = Array.isArray(events) ? events.filter(e => !!e.org_id) : [];
+  const filteredEvents = events.filter(event => {
+  const matchCategory = 
+    filters.category === 'Orice categorie' || 
+    event.categories?.some(cat => cat.name === filters.category);
+
+  const matchDate = (() => {
+    if (filters.weekday === 'Orice dată') return true;
+
+    const eventDate = new Date(event.start_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (filters.weekday === 'Astăzi') {
+      return eventDate.toDateString() === today.toDateString();
+    }
+
+    if (filters.weekday === 'Mâine') {
+      return eventDate.toDateString() === tomorrow.toDateString();
+    }
+
+    if (filters.weekday === 'În weekend') {
+      const day = eventDate.getDay(); 
+      return day === 6 || day === 0;
+    }
+
+    if (filters.weekday === 'Săptămâna viitoare') {
+      const nextWeekStart = new Date(today);
+      nextWeekStart.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7 || 7));
+      
+      const nextWeekEnd = new Date(nextWeekStart);
+      nextWeekEnd.setDate(nextWeekStart.getDate() + 7);
+
+      return eventDate >= nextWeekStart && eventDate < nextWeekEnd;
+    }
+
+    return true;
+  })();
+
+  const eventPrice = parseFloat(event.price);
+  const matchPrice = 
+    filters.price === 'Toate prețurile' || 
+    (filters.price === 'Gratuite' && eventPrice === 0) ||
+    (filters.price === 'Cu plată' && eventPrice > 0);
+
+  return matchCategory && matchDate && matchPrice;
+});
+
+const publicEvents = filteredEvents.filter(e => !!e.org_id);
 
   return (
     <div className="discovery-page">
@@ -71,26 +129,23 @@ const DiscoveryFeed = ({onSelectEvent}) => {
 
             <select 
               className="filter-select"
-              value={filters.eventType}
-              onChange={(e) => handleFilterChange('eventType', e.target.value)}
-            >
-              <option>Tip eveniment</option>
-              <option>Workshop</option>
-              <option>Concert</option>
-              <option>Sport</option>
-              <option>Social</option>
-            </select>
-
-            <select 
-              className="filter-select"
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
             >
               <option>Orice categorie</option>
-              <option>Concert</option>
-              <option>Workshopuri Tech</option>
-              <option>Sport în aer liber</option>
+              {dbCategories.map(cat => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
 
+            <select 
+              className="filter-select"
+              value={filters.price}
+              onChange={(e) => handleFilterChange('price', e.target.value)}
+            >
+              <option>Toate prețurile</option>
+              <option>Gratuite</option>
+              <option>Cu plată</option>
             </select>
           </div>
         </div>

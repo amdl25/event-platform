@@ -29,7 +29,13 @@ const Navbar = ({ user, handleLogout }) => {
           
           {user ? (
             <div className="user-menu">
-              <span>{user.firstName}</span>
+              <Link to="/profile" className="nav-profile-link">
+                <div className="nav-avatar-mini">
+                  {user.firstName[0].toUpperCase()}
+                </div>
+                <span className="nav-user-name">{user.firstName}</span>
+              </Link>
+
               <button className="btn-logout-header" onClick={handleLogout}>
                 Logout
               </button>

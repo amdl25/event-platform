@@ -1,0 +1,155 @@
+.profile-page {
+  background-color: #fdfaf5;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.profile-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 30px;
+}
+
+.profile-sidebar {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  text-align: center;
+  height: fit-content;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  background: #ff7f50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 auto 20px;
+}
+
+.profile-role {
+  background: #fff0eb;
+  color: #ff7f50;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 25px;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.profile-section {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.interests-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.interest-tag {
+  background: #f3f5f7;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
+.btn-edit-profile {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  margin-top: 20px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-edit-profile:hover {
+  background: #f8f9fa;
+}
+
+.interest-tag.active-tag {
+  background-color: #fff0eb;
+  color: #ff7f50;
+  border: 1px solid #ff7f50;
+  padding: 8px 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-view-all {
+  background: none;
+  border: none;
+  color: #ff7f50;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.empty-state-card {
+  border: 2px dashed #e9ecef;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-explore {
+  background: #1a1a1a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-interest-btn {
+  background: #f0f0f0;
+  border: 1px dashed #ccc;
+  padding: 8px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.add-interest-btn:hover {
+  background: #ff7f50;
+  color: white;
+  border-color: #ff7f50;
+}

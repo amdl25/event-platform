@@ -7,6 +7,7 @@ import EventDetailsPage from './pages/EventDetailsPage';
 import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
 import Onboarding from './components/Onboarding';
+import Profile from './pages/Profile';
 import './App.css';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
           <Route path="/event/:id" element={<EventDetailsPage />} />
+          <Route path="/profile" element={<Profile user={user} />} />
         </Routes>
       </main>
     </div>

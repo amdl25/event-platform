@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { Account } from '../models/relationships.js';
 
 export const register = async (req, res) => {
@@ -5,9 +6,12 @@ export const register = async (req, res) => {
   try {
     const { email, password, firstName, lastName, role, interests } = req.body;
 
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newUser = await Account.create({
       email,
-      password_hash: password,
+      password_hash: hashedPassword,
       first_name: firstName,
       last_name: lastName,
       role: role || 'user'
@@ -40,11 +44,13 @@ export const login = async (req, res) => {
     const user = await Account.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({ message: "Utilizatorul nu există!" });
+      return res.status(401).json({ message: "Email sau parolă incorectă" });
     }
 
-    if (user.password_hash !== password) {
-      return res.status(401).json({ message: "Parolă incorectă!" });
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Email sau parolă incorectă" });
     }
 
     res.status(200).json({
