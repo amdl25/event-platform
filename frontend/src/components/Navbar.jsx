@@ -12,10 +12,11 @@ const Navbar = ({ user, handleLogout }) => {
           </Link>
           
           <nav className="header-categories">
-            <span className="nav-link">Artă</span>
-            <span className="nav-link">Muzică</span>
-            <span className="nav-link">Tech</span>
-            <span className="nav-link">Sport</span>
+            <Link to="/category/Muzică" className="nav-link">Muzică</Link>
+            <Link to="/category/Artă" className="nav-link">Artă</Link>
+            <Link to="/category/Tech" className="nav-link">Tech</Link>
+            <Link to="/category/Sport" className="nav-link">Sport</Link>
+            <Link to="/category/Lifestyle" className="nav-link">Lifestyle</Link>
           </nav>
         </div>
 

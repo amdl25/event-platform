@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
 import Onboarding from './components/Onboarding';
 import Profile from './pages/Profile';
+import CategoryPage from './pages/CategoryPage';
 import './App.css';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
           <Route path="/event/:id" element={<EventDetailsPage />} />

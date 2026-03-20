@@ -2,10 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/EventCard.css';
 
-const EventCard = ({ event, variant = 'default' }) => {
+const EventCard = ({ event, variant = 'default', user}) => {
   const dateObj = new Date(event.start_date);
   const month = dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   const day = dateObj.getDate();
+
 
   if (variant === 'compact') {
     return (
@@ -26,10 +27,6 @@ const EventCard = ({ event, variant = 'default' }) => {
             {Number(event.price) > 0 && (
               <span className="price-badge-left">{Number(event.price).toFixed(2)} lei</span>
             )}
-            <div className="card-badges-icons">
-              <button className="icon-badge share-icon" onClick={(e) => e.preventDefault()}>↗</button>
-              <button className="icon-badge heart-badge" onClick={(e) => e.preventDefault()}>♡</button>
-            </div>
           </div>
 
           <div className="card-info">
