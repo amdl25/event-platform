@@ -3,23 +3,35 @@ import API from '../api';
 import EventCard from '../components/EventCard';
 import '../styles/DiscoveryFeed.css';
 
+const initialDiscoveryFilters = {
+    weekday: 'Oricând',
+    category: 'Toate',
+    price: 'Toate',
+};
+
 const DiscoveryFeed = ({onSelectEvent}) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dbCategories, setDbCategories] = useState([]);
+  const [filters, setFilters] = useState(initialDiscoveryFilters);
 
-  const [filters, setFilters] = useState({
-  weekday: 'Orice dată',
-  category: 'Orice categorie',
-  price: 'Toate prețurile',
-});
+  const resetFilters = () => {
+    setFilters(initialDiscoveryFilters);
+  };
+
+  const resetField = (fieldName) => {
+    setFilters(prev => ({
+        ...prev,
+        [fieldName]: initialDiscoveryFilters[fieldName]
+    }));
+  };
 
   useEffect(() => {
-  API.get('/categories')
-    .then(res => setDbCategories(res.data))
-    .catch(err => console.error("Eroare categorii:", err));
-}, []);
+    API.get('/categories')
+      .then(res => setDbCategories(res.data))
+      .catch(err => console.error("Eroare categorii:", err));
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -58,11 +70,11 @@ const DiscoveryFeed = ({onSelectEvent}) => {
 
   const filteredEvents = events.filter(event => {
   const matchCategory = 
-    filters.category === 'Orice categorie' || 
+    filters.category === 'Toate' || 
     event.categories?.some(cat => cat.name === filters.category);
 
   const matchDate = (() => {
-    if (filters.weekday === 'Orice dată') return true;
+    if (filters.weekday === 'Oricând') return true;
 
     const eventDate = new Date(event.start_date);
     const today = new Date();
@@ -99,7 +111,7 @@ const DiscoveryFeed = ({onSelectEvent}) => {
 
   const eventPrice = parseFloat(event.price);
   const matchPrice = 
-    filters.price === 'Toate prețurile' || 
+    filters.price === 'Toate' || 
     (filters.price === 'Gratuite' && eventPrice === 0) ||
     (filters.price === 'Cu plată' && eventPrice > 0);
 
@@ -115,38 +127,53 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
         <div className="container-max">
           <h2>Evenimente viitoare</h2>
           <div className="filters-row">
-            <select 
-              className="filter-select"
-              value={filters.weekday}
-              onChange={(e) => handleFilterChange('weekday', e.target.value)}
-            >
-              <option>Orice dată</option>
-              <option>Astăzi</option>
-              <option>Mâine</option>
-              <option>În weekend</option>
-              <option>Săptămâna viitoare</option>
-            </select>
+            <div className="input-with-clear">
+              <select 
+                className="filter-select"
+                value={filters.weekday}
+                onChange={(e) => handleFilterChange('weekday', e.target.value)}
+              >
+                <option>Orice dată</option>
+                <option>Astăzi</option>
+                <option>Mâine</option>
+                <option>În weekend</option>
+                <option>Săptămâna viitoare</option>
+              </select>
+              {filters.weekday !== 'Oricând' && (
+                <button className="clear-x-btn" onClick={() => resetField('weekday')}>×</button>
+              )}
+            </div>
 
-            <select 
-              className="filter-select"
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-            >
-              <option>Orice categorie</option>
-              {dbCategories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
+            <div className="input-with-clear">
+              <select 
+                className="filter-select"
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+              >
+                <option>Orice categorie</option>
+                {dbCategories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+              {filters.category !== 'Toate' && (
+                <button className="clear-x-btn" onClick={() => resetField('category')}>×</button>
+              )}
+            </div>
 
-            <select 
-              className="filter-select"
-              value={filters.price}
-              onChange={(e) => handleFilterChange('price', e.target.value)}
-            >
-              <option>Toate prețurile</option>
-              <option>Gratuite</option>
-              <option>Cu plată</option>
-            </select>
+            <div className="input-with-clear">
+              <select 
+                className="filter-select"
+                value={filters.price}
+                onChange={(e) => handleFilterChange('price', e.target.value)}
+              >
+                <option>Toate prețurile</option>
+                <option>Gratuite</option>
+                <option>Cu plată</option>
+              </select>
+              {filters.price !== 'Toate' && (
+                <button className="clear-x-btn" onClick={() => resetField('price')}>×</button>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -157,23 +184,35 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
           {error && <p className="error-text">{error}</p>}
 
           {!loading && publicEvents.length > 0 ? (
-            <div className="events-grid">
-              {publicEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="event-card-wrapper"
-                  onClick={() => onSelectEvent(event)}
-                >
-                  <EventCard event={event} variant="compact" />
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="events-grid">
+                {publicEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="event-card-wrapper"
+                    onClick={() => onSelectEvent(event)}
+                  >
+                    <EventCard event={event} variant="compact" />
+                  </div>
+                ))}
+              </div>
+              <div className="load-more-container">
+                <button className="btn-load-more">Vezi mai mult</button>
+              </div>
+            </>
           ) : (
-            !loading && <p className="no-events">Niciun eveniment disponibil</p>
+            !loading && !error && (
+              <div className="no-events-container">
+                <p className="no-events">Niciun eveniment disponibil</p>
+                <button 
+                  className="btn-reset-filters-discovery" 
+                  onClick={resetFilters}
+                >
+                  <span className="reset-icon">↺</span> Resetează filtrele
+                </button>
+              </div>
+            )
           )}
-          <div className="load-more-container">
-            <button className="btn-load-more">Vezi mai mult</button>
-          </div>
         </div>
       </section>
     </div>

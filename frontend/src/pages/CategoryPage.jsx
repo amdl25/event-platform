@@ -153,7 +153,7 @@ const CategoryPage = ({ user }) => {
             ))
           ) : (
             <div className="no-results-container">
-              <p>Niciun eveniment găsit pentru selecția ta.</p>
+              <p className="no-events">Niciun eveniment disponibil</p>
               {hasActiveFilters && (
               <button className="btn-reset-filters" onClick={resetAllFilters}>
                 <span className="reset-icon">↺</span> Resetează filtrele
