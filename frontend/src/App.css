@@ -2,6 +2,8 @@
   --primary: #FF7F50;
   --primary-gradient-end: #ff6347;
   --primary-dark: #ff6347;
+  --primary-light: #FFDAB9;
+  --primary-soft: rgba(255, 127, 80, 0.08);
   
   --light-bg: #FFF9F6;
   --neutral-100: #ffffff;
