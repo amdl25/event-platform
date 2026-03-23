@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from 'react';
+import API from '../api';
 import '../styles/Profile.css';
 
 const Profile = ({ user }) => {
@@ -7,16 +8,17 @@ const Profile = ({ user }) => {
     const [userInterests, setUserInterests] = useState([]);
 
     useEffect(() => {
-    const getMyData = async () => {
+    const fetchProfile = async () => {
         try {
-        const res = await API.get(`/auth/user/${user.id}`);
-        setUserInterests(res.data.Interests || []); 
+            const res = await API.get(`/users/${user.id}`); 
+            console.log("Datele primite:", res.data);
+            setUserInterests(res.data.interests || []);
         } catch (err) {
-        console.error("Eroare la încărcare interese:", err);
+            console.error(err);
         }
     };
-    if(user?.id) getMyData();
-    }, [user]);
+    if (user?.id) fetchProfile();
+}, [user]);
 
     return (
         <div className="profile-page">

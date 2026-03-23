@@ -6,6 +6,7 @@ import './models/relationships.js';
 import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,8 @@ app.use('/events', eventRoutes);
 console.log("Rutele de Auth sunt încărcate la /auth");
 app.use('/auth', authRoutes);
 app.use('/categories', categoryRoutes);
+app.use('/users', userRoutes);
+
 if (!process.env.CLOUDINARY_URL && !process.env.CLOUDINARY_CLOUD_NAME) {
   app.use('/uploads', express.static('uploads'));
 }

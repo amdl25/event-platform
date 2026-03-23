@@ -22,7 +22,7 @@ const Onboarding = ({ user, onFinish }) => {
   const handleFinalize = async () => {
     setLoading(true);
     try {
-      await API.post('/auth/set-interests', {
+      await API.post('/users/set-interests', {
         userId: user.id,
         interests: selectedInterests
       });
