@@ -39,7 +39,7 @@ const Navbar = ({ user, handleLogout }) => {
               to={user ? "/calendar" : "/login"} 
               className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`}
             >
-              <i className="fi fi-rr-calendar"></i> Agenda Mea
+              <i className="fi fi-rr-calendar"></i> Calendarul meu
             </Link>
 
             <span 

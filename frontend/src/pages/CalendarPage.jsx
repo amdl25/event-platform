@@ -10,7 +10,7 @@ const CalendarPage = ({ user, userEvents = [] }) => {
       <div className="container-max page-section-top">
         
         <header className="calendar-header">
-          <h1 className="calendar-title">Agenda Mea</h1>
+          <h1 className="calendar-title">Calendarul meu</h1>
           <p className="calendar-subtitle">Evenimentele la care participi sau pe care le organizezi.</p>
         </header>
 
@@ -26,7 +26,7 @@ const CalendarPage = ({ user, userEvents = [] }) => {
           <div className="promo-banner-social">
             <div className="promo-content">
               <div className="promo-badge">SFAT</div>
-              <h2>Agenda ta e liberă?</h2>
+              <h2>Calendarul tau e liber?</h2>
               <p>Invită-ți prietenii la o adunare rapidă și trimite-le link-ul de acces direct de aici.</p>
               <button className="btn-promo-create" onClick={() => navigate('/create-event')}>
                 <i className="fi fi-rr-plus-small"></i> Creează un eveniment privat

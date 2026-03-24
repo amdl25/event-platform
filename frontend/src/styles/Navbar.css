@@ -1,11 +1,19 @@
 .app-header {
   width: 100%;
-  background: var(--light-bg);
-  backdrop-filter: blur(15px);
+  
+  background: color-mix(in srgb, var(--light-bg), transparent 20%);
+  
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
   border-bottom: 1px solid var(--neutral-200);
+  
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: all 0.3s ease;
 }
 
 .header-content {
