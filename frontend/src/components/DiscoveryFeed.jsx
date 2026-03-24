@@ -9,7 +9,7 @@ const initialDiscoveryFilters = {
     price: 'Toate',
 };
 
-const DiscoveryFeed = ({onSelectEvent}) => {
+const DiscoveryFeed = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,11 +48,6 @@ const DiscoveryFeed = ({onSelectEvent}) => {
         }
 
         setEvents(data);
-
-        const featured = data.find(e => !!e.org_id);
-        if (featured && onSelectEvent) {
-          onSelectEvent(featured);
-        }
       })
       .catch((err) => {
         console.error("Eroare la încărcarea evenimentelor:", err);
@@ -62,7 +57,7 @@ const DiscoveryFeed = ({onSelectEvent}) => {
       .finally(() => {
         setLoading(false);
       });
-  }, [onSelectEvent]);
+  }, []);
 
   const handleFilterChange = (filterKey, value) => {
     setFilters(prev => ({ ...prev, [filterKey]: value }));
@@ -190,7 +185,6 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
                   <div
                     key={event.id}
                     className="event-card-wrapper"
-                    onClick={() => onSelectEvent(event)}
                   >
                     <EventCard event={event} variant="compact" />
                   </div>

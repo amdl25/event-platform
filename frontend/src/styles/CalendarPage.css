@@ -25,6 +25,22 @@
   margin: 0;
 }
 
+.calendar-events-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  padding-bottom: 60px;
+}
+
+.event-card-wrapper {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.event-card-wrapper:hover {
+  transform: translateY(-4px);
+}
+
 .promo-banner-social {
   background-color: #f0f9f4; 
   border: 1px solid rgba(0, 138, 82, 0.08);
@@ -36,6 +52,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  margin-bottom: 28px;
 }
 
 .promo-badge {
@@ -96,5 +113,86 @@
 @media (max-width: 768px) {
   .btn-promo-create {
     margin: 0 auto;
+  }
+}
+
+.calendar-public-section {
+  margin-bottom: 70px;
+}
+
+.calendar-public-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.calendar-public-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.btn-explore-public {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.btn-explore-public:hover {
+  opacity: 0.8;
+}
+
+.calendar-public-loading,
+.calendar-public-empty {
+  color: #666;
+  font-size: 0.98rem;
+  margin: 0;
+  padding: 18px 0;
+}
+
+@media (max-width: 1200px) {
+  .calendar-events-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .calendar-events-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .promo-banner-social {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 30px 24px;
+  }
+
+  .promo-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .promo-content p {
+    font-size: 0.98rem;
+    margin-bottom: 20px;
+  }
+
+  .calendar-public-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .calendar-events-grid {
+    grid-template-columns: 1fr;
   }
 }

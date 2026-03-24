@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/Hero.css';
 import heroImage from '../../public/hero-image.jpg';
-import { Link } from 'react-router-dom';
+import RecommendationWizard from './RecommendationWizard';
 
-const Hero = ({ featuredEvent }) => {
+const Hero = () => {
+  const [showWizard, setShowWizard] = useState(false);
+
   return (
     <section className="hero-featured">
       <div className="hero-image">
@@ -12,41 +14,21 @@ const Hero = ({ featuredEvent }) => {
           Trăiește experiența.<br />
           <span className="highlight">Descoperă. Participă. Câștigă.</span>
         </h1>
+        
+        <button 
+          className="btn-recommendation"
+          onClick={() => setShowWizard(true)}
+        >
+          <span className="btn-icon">✨</span>
+          <div className="btn-text">
+            <p className="btn-label">Vrei să faci ceva?</p>
+            <p className="btn-action">Recomandă-mi</p>
+          </div>
+        </button>
       </div>
 
-      {featuredEvent && (
-        <div className="featured-card">
-          <div className="featured-header">
-            <span className="featured-label">Eveniment recomandat</span>
-          </div>
-
-          <h3 className="featured-title">{featuredEvent.title}</h3>
-          <p className="featured-org">
-            {featuredEvent.organization?.name || 'Unknown Organization'}
-          </p>
-
-          <div className="featured-details">
-            <div className="detail-item">
-              <p className="detail-label">Dată și oră</p>
-              <p className="detail-value">
-                {new Date(featuredEvent.start_date).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div className="featured-actions">
-            <Link to={`/event/${featuredEvent.id}`} className="btn-book">
-                Rezervă acum
-            </Link>
-            <button className="btn-add-calendar">+ Adaugă în calendar</button>
-          </div>
-        </div>
+      {showWizard && (
+        <RecommendationWizard isOpen={showWizard} onClose={() => setShowWizard(false)} />
       )}
     </section>
   );

@@ -34,6 +34,21 @@ const Onboarding = ({ user, onFinish }) => {
     }
   };
 
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      await API.post('/users/set-interests', {
+        userId: user.id,
+        interests: []
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      onFinish();
+    }
+  };
+
     return (
         <div className="onboarding-full-page">
             <div className="onboarding-content">
@@ -67,8 +82,8 @@ const Onboarding = ({ user, onFinish }) => {
                     {loading ? 'Se salvează...' : 'Finalizează Profilul'}
                     </button>
                     
-                    <button className="btn-skip-full" onClick={onFinish}>
-                    Voi alege mai târziu
+                    <button className="btn-skip-full" onClick={handleSkip} disabled={loading}>
+                    Skip
                     </button>
                 </div>
             </div>

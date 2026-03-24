@@ -4,7 +4,7 @@ import { Account } from '../models/relationships.js';
 export const register = async (req, res) => {
     console.log("Am primit o cerere de register:", req.body);
   try {
-    const { email, password, firstName, lastName, role, interests } = req.body;
+    const { email, password, firstName, lastName, role } = req.body;
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -16,10 +16,6 @@ export const register = async (req, res) => {
       last_name: lastName,
       role: role || 'user'
     });
-
-    if (role === 'user' && interests && interests.length > 0) {
-      await newUser.setInterests(interests);
-    }
 
     res.status(201).json({
       id: newUser.id,
@@ -65,24 +61,5 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error("Eroare la login:", error);
     res.status(500).json({ message: "Eroare internă de server" });
-  }
-};
-
-export const setInterests = async (req, res) => {
-  try {
-    const { userId, interests } = req.body;
-
-    const user = await Account.findByPk(userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: "Utilizatorul nu a fost găsit." });
-    }
-
-    await user.setInterests(interests);
-
-    res.status(200).json({ message: "Interesele au fost salvate cu succes!" });
-  } catch (error) {
-    console.error("Eroare la setInterests:", error);
-    res.status(500).json({ message: "Eroate internă de server." });
   }
 };

@@ -1,26 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { ro } from 'date-fns/locale/ro';
+import {
+  FaMusic,
+  FaPalette,
+  FaMicrochip,
+  FaDumbbell,
+  FaLeaf,
+  FaFilm,
+  FaBookOpen,
+  FaBriefcase,
+  FaHeartPulse,
+  FaUtensils,
+  FaGlobe,
+  FaCompass
+} from 'react-icons/fa6';
 import API from '../api';
 import EventCard from '../components/EventCard';
 import '../styles/ExplorePage.css';
 
+registerLocale('ro', ro);
+
+const initialFilters = {
+  city: 'Toate orașele',
+  selectedDate: null,
+  type: 'Toate'
+};
+
 const ExplorePage = () => {
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
+  const [citySearch, setCitySearch] = useState('');
   const [allEvents, setAllEvents] = useState([]);
+  const [filters, setFilters] = useState(initialFilters);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const getVisuals = (name) => {
+    const normalizedName = name?.toLowerCase()?.trim();
+
     const map = {
-      'Tech': { icon: 'fi-rr-laptop', color: '#fff9db' },
-      'Muzică': { icon: 'fi-rr-music', color: '#e3f2fd' },
-      'Artă': { icon: 'fi-rr-paint-brush', color: '#f3e5f5' },
-      'Lifestyle': { icon: 'fi-rr-leaf', color: '#e8f5e9' },
-      'Sport': { icon: 'fi-rr-gym', color: '#fff3e0' }
+      'muzică': FaMusic,
+      'muzica': FaMusic,
+      'artă': FaPalette,
+      'arta': FaPalette,
+      'tech': FaMicrochip,
+      'tehnologie': FaMicrochip,
+      'sport': FaDumbbell,
+      'lifestyle': FaLeaf,
+      'film': FaFilm,
+      'cinema': FaFilm,
+      'educație': FaBookOpen,
+      'educatie': FaBookOpen,
+      'business': FaBriefcase,
+      'sănătate': FaHeartPulse,
+      'sanatate': FaHeartPulse,
+      'food': FaUtensils,
+      'culinar': FaUtensils,
+      'travel': FaGlobe,
+      'călătorii': FaGlobe,
+      'calatorii': FaGlobe
     };
-    return map[name] || { icon: 'fi-rr-star', color: '#f4f4f7' };
+
+    return map[normalizedName] || FaCompass;
   };
 
   useEffect(() => {
@@ -47,6 +92,53 @@ const ExplorePage = () => {
     fetchData();
   }, []);
 
+  const normalizedSearch = citySearch.trim().toLowerCase();
+  const filteredCities = cities.filter((city) => city.toLowerCase().includes(normalizedSearch));
+  const availableCities = [...new Set(allEvents.map((event) => {
+    const parts = event.location?.split(',') || [];
+    return parts[parts.length - 1]?.trim();
+  }))].filter(Boolean);
+
+  const filteredEvents = allEvents.filter((event) => {
+    const eventCity = event.location?.split(',')?.pop()?.trim();
+    const matchCity = filters.city === 'Toate orașele' || eventCity === filters.city;
+
+    let matchDate = true;
+    if (filters.selectedDate) {
+      const eventDate = new Date(event.start_date).toDateString();
+      const selectedDate = filters.selectedDate.toDateString();
+      matchDate = eventDate === selectedDate;
+    }
+
+    const isFree = parseFloat(event.price) === 0;
+    const matchType = filters.type === 'Toate' ||
+      (filters.type === 'Gratuite' && isFree) ||
+      (filters.type === 'Cu plată' && !isFree);
+
+    return matchCity && matchDate && matchType;
+  });
+
+  const hasActiveFilters =
+    filters.city !== 'Toate orașele' ||
+    filters.selectedDate !== null ||
+    filters.type !== 'Toate';
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetField = (field) => {
+    setFilters((prev) => ({ ...prev, [field]: initialFilters[field] }));
+  };
+
+  const resetAllFilters = () => {
+    setFilters(initialFilters);
+  };
+
+  const handleCitySelect = (city) => {
+    navigate(`/category/${city}`);
+  };
+
   if (loading) return <div className="explore-loader">Se încarcă...</div>;
 
   return (
@@ -61,7 +153,7 @@ const ExplorePage = () => {
         <section className="explore-section">
           <div className="section-header-row">
             <h2 className="section-label">
-              {showAll ? "Toate Evenimentele" : "Categorii"}
+              {showAll ? "": "Categorii"}
             </h2>
             <button className="btn-browse-all" onClick={() => setShowAll(!showAll)}>
                 {showAll ? (
@@ -73,23 +165,92 @@ const ExplorePage = () => {
           </div>
 
           {showAll ? (
-            <div className="category-grid"> 
-              {allEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  variant="compact" 
-                />
-              ))}
+            <div className="explore-all-events-wrap">
+              <div className="explore-filters-bar">
+                <div className="filter-item">
+                  <label>Oraș</label>
+                  <div className="input-with-clear">
+                    <select
+                      value={filters.city}
+                      onChange={(e) => handleFilterChange('city', e.target.value)}
+                    >
+                      <option>Toate orașele</option>
+                      {availableCities.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                    {filters.city !== 'Toate orașele' && (
+                      <button className="clear-x-btn" onClick={() => resetField('city')}>×</button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="filter-item">
+                  <label>Când</label>
+                  <div className="input-with-clear">
+                    <DatePicker
+                      selected={filters.selectedDate}
+                      onChange={(date) => handleFilterChange('selectedDate', date)}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="Selectează data"
+                      locale="ro"
+                      className="filter-select"
+                    />
+                    {filters.selectedDate !== null && (
+                      <button className="clear-x-btn" onClick={() => resetField('selectedDate')}>×</button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="filter-item">
+                  <label>Acces</label>
+                  <div className="input-with-clear">
+                    <select
+                      value={filters.type}
+                      onChange={(e) => handleFilterChange('type', e.target.value)}
+                    >
+                      <option value="Toate">Oricare</option>
+                      <option value="Gratuite">Gratuite</option>
+                      <option value="Cu plată">Cu plată</option>
+                    </select>
+                    {filters.type !== 'Toate' && (
+                      <button className="clear-x-btn" onClick={() => resetField('type')}>×</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <p className="results-count">
+                {filteredEvents.length} {filteredEvents.length === 1 ? 'eveniment găsit' : 'evenimente găsite'}
+              </p>
+
+              <div className="explore-events-grid">
+                {filteredEvents.length > 0 ? (
+                  filteredEvents.map((event) => (
+                    <div key={event.id} className="event-card-wrapper">
+                      <EventCard event={event} variant="compact" />
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-results-container">
+                    <p className="no-events">Niciun eveniment disponibil</p>
+                    {hasActiveFilters && (
+                      <button className="btn-reset-filters" onClick={resetAllFilters}>
+                        <span className="reset-icon">↺</span> Resetează filtrele
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="category-grid">
               {categories.map((cat) => {
-                const visual = getVisuals(cat.name);
+                const CategoryIcon = getVisuals(cat.name);
                 return (
                   <div key={cat.id} className="category-card" onClick={() => navigate(`/category/${cat.name}`)}>
-                    <div className="cat-card-icon" style={{ backgroundColor: visual.color }}>
-                      <i className={`fi ${visual.icon}`}></i>
+                    <div className="cat-card-icon">
+                      <CategoryIcon />
                     </div>
                     <div className="cat-card-info">
                       <h3>{cat.name}</h3>
@@ -104,13 +265,36 @@ const ExplorePage = () => {
 
         {!showAll && (
           <section className="explore-section">
-            <h2 className="section-label">Orașe active</h2>
-            <div className="city-quick-links">
-              {cities.map(city => (
-                <button key={city} className="city-tag" onClick={() => navigate(`/category/${city}`)}>
-                  {city}
-                </button>
-              ))}
+            <h2 className="section-label">Orașe</h2>
+            <div className="cities-browser">
+              <div className="city-search-dropdown-wrapper">
+                <div className="city-search-box">
+                  <i className="fi fi-rr-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Caută un oraș..."
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="city-dropdown">
+                  {filteredCities.length > 0 ? (
+                    filteredCities.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        className="city-dropdown-item"
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        {city}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="city-empty-state">Nu am găsit orașe pentru căutarea ta.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
         )}

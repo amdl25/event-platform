@@ -7,7 +7,6 @@ import '../styles/Profile.css';
 
 const Profile = ({ user }) => {
     const navigate = useNavigate();
-    const [userInterests, setUserInterests] = useState([]);
     const [myEvents, setMyEvents] = useState([]); 
     const [activeTab, setActiveTab] = useState('tickets'); 
     
@@ -19,12 +18,7 @@ const Profile = ({ user }) => {
         const fetchProfileData = async () => {
             if (!user?.id) return;
             try {
-                const [userRes, eventsRes] = await Promise.all([
-                    API.get(`/users/${user.id}`),
-                    API.get('/events')
-                ]);
-                
-                setUserInterests(userRes.data.Interests || userRes.data.interests || []);
+                const eventsRes = await API.get('/events');
                 
                 const hosted = eventsRes.data.filter(event => event.user_id === user.id);
                 setMyEvents(hosted);
@@ -41,17 +35,6 @@ const Profile = ({ user }) => {
     const handleViewTicket = (ticketData) => {
         setSelectedTicket(ticketData);
         setIsModalOpen(true);
-    };
-
-    const handleRemoveInterest = async (interestId) => {
-        const backupInterests = [...userInterests];
-        setUserInterests(userInterests.filter(i => i.id !== interestId));
-        try {
-            await API.delete(`/users/${user.id}/interests/${interestId}`);
-        } catch (err) {
-            console.error("Eroare la ștergerea interesului:", err);
-            setUserInterests(backupInterests);
-        }
     };
 
     if (!user || loading) {
@@ -94,12 +77,6 @@ const Profile = ({ user }) => {
                         onClick={() => setActiveTab('hosted')}
                     >
                         Evenimentele tale
-                    </button>
-                    <button 
-                        className={activeTab === 'explore' ? 'active' : ''} 
-                        onClick={() => setActiveTab('explore')}
-                    >
-                        Interese
                     </button>
                 </nav>
 
@@ -145,27 +122,6 @@ const Profile = ({ user }) => {
                         </div>
                     )}
 
-                    {activeTab === 'explore' && (
-                        <div className="tab-content explore-tab tab-fade-in">
-                            <div className="content-header">
-                                <h2 className="section-title">Algoritmul tău</h2>
-                                <p className="section-subtitle">Ajustează preferințele pentru recomandări personalizate.</p>
-                            </div>
-                            <div className="pill-grid">
-                                {userInterests.length > 0 ? (
-                                    userInterests.map(cat => (
-                                        <div key={cat.id} className="pill-item animate-in">
-                                            {cat.name}
-                                            <button className="pill-remove" onClick={() => handleRemoveInterest(cat.id)}>×</button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="empty-interests-text">Nu ai selectat interese.</p>
-                                )}
-                                <button className="pill-add" onClick={() => navigate('/onboarding?mode=edit')}>+ Adaugă</button>
-                            </div>
-                        </div>
-                    )}
                 </main>
             </div>
 

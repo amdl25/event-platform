@@ -64,6 +64,65 @@
   opacity: 0.9;
 }
 
+.btn-recommendation {
+  position: absolute;
+  right: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 24px 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 2px solid rgba(255, 127, 80, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  max-width: 320px;
+  width: 90%;
+  z-index: 10;
+}
+
+.btn-recommendation:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--primary);
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+}
+
+.btn-icon {
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.btn-label {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-action {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+}
+
 .featured-card {
   position: absolute;
   right: 64px;
@@ -164,4 +223,59 @@
 .btn-add-calendar:hover {
   color: var(--primary);
   text-decoration: underline;
+}
+
+@media (max-width: 1200px) {
+  .btn-recommendation {
+    right: 24px;
+    max-width: 280px;
+    padding: 20px 24px;
+  }
+
+  .hero-title {
+    font-size: 3.2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .btn-recommendation {
+    position: static;
+    transform: none;
+    margin-top: 30px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    left: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .btn-recommendation {
+    padding: 16px 20px;
+    gap: 12px;
+    max-width: none;
+  }
+
+  .btn-icon {
+    font-size: 1.5rem;
+  }
+
+  .btn-label {
+    font-size: 0.7rem;
+  }
+
+  .btn-action {
+    font-size: 1rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-title .highlight {
+    font-size: 0.75rem;
+  }
 }

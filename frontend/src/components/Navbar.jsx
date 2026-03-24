@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/Navbar.css';
 
 const Navbar = ({ user, handleLogout }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && searchTerm.trim() !== "") {
@@ -19,6 +20,11 @@ const Navbar = ({ user, handleLogout }) => {
     } else {
       navigate('/login');
     }
+  };
+
+  const onLogoutClick = () => {
+    handleLogout();
+    navigate('/');
   };
 
   return (
@@ -79,8 +85,8 @@ const Navbar = ({ user, handleLogout }) => {
                 <span className="nav-user-name">{user.firstName}</span>
               </Link>
 
-              <button className="btn-icon-logout" onClick={handleLogout} title="Deconectare">
-                <i className="fi fi-rr-exit"></i>
+              <button className="btn-logout-visible" onClick={onLogoutClick} title="Deconectare">
+                Logout
               </button>
             </div>
           ) : (
