@@ -1,6 +1,5 @@
 .category-page {
   width: 100%;
-  background: #fff;
   min-height: 100vh;
 }
 
@@ -12,7 +11,6 @@
 
 .category-header {
   padding: 20px 0 30px 0;
-  background: white;
 }
 
 

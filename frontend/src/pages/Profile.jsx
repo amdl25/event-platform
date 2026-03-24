@@ -2,47 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRCode from "react-qr-code";
 import API from '../api';
+import EventCard from '../components/EventCard'; 
 import '../styles/Profile.css';
 
 const Profile = ({ user }) => {
     const navigate = useNavigate();
     const [userInterests, setUserInterests] = useState([]);
+    const [myEvents, setMyEvents] = useState([]); 
     const [activeTab, setActiveTab] = useState('tickets'); 
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
-
-    const [isCreatingEvent, setIsCreatingEvent] = useState(false);
-    const [eventData, setEventData] = useState({
-        title: '',
-        date: '',
-        time: '',
-        location: '',
-        description: '',
-        isPrivate: true
-    });
-
-    const openEventCreator = () => {
-        document.body.style.overflow = 'hidden';
-        setIsCreatingEvent(true);
-    };
-
-    const closeEventCreator = () => {
-        document.body.style.overflow = 'auto';
-        setIsCreatingEvent(false);
-    };
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchProfileData = async () => {
             if (!user?.id) return;
             try {
-                const res = await API.get(`/users/${user.id}`);
-                setUserInterests(res.data.Interests || res.data.interests || []);
+                const [userRes, eventsRes] = await Promise.all([
+                    API.get(`/users/${user.id}`),
+                    API.get('/events')
+                ]);
+                
+                setUserInterests(userRes.data.Interests || userRes.data.interests || []);
+                
+                const hosted = eventsRes.data.filter(event => event.user_id === user.id);
+                setMyEvents(hosted);
+                
             } catch (err) {
-                console.error("Eroare la încărcarea profilului:", err);
+                console.error("Eroare la încărcarea datelor de profil:", err);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchProfile();
+        fetchProfileData();
     }, [user]);
 
     const handleViewTicket = (ticketData) => {
@@ -56,12 +49,12 @@ const Profile = ({ user }) => {
         try {
             await API.delete(`/users/${user.id}/interests/${interestId}`);
         } catch (err) {
-            console.error("Eroare la ștergere:", err);
+            console.error("Eroare la ștergerea interesului:", err);
             setUserInterests(backupInterests);
         }
     };
 
-    if (!user) {
+    if (!user || loading) {
         return <div className="profile-loader">Se încarcă profilul...</div>;
     }
 
@@ -79,16 +72,35 @@ const Profile = ({ user }) => {
                             <p>{user?.email} • {user?.role === 'organizer' ? 'Organizator' : 'Participant'}</p>
                         </div>
                     </div>
-                    <button className="edit-profile-link" onClick={() => navigate('/settings')}>
-                        Setări cont
-                    </button>
+                    <div className="profile-actions">
+                        <button className="btn-create-event-header" onClick={() => navigate('/create-event')}>
+                            + Creează Eveniment
+                        </button>
+                        <button className="btn-settings-header" onClick={() => navigate('/settings')}>
+                            Setări
+                        </button>
+                    </div>
                 </header>
 
                 <nav className="profile-nav-tabs">
-                    <button className={activeTab === 'tickets' ? 'active' : ''} onClick={() => setActiveTab('tickets')}>Biletele mele</button>
-                    <button className={activeTab === 'calendar' ? 'active' : ''} onClick={() => setActiveTab('calendar')}>Programul tău</button>
-                    <button className={activeTab === 'social' ? 'active' : ''} onClick={() => setActiveTab('social')}>Social</button>
-                    <button className={activeTab === 'explore' ? 'active' : ''} onClick={() => setActiveTab('explore')}>Configurare Flux</button>
+                    <button 
+                        className={activeTab === 'tickets' ? 'active' : ''} 
+                        onClick={() => setActiveTab('tickets')}
+                    >
+                        Biletele mele
+                    </button>
+                    <button 
+                        className={activeTab === 'hosted' ? 'active' : ''} 
+                        onClick={() => setActiveTab('hosted')}
+                    >
+                        Evenimentele tale
+                    </button>
+                    <button 
+                        className={activeTab === 'explore' ? 'active' : ''} 
+                        onClick={() => setActiveTab('explore')}
+                    >
+                        Interese
+                    </button>
                 </nav>
 
                 <main className="profile-main-content">
@@ -105,39 +117,31 @@ const Profile = ({ user }) => {
                                             <p>📍 Grădina Botanică, Cluj-Napoca</p>
                                         </div>
                                     </div>
-                                    <button className="btn-qr-trigger" onClick={() => handleViewTicket({ id: "EVENT-123-ABC", name: "Jazz in the Garden" })}>
+                                    <button className="btn-qr-trigger" onClick={() => handleViewTicket({ id: "TICKET-777-XYZ", name: "Jazz in the Garden" })}>
                                         <i className="fi fi-rr-qrcode"></i> Vezi Bilet
                                     </button>
                                 </div>
-                                <div className="empty-state-card">
-                                    <p>Nu ai alte bilete momentan.</p>
-                                    <button className="btn-primary" onClick={() => navigate('/')}>Găsește evenimente</button>
-                                </div>
                             </div>
                         </div>
                     )}
 
-                    {activeTab === 'calendar' && (
+                    {activeTab === 'hosted' && (
                         <div className="tab-content tab-fade-in">
-                            <h2 className="section-title">Agenda ta socială</h2>
-                            <div className="calendar-placeholder">
-                                <p>Evenimentele tale vor apărea aici într-un timeline cronologic.</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'social' && (
-                        <div className="tab-content social-tab tab-fade-in">
-                            <div className="banner-card">
-                                <div className="banner-info">
-                                    <h2>Creează un eveniment privat</h2>
-                                    <p>Invită-ți prietenii la o adunare rapidă și trimite-le link-ul de acces direct din agenda ta.</p>
-                                    <button className="btn-accent" onClick={openEventCreator}>
-                                        + Creează eveniment
+                            <h2 className="section-title">Evenimente Organizate</h2>
+                            {myEvents.length > 0 ? (
+                                <div className="category-grid"> 
+                                    {myEvents.map(event => (
+                                        <EventCard key={event.id} event={event} variant="compact" />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="empty-state-card">
+                                    <p className="empty-state-text">Nu ai organizat niciun eveniment încă.</p>
+                                    <button className="btn-primary" onClick={() => navigate('/create-event')}>
+                                        Creează primul eveniment
                                     </button>
                                 </div>
-                                <div className="banner-icon"><i className="fi fi-rr-users"></i></div>
-                            </div>
+                            )}
                         </div>
                     )}
 
@@ -148,71 +152,22 @@ const Profile = ({ user }) => {
                                 <p className="section-subtitle">Ajustează preferințele pentru recomandări personalizate.</p>
                             </div>
                             <div className="pill-grid">
-                                {userInterests.map(cat => (
-                                    <div key={cat.id} className="pill-item animate-in">
-                                        {cat.name}
-                                        <button className="pill-remove" onClick={() => handleRemoveInterest(cat.id)}>×</button>
-                                    </div>
-                                ))}
-                                <button className="pill-add" onClick={() => navigate('/onboarding?mode=edit')}>+ Adaugă pasiuni</button>
+                                {userInterests.length > 0 ? (
+                                    userInterests.map(cat => (
+                                        <div key={cat.id} className="pill-item animate-in">
+                                            {cat.name}
+                                            <button className="pill-remove" onClick={() => handleRemoveInterest(cat.id)}>×</button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="empty-interests-text">Nu ai selectat interese.</p>
+                                )}
+                                <button className="pill-add" onClick={() => navigate('/onboarding?mode=edit')}>+ Adaugă</button>
                             </div>
                         </div>
                     )}
                 </main>
             </div>
-
-            {isCreatingEvent && (
-                <div className="event-overlay">
-                    <div className="event-modal">
-                        <button className="btn-close-overlay" onClick={closeEventCreator}>×</button>
-                        
-                        <div className="event-grid">
-                            <div className="event-visual">
-                                <div className="cover-placeholder">
-                                    <i className="fi fi-rr-picture"></i>
-                                    <p>Apasă pentru a adăuga un cover</p>
-                                </div>
-                            </div>
-
-                            <div className="event-inputs">
-                                <input 
-                                    type="text" 
-                                    placeholder="Numele evenimentului" 
-                                    className="input-title"
-                                    onChange={(e) => setEventData({...eventData, title: e.target.value})}
-                                />
-                                
-                                <div className="input-row">
-                                    <div className="input-group">
-                                        <label>Când?</label>
-                                        <input type="date" onChange={(e) => setEventData({...eventData, date: e.target.value})} />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>La ce oră?</label>
-                                        <input type="time" onChange={(e) => setEventData({...eventData, time: e.target.value})} />
-                                    </div>
-                                </div>
-
-                                <div className="input-group">
-                                    <label>Unde?</label>
-                                    <input type="text" placeholder="Locație sau link video" />
-                                </div>
-
-                                <div className="input-group">
-                                    <label>Descriere</label>
-                                    <textarea placeholder="Scrie câteva detalii..." rows="4"></textarea>
-                                </div>
-
-                                <div className="event-actions">
-                                    <button className="btn-submit-event" onClick={() => alert("Eveniment simulat!")}>
-                                        Creează Eveniment
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {isModalOpen && (
                 <div className="qr-modal-overlay" onClick={() => setIsModalOpen(false)}>
