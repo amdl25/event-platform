@@ -13,32 +13,56 @@ const Navbar = ({ user, handleLogout }) => {
     }
   };
 
+  const handleCreateClick = () => {
+    if (user) {
+      navigate('/create-event');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <header className="app-header">
-      <div className="header-content">
+      <div className=" container-max header-content">
+        
         <div className="nav-left">
           <Link to="/" className="navbar-logo-link">
             <h1 className="logo">Event<span>Hub</span></h1>
           </Link>
           
-          <nav className="header-categories">
-            <Link to="/category/Muzică" className="nav-link">Muzică</Link>
-            <Link to="/category/Artă" className="nav-link">Artă</Link>
-            <Link to="/category/Tech" className="nav-link">Tech</Link>
-            <Link to="/category/Sport" className="nav-link">Sport</Link>
-            <Link to="/category/Lifestyle" className="nav-link">Lifestyle</Link>
+          <nav className="header-main-nav">
+            <Link to="/explore" className={`nav-link ${location.pathname === '/explore' ? 'active' : ''}`}>
+              <i className="fi fi-rr-search"></i> Explorează
+            </Link>
+            
+            <Link 
+              to={user ? "/calendar" : "/login"} 
+              className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`}
+            >
+              <i className="fi fi-rr-calendar"></i> Agenda Mea
+            </Link>
+
+            <span 
+              className={`nav-link nav-create-link ${location.pathname === '/create' ? 'active' : ''}`}
+              onClick={handleCreateClick}
+            >
+              <i className="fi fi-rr-plus-small"></i>
+              Creează
+            </span>
+
           </nav>
         </div>
 
         <div className="header-actions">
+          
           <div className="search-container">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="search-svg">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
             <input 
               type="text" 
-              placeholder="Caută evenimente..." 
+              placeholder="Caută..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -55,19 +79,19 @@ const Navbar = ({ user, handleLogout }) => {
                 <span className="nav-user-name">{user.firstName}</span>
               </Link>
 
-              <button className="btn-logout-header" onClick={handleLogout}>
-                Logout
+              <button className="btn-icon-logout" onClick={handleLogout} title="Deconectare">
+                <i className="fi fi-rr-exit"></i>
               </button>
             </div>
           ) : (
-            <>
-              <Link to="/login" className="btn-login-header">
-                Autentificare
+            <div className="auth-group">
+              <Link to="/login" className="btn-auth-text">
+                Intră în cont
               </Link>
-              <Link to="/register" className="btn-login-header btn-signup">
-                Cont nou
+              <Link to="/register" className="btn-auth-solid">
+                Înregistrare
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>

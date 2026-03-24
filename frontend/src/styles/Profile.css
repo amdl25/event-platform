@@ -258,8 +258,200 @@
     border-radius: 6px;
 }
 
-.tab-fade-in { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.tab-fade-in { 
+    animation: fadeIn 0.3s ease; 
 
-.empty-state-card { text-align: center; padding: 40px; color: var(--neutral-600); }
-.btn-primary { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 15px; }
+}
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.empty-state-card { 
+    text-align: center; 
+    padding: 40px; 
+    color: var(--neutral-600); 
+}
+.btn-primary { 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 12px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    margin-top: 15px; 
+}
+
+.event-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 9999;
+    overflow-y: auto;
+    padding: 80px 20px;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.event-modal {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.btn-close-overlay {
+    position: fixed;
+    top: 30px;
+    right: 40px;
+    background: #f1f1f1;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #555;
+    z-index: 10000;
+}
+
+.btn-close-overlay:hover {
+    background: #e0e0e0;
+    transform: scale(1.1);
+}
+
+.event-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    align-items: start;
+}
+
+.event-visual .cover-placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1.2;
+    background: #f9f9f9;
+    border: 2px dashed #e0e0e0;
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.event-visual .cover-placeholder:hover {
+    border-color: var(--primary);
+    background: #fffafa;
+    color: var(--primary);
+}
+
+.event-visual .cover-placeholder i {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.input-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    border: none;
+    outline: none;
+    width: 100%;
+    margin-bottom: 40px;
+    color: #1a1a1a;
+    letter-spacing: -2px;
+}
+
+.input-title::placeholder {
+    color: #e0e0e0;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-group {
+    margin-bottom: 35px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.input-group input, 
+.input-group textarea {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1.5px solid #eee;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    outline: none;
+    background: transparent;
+    transition: 0.3s;
+}
+
+.input-group input:focus, 
+.input-group textarea:focus {
+    border-color: #111;
+}
+
+.event-actions {
+    margin-top: 20px;
+}
+
+.btn-submit-event {
+    background: #028a57;
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(2, 138, 87, 0.2);
+}
+
+.btn-submit-event:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(2, 138, 87, 0.3);
+    background: #027a4d;
+}
+
+@media (max-width: 768px) {
+    .event-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    .input-title {
+        font-size: 2.2rem;
+    }
+    .event-overlay {
+        padding: 40px 15px;
+    }
+}

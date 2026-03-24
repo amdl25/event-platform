@@ -10,6 +10,9 @@ import Onboarding from './components/Onboarding';
 import Profile from './pages/Profile';
 import CategoryPage from './pages/CategoryPage';
 import SearchResults from './pages/SearchResults';
+import ExplorePage from './pages/ExplorePage';
+import CreatePersonalEvent from './pages/CreatePersonalEvent';
+import CalendarPage from './pages/CalendarPage';
 import './App.css';
 
 function App() {
@@ -52,6 +55,9 @@ function App() {
           <Route path="/event/:id" element={<EventDetailsPage />} />
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/search" element={<SearchResults />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
+          <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
         </Routes>
       </main>
     </div>

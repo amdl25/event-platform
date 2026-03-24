@@ -12,6 +12,26 @@ const Profile = ({ user }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
 
+    const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+    const [eventData, setEventData] = useState({
+        title: '',
+        date: '',
+        time: '',
+        location: '',
+        description: '',
+        isPrivate: true
+    });
+
+    const openEventCreator = () => {
+        document.body.style.overflow = 'hidden';
+        setIsCreatingEvent(true);
+    };
+
+    const closeEventCreator = () => {
+        document.body.style.overflow = 'auto';
+        setIsCreatingEvent(false);
+    };
+
     useEffect(() => {
         const fetchProfile = async () => {
             if (!user?.id) return;
@@ -28,6 +48,17 @@ const Profile = ({ user }) => {
     const handleViewTicket = (ticketData) => {
         setSelectedTicket(ticketData);
         setIsModalOpen(true);
+    };
+
+    const handleRemoveInterest = async (interestId) => {
+        const backupInterests = [...userInterests];
+        setUserInterests(userInterests.filter(i => i.id !== interestId));
+        try {
+            await API.delete(`/users/${user.id}/interests/${interestId}`);
+        } catch (err) {
+            console.error("Eroare la ștergere:", err);
+            setUserInterests(backupInterests);
+        }
     };
 
     if (!user) {
@@ -54,18 +85,10 @@ const Profile = ({ user }) => {
                 </header>
 
                 <nav className="profile-nav-tabs">
-                    <button className={activeTab === 'tickets' ? 'active' : ''} onClick={() => setActiveTab('tickets')}>
-                        Biletele mele
-                    </button>
-                    <button className={activeTab === 'calendar' ? 'active' : ''} onClick={() => setActiveTab('calendar')}>
-                        Programul tău
-                    </button>
-                    <button className={activeTab === 'social' ? 'active' : ''} onClick={() => setActiveTab('social')}>
-                        Social
-                    </button>
-                    <button className={activeTab === 'explore' ? 'active' : ''} onClick={() => setActiveTab('explore')}>
-                        Configurare Flux
-                    </button>
+                    <button className={activeTab === 'tickets' ? 'active' : ''} onClick={() => setActiveTab('tickets')}>Biletele mele</button>
+                    <button className={activeTab === 'calendar' ? 'active' : ''} onClick={() => setActiveTab('calendar')}>Programul tău</button>
+                    <button className={activeTab === 'social' ? 'active' : ''} onClick={() => setActiveTab('social')}>Social</button>
+                    <button className={activeTab === 'explore' ? 'active' : ''} onClick={() => setActiveTab('explore')}>Configurare Flux</button>
                 </nav>
 
                 <main className="profile-main-content">
@@ -82,14 +105,10 @@ const Profile = ({ user }) => {
                                             <p>📍 Grădina Botanică, Cluj-Napoca</p>
                                         </div>
                                     </div>
-                                    <button 
-                                        className="btn-qr-trigger" 
-                                        onClick={() => handleViewTicket({ id: "EVENT-123-ABC", name: "Jazz in the Garden" })}
-                                    >
+                                    <button className="btn-qr-trigger" onClick={() => handleViewTicket({ id: "EVENT-123-ABC", name: "Jazz in the Garden" })}>
                                         <i className="fi fi-rr-qrcode"></i> Vezi Bilet
                                     </button>
                                 </div>
-
                                 <div className="empty-state-card">
                                     <p>Nu ai alte bilete momentan.</p>
                                     <button className="btn-primary" onClick={() => navigate('/')}>Găsește evenimente</button>
@@ -113,13 +132,11 @@ const Profile = ({ user }) => {
                                 <div className="banner-info">
                                     <h2>Creează un eveniment privat</h2>
                                     <p>Invită-ți prietenii la o adunare rapidă și trimite-le link-ul de acces direct din agenda ta.</p>
-                                    <button className="btn-accent" onClick={() => navigate('/create-social')}>
-                                        + Host an Event
+                                    <button className="btn-accent" onClick={openEventCreator}>
+                                        + Creează eveniment
                                     </button>
                                 </div>
-                                <div className="banner-icon">
-                                    <i className="fi fi-rr-users"></i>
-                                </div>
+                                <div className="banner-icon"><i className="fi fi-rr-users"></i></div>
                             </div>
                         </div>
                     )}
@@ -128,49 +145,89 @@ const Profile = ({ user }) => {
                         <div className="tab-content explore-tab tab-fade-in">
                             <div className="content-header">
                                 <h2 className="section-title">Algoritmul tău</h2>
-                                <p className="section-subtitle">Ajustează preferințele pentru recomandări personalizate pe baza pasiunilor tale.</p>
+                                <p className="section-subtitle">Ajustează preferințele pentru recomandări personalizate.</p>
                             </div>
-                            
                             <div className="pill-grid">
                                 {userInterests.map(cat => (
-                                    <div key={cat.id} className="pill-item">
+                                    <div key={cat.id} className="pill-item animate-in">
                                         {cat.name}
-                                        <button className="pill-remove">×</button>
+                                        <button className="pill-remove" onClick={() => handleRemoveInterest(cat.id)}>×</button>
                                     </div>
                                 ))}
-                                <button className="pill-add" onClick={() => navigate('/onboarding')}>
-                                    + Adaugă pasiuni
-                                </button>
+                                <button className="pill-add" onClick={() => navigate('/onboarding?mode=edit')}>+ Adaugă pasiuni</button>
                             </div>
                         </div>
                     )}
-
                 </main>
             </div>
+
+            {isCreatingEvent && (
+                <div className="event-overlay">
+                    <div className="event-modal">
+                        <button className="btn-close-overlay" onClick={closeEventCreator}>×</button>
+                        
+                        <div className="event-grid">
+                            <div className="event-visual">
+                                <div className="cover-placeholder">
+                                    <i className="fi fi-rr-picture"></i>
+                                    <p>Apasă pentru a adăuga un cover</p>
+                                </div>
+                            </div>
+
+                            <div className="event-inputs">
+                                <input 
+                                    type="text" 
+                                    placeholder="Numele evenimentului" 
+                                    className="input-title"
+                                    onChange={(e) => setEventData({...eventData, title: e.target.value})}
+                                />
+                                
+                                <div className="input-row">
+                                    <div className="input-group">
+                                        <label>Când?</label>
+                                        <input type="date" onChange={(e) => setEventData({...eventData, date: e.target.value})} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>La ce oră?</label>
+                                        <input type="time" onChange={(e) => setEventData({...eventData, time: e.target.value})} />
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Unde?</label>
+                                    <input type="text" placeholder="Locație sau link video" />
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Descriere</label>
+                                    <textarea placeholder="Scrie câteva detalii..." rows="4"></textarea>
+                                </div>
+
+                                <div className="event-actions">
+                                    <button className="btn-submit-event" onClick={() => alert("Eveniment simulat!")}>
+                                        Creează Eveniment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isModalOpen && (
                 <div className="qr-modal-overlay" onClick={() => setIsModalOpen(false)}>
                     <div className="qr-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="close-modal" onClick={() => setIsModalOpen(false)}>&times;</button>
-                        
                         <div className="qr-header">
                             <h3>Bilet Digital</h3>
                             <p>{selectedTicket?.name}</p>
                         </div>
-
                         <div className="qr-container">
-                            <QRCode
-                                value={selectedTicket?.id || ""} 
-                                size={200}
-                                bgColor={"#ffffff"}
-                                fgColor={"#18181b"}
-                                level={"L"}
-                            />
+                            <QRCode value={selectedTicket?.id || ""} size={200} />
                         </div>
-
                         <div className="qr-footer">
                             <span className="ticket-id-display">{selectedTicket?.id}</span>
-                            <p>Prezintă acest cod la intrare pentru scanare.</p>
+                            <p>Prezintă acest cod la intrare.</p>
                         </div>
                     </div>
                 </div>

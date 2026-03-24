@@ -1,0 +1,100 @@
+.calendar-page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.calendar-header {
+  padding: 40px 0 16px 0;
+  border-bottom: 1px solid var(--neutral-200);
+  margin-bottom: 40px;
+}
+
+.calendar-title {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.calendar-subtitle {
+  color: #666;
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.promo-banner-social {
+  background-color: #f0f9f4; 
+  border: 1px solid rgba(0, 138, 82, 0.08);
+  border-radius: 28px;
+  padding: 48px 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.promo-badge {
+  background: #008a52;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.promo-content h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+  letter-spacing: -0.8px;
+}
+
+.promo-content p {
+  color: #4a5568;
+  font-size: 1.05rem;
+  max-width: 440px;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.btn-promo-create {
+  background-color: #008a52;
+  color: white;
+  border: none;
+  padding: 12px 24px; 
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 138, 82, 0.15);
+}
+
+.btn-promo-create:hover {
+  background-color: #007042;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 138, 82, 0.25);
+}
+
+@media (max-width: 768px) {
+  .btn-promo-create {
+    margin: 0 auto;
+  }
+}

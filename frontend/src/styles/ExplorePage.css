@@ -1,0 +1,131 @@
+.explore-page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.explore-header {
+  padding: 40px 0 20px 0;
+  border-bottom: 1px solid var(--neutral-200);
+  margin-bottom: 40px;
+}
+
+.explore-title {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.explore-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+  font-weight: 500;
+}
+
+.explore-section {
+  margin-bottom: 50px;
+}
+
+.section-label {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 20px;
+}
+
+.category-grid-luma {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.category-card-luma {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid #f0f0f2;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.category-card-luma:hover {
+  transform: translateY(-4px);
+  border-color: #ff7f50;
+  box-shadow: 0 10px 20px rgba(255, 127, 80, 0.08);
+}
+
+.cat-card-icon {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-right: 16px;
+  background: var(--primary-soft);
+  color: #ff7f50;
+}
+
+.cat-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cat-card-info h3 {
+  font-size: 1.05rem;
+  margin: 0;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.cat-card-info span {
+  font-size: 0.85rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.city-quick-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.city-tag {
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: 1px solid #eee;
+  background: #ffffff;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.city-tag:hover {
+  background: #1A1A1A;
+  color: #ffffff;
+  border-color: #1A1A1A;
+}
+
+@media (max-width: 1100px) {
+  .category-grid-luma { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 800px) {
+  .category-grid-luma { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 500px) {
+  .category-grid-luma { grid-template-columns: 1fr; }
+}
