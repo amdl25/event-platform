@@ -1,35 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { FiStar } from 'react-icons/fi';
 import '../styles/Hero.css';
-import heroImage from '../../public/hero-image.jpg';
-import RecommendationWizard from './RecommendationWizard';
 
 const Hero = () => {
-  const [showWizard, setShowWizard] = useState(false);
-
   return (
-    <section className="hero-featured">
-      <div className="hero-image">
-        <img src={heroImage} alt="Featured Event" />
-        <h1 className="hero-title">
-          Trăiește experiența.<br />
-          <span className="highlight">Descoperă. Participă. Câștigă.</span>
-        </h1>
-        
-        <button 
-          className="btn-recommendation"
-          onClick={() => setShowWizard(true)}
-        >
-          <span className="btn-icon">✨</span>
-          <div className="btn-text">
-            <p className="btn-label">Vrei să faci ceva?</p>
-            <p className="btn-action">Recomandă-mi</p>
+    <section className="hero">
+      <div className="hero-container">
+        <div className="hero-image-wrapper">
+          <img 
+            src="https://www.simpleiv.com/wp-content/uploads/2021/12/partybanner2-scaled.jpg" 
+            alt="Eveniment vibrant cu mulțime de oameni"
+            className="hero-image"
+          />
+          <div className="hero-image-overlay"></div>
+          
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Trăiește<br />
+              experiența.
+            </h1>
+            <p className="hero-subtitle">
+              DESCOPERĂ • PARTICIPĂ • CÂȘTIGĂ
+            </p>
+            <button className="hero-cta-button">
+              <FiStar size={16} />
+              Recomandă-mi
+            </button>
           </div>
-        </button>
+        </div>
       </div>
-
-      {showWizard && (
-        <RecommendationWizard isOpen={showWizard} onClose={() => setShowWizard(false)} />
-      )}
     </section>
   );
 };

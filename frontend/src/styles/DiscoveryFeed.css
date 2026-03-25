@@ -9,32 +9,41 @@
 }
 
 .filters-section {
-  padding: 32px 0;
+  padding: 36px 0 18px;
+}
+
+.filters-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .filters-section h2 {
-  font-size: 1.75rem;
+  font-size: 3.2rem;
   color: #1A1A1A;
-  margin: 0 0 24px;
+  margin: 0;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .filters-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .filter-select {
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  padding: 12px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  font-size: 1.02rem;
   background: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-weight: 500;
-  color: #333;
+  color: #4b5563;
+  min-width: 146px;
 }
 
 .filter-select:hover {
@@ -42,18 +51,18 @@
 }
 
 .events-section {
-  padding: 40px 0;
+  padding: 12px 0 56px;
 }
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
 }
 
 @media (max-width: 1200px) {
   .events-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -71,11 +80,7 @@
 
 .event-card-wrapper {
   cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.event-card-wrapper:hover {
-  transform: translateY(-4px);
+  transition: none;
 }
 
 .no-events-container {
@@ -118,19 +123,32 @@
 .load-more-container {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
-  padding-bottom: 60px;
+  margin-top: 36px;
+  padding-bottom: 36px;
 }
 
 .btn-load-more {
-  padding: 14px 32px;
+  padding: 13px 34px;
   background: white;
   color: var(--primary);
   border: 2px solid var(--primary);
   border-radius: 30px;
   font-weight: 700;
+  font-size: 0.98rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .filters-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters-row {
+    width: 100%;
+    flex-wrap: wrap;
+  }
 }

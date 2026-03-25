@@ -1,281 +1,97 @@
-.hero-featured {
-  position: relative;
-  padding: 40px 24px;
+.hero {
+  padding: 20px 24px 0;
+}
+
+.hero-container {
   max-width: 1280px;
   margin: 0 auto;
 }
 
-.hero-image {
+.hero-image-wrapper {
   position: relative;
+  width: 100%;
+  height: 560px;
   border-radius: 24px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 550px;
-  width: 100%;
 }
 
-.hero-image > img {
-  position: absolute;
-  top: 0;
-  left: 0;
+.hero-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1;
 }
 
-.hero-image::after {
-  content: '';
+.hero-image-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 100%);
-  z-index: 2;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 58px;
+  left: 48px;
+  max-width: 560px;
 }
 
 .hero-title {
-  font-family: 'Playfair Display', serif;
-  position: absolute;
-  top: 50%;
-  left: 6%;
-  transform: translateY(-50%);
-  font-size: 4.2rem;
+  font-size: 5rem;
   font-weight: 700;
-  color: white;
-  z-index: 5;
+  color: #fff;
   line-height: 1.1;
-  max-width: 500px;
-  text-transform: none;
+  letter-spacing: -0.03em;
+  margin: 0 0 16px 0;
 }
 
-.hero-title .highlight {
-  font-family: 'Poppins', sans-serif;
-  display: block;
-  font-size: 0.85rem;
-  color: var(--primary); 
-  margin-top: 24px;
-  letter-spacing: 6px;
+.hero-subtitle {
+  font-size: 1.08rem;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-weight: 600;
-  opacity: 0.9;
+  margin: 0 0 24px;
 }
 
-.btn-recommendation {
-  position: absolute;
-  right: 64px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 24px 32px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border: 2px solid rgba(255, 127, 80, 0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  max-width: 320px;
-  width: 90%;
-  z-index: 10;
-}
-
-.btn-recommendation:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: var(--primary);
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
-}
-
-.btn-icon {
-  font-size: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.btn-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: left;
-}
-
-.btn-label {
-  font-size: 0.8rem;
-  color: #999;
-  margin: 0;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-action {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin: 0;
-}
-
-.featured-card {
-  position: absolute;
-  right: 64px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-width: 380px;
-  width: 90%;
-  z-index: 10;
-  border: none;
-}
-
-.featured-label {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-}
-
-.featured-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.6rem;
-  color: #1A1A1A;
-  margin: 0;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.featured-org {
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: -5px;
-}
-
-.featured-details {
-  padding: 10px 0;
-  border: none; 
-}
-
-.detail-label {
-  display: none;
-}
-
-.detail-value {
-  font-size: 1rem;
-  color: #333;
-  font-weight: 500;
+.hero-cta-button {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.featured-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.btn-book {
-  padding: 16px 24px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient-end) 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.btn-book:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(255, 127, 80, 0.3);
-}
-
-.btn-add-calendar {
-  background: transparent;
-  color: #777;
-  border: none;
-  font-size: 0.85rem;
+  padding: 15px 32px;
+  font-size: 1.02rem;
   font-weight: 600;
-  padding: 10px;
+  color: #fff;
+  background: #ff7e5f;
+  border: none;
+  border-radius: 999px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.btn-add-calendar:hover {
-  color: var(--primary);
-  text-decoration: underline;
+.hero-cta-button:hover {
+  background: #ff6e48;
+  transform: none;
+  box-shadow: none;
 }
 
-@media (max-width: 1200px) {
-  .btn-recommendation {
-    right: 24px;
-    max-width: 280px;
-    padding: 20px 24px;
+@media (max-width: 768px) {
+  .hero {
+    padding: 16px;
   }
 
-  .hero-title {
-    font-size: 3.2rem;
-  }
-}
-
-@media (max-width: 900px) {
-  .btn-recommendation {
-    position: static;
-    transform: none;
-    margin-top: 30px;
-    width: 100%;
-    max-width: 400px;
+  .hero-image-wrapper {
+    height: 440px;
   }
 
-  .hero-title {
-    font-size: 2.5rem;
+  .hero-content {
+    bottom: 24px;
     left: 24px;
   }
-}
-
-@media (max-width: 600px) {
-  .btn-recommendation {
-    padding: 16px 20px;
-    gap: 12px;
-    max-width: none;
-  }
-
-  .btn-icon {
-    font-size: 1.5rem;
-  }
-
-  .btn-label {
-    font-size: 0.7rem;
-  }
-
-  .btn-action {
-    font-size: 1rem;
-  }
 
   .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-title .highlight {
-    font-size: 0.75rem;
+    font-size: 2.6rem;
   }
 }

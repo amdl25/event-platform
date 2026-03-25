@@ -1,40 +1,56 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiCalendar, FiUsers, FiZap, FiAward } from 'react-icons/fi';
 import '../styles/Benefits.css';
-import { FiSearch, FiZap, FiAward } from 'react-icons/fi'; 
 
 const Benefits = () => {
-  const steps = [
+  const navigate = useNavigate();
+  const benefits = [
     {
-      icon: <FiSearch />,
-      title: "Explorează Evenimente",
-      description: "Explorează experiențe unice, de la ateliere creative la workshopuri technice, toate într-un singur loc."
+      icon: <FiCalendar />,
+      title: "Calendar Personal",
+      description: "Toate biletele și evenimentele tale într-un singur loc. Nu mai pierzi niciun eveniment important."
+    },
+    {
+      icon: <FiUsers />,
+      title: "Creează Evenimente",
+      description: "Organizează-ți propriile evenimente și invită-ți prietenii. Simplu și rapid."
     },
     {
       icon: <FiZap />,
-      title: "Participă și câștigă puncte de fidelitate",
-      description: "Mergi la evenimente și interacționează cu comunitatea pentru a acumula puncte."
+      title: "Puncte de Fidelitate",
+      description: "Câștigă puncte la fiecare participare și interacțiune cu comunitatea."
     },
     {
       icon: <FiAward />,
-      title: "Deblochează Recompense",
-      description: "Schimbă punctele strânse în bilete exclusive, reduceri la evenimente și multe altele."
+      title: "Recompense Exclusive",
+      description: "Schimbă punctele în bilete gratuite, reduceri și experiențe VIP."
     }
   ];
 
   return (
     <section className="benefits-section">
-      <div className="benefits-container">
-        {steps.map((step, index) => (
+      <div className="benefits-header">
+        <span className="benefits-badge">Beneficii Cont</span>
+        <h2 className="benefits-title">De ce să îți faci cont?</h2>
+      </div>
+      
+      <div className="benefits-grid">
+        {benefits.map((benefit, index) => (
           <div key={index} className="benefit-card">
             <div className="benefit-icon">
-              {step.icon}
+              {benefit.icon}
             </div>
-            <div className="benefit-text">
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </div>
+            <h3 className="benefit-title">{benefit.title}</h3>
+            <p className="benefit-description">{benefit.description}</p>
           </div>
         ))}
+      </div>
+      
+      <div className="benefits-cta">
+        <button className="cta-button" onClick={() => navigate('/register')}>
+          Înscrie-te gratuit
+        </button>
       </div>
     </section>
   );

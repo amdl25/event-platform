@@ -4,9 +4,9 @@ import EventCard from '../components/EventCard';
 import '../styles/DiscoveryFeed.css';
 
 const initialDiscoveryFilters = {
-    weekday: 'Oricând',
-    category: 'Toate',
-    price: 'Toate',
+  weekday: 'Orice dată',
+  category: 'Categorie',
+  price: 'Preț',
 };
 
 const DiscoveryFeed = () => {
@@ -15,17 +15,6 @@ const DiscoveryFeed = () => {
   const [error, setError] = useState('');
   const [dbCategories, setDbCategories] = useState([]);
   const [filters, setFilters] = useState(initialDiscoveryFilters);
-
-  const resetFilters = () => {
-    setFilters(initialDiscoveryFilters);
-  };
-
-  const resetField = (fieldName) => {
-    setFilters(prev => ({
-        ...prev,
-        [fieldName]: initialDiscoveryFilters[fieldName]
-    }));
-  };
 
   useEffect(() => {
     API.get('/categories')
@@ -65,11 +54,11 @@ const DiscoveryFeed = () => {
 
   const filteredEvents = events.filter(event => {
   const matchCategory = 
-    filters.category === 'Toate' || 
+    filters.category === 'Categorie' || 
     event.categories?.some(cat => cat.name === filters.category);
 
   const matchDate = (() => {
-    if (filters.weekday === 'Oricând') return true;
+    if (filters.weekday === 'Orice dată') return true;
 
     const eventDate = new Date(event.start_date);
     const today = new Date();
@@ -106,7 +95,7 @@ const DiscoveryFeed = () => {
 
   const eventPrice = parseFloat(event.price);
   const matchPrice = 
-    filters.price === 'Toate' || 
+    filters.price === 'Preț' || 
     (filters.price === 'Gratuite' && eventPrice === 0) ||
     (filters.price === 'Cu plată' && eventPrice > 0);
 
@@ -120,9 +109,9 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
 
       <section className="filters-section">
         <div className="container-max">
-          <h2>Evenimente viitoare</h2>
-          <div className="filters-row">
-            <div className="input-with-clear">
+          <div className="filters-header-row">
+            <h2>Evenimente viitoare</h2>
+            <div className="filters-row">
               <select 
                 className="filter-select"
                 value={filters.weekday}
@@ -134,40 +123,27 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
                 <option>În weekend</option>
                 <option>Săptămâna viitoare</option>
               </select>
-              {filters.weekday !== 'Oricând' && (
-                <button className="clear-x-btn" onClick={() => resetField('weekday')}>×</button>
-              )}
-            </div>
 
-            <div className="input-with-clear">
               <select 
                 className="filter-select"
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
               >
-                <option>Orice categorie</option>
+                <option>Categorie</option>
                 {dbCategories.map(cat => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
-              {filters.category !== 'Toate' && (
-                <button className="clear-x-btn" onClick={() => resetField('category')}>×</button>
-              )}
-            </div>
 
-            <div className="input-with-clear">
               <select 
                 className="filter-select"
                 value={filters.price}
                 onChange={(e) => handleFilterChange('price', e.target.value)}
               >
-                <option>Toate prețurile</option>
+                <option>Preț</option>
                 <option>Gratuite</option>
                 <option>Cu plată</option>
               </select>
-              {filters.price !== 'Toate' && (
-                <button className="clear-x-btn" onClick={() => resetField('price')}>×</button>
-              )}
             </div>
           </div>
         </div>
@@ -186,7 +162,7 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
                     key={event.id}
                     className="event-card-wrapper"
                   >
-                    <EventCard event={event} variant="compact" />
+                    <EventCard event={event} variant="home" />
                   </div>
                 ))}
               </div>
@@ -198,12 +174,6 @@ const publicEvents = filteredEvents.filter(e => !!e.org_id);
             !loading && !error && (
               <div className="no-events-container">
                 <p className="no-events">Niciun eveniment disponibil</p>
-                <button 
-                  className="btn-reset-filters-discovery" 
-                  onClick={resetFilters}
-                >
-                  <span className="reset-icon">↺</span> Resetează filtrele
-                </button>
               </div>
             )
           )}
