@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { API_BASE } from '../api';
+import BookingModal from './BookingModal';
+import { useNavigate } from 'react-router-dom';
 import '../styles/EventDetails.css';
 
-const EventDetails = ({ event }) => {
+const EventDetails = ({ event, user }) => {
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const navigate = useNavigate();
+  const seatsLeft = Math.max((event.max_capacity || 0) - (event.current_occupancy || 0), 0);
+  const isSoldOut = seatsLeft === 0;
 
   const occupancyPercentage = Math.min(
     (event.current_occupancy / event.max_capacity) * 100, 
@@ -10,6 +16,7 @@ const EventDetails = ({ event }) => {
   );
 
   return (
+    <>
     <div className="event-details-wrapper">
       <header className="event-hero-header">
         <div className="hero-inner-container">
@@ -89,7 +96,7 @@ const EventDetails = ({ event }) => {
               <div className="availability-tracker">
                 <div className="availability-labels">
                   <span>Capacitate</span>
-                  <strong>{event.max_capacity - event.current_occupancy} locuri rămase</strong>
+                  <strong>{seatsLeft} locuri rămase</strong>
                 </div>
                 <div className="availability-progress">
                   <div className="progress-bar-fill" 
@@ -98,7 +105,20 @@ const EventDetails = ({ event }) => {
                 </div>
               </div>
 
-              <button className="btn-book-primary">Rezervă Bilet</button>
+              <button
+                className="btn-book-primary"
+                disabled={isSoldOut}
+                onClick={() => {
+                  if (isSoldOut) return;
+                  if (user?.id) {
+                    navigate(`/purchase/${event.id}?mode=user`);
+                    return;
+                  }
+                  setIsBookingOpen(true);
+                }}
+              >
+                {isSoldOut ? 'Sold out' : 'Cumpără bilete'}
+              </button>
               
               <div className="reward-points-footer">
                 +100 puncte de fidelitate
@@ -109,6 +129,13 @@ const EventDetails = ({ event }) => {
         </div>
       </div>
     </div>
+    <BookingModal
+      isOpen={isBookingOpen}
+      onClose={() => setIsBookingOpen(false)}
+      event={event}
+      user={user}
+    />
+    </>
   );
 };
 

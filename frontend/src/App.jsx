@@ -13,6 +13,7 @@ import SearchResults from './pages/SearchResults';
 import ExplorePage from './pages/ExplorePage';
 import CreatePersonalEvent from './pages/CreatePersonalEvent';
 import CalendarPage from './pages/CalendarPage';
+import TicketPurchasePage from './pages/TicketPurchasePage';
 import './App.css';
 
 function App() {
@@ -52,12 +53,13 @@ function App() {
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
-          <Route path="/event/:id" element={<EventDetailsPage />} />
+          <Route path="/event/:id" element={<EventDetailsPage user={user} />} />
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
           <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
+          <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
         </Routes>
       </main>
     </div>

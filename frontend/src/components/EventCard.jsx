@@ -6,6 +6,9 @@ const EventCard = ({ event, variant = 'default', user}) => {
   const dateObj = new Date(event.start_date);
   const month = dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   const day = dateObj.getDate();
+  const maxCapacity = Number(event.max_capacity || 0);
+  const currentOccupancy = Number(event.current_occupancy || 0);
+  const isSoldOut = maxCapacity > 0 && currentOccupancy >= maxCapacity;
 
 
   if (variant === 'compact') {
@@ -24,9 +27,11 @@ const EventCard = ({ event, variant = 'default', user}) => {
                 {event.title.charAt(0)}
               </div>
             )}
-            {Number(event.price) > 0 && (
+            {isSoldOut ? (
+              <span className="price-badge-left sold-out-badge">Sold out</span>
+            ) : Number(event.price) > 0 ? (
               <span className="price-badge-left">{Number(event.price).toFixed(2)} lei</span>
-            )}
+            ) : null}
           </div>
 
           <div className="card-info">

@@ -54,6 +54,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.sold-out-badge {
+  background: rgba(35, 35, 35, 0.92);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .event-card.compact .card-info {
   flex-grow: 1;
   padding: 20px;

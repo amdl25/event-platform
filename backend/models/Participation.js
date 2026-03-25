@@ -5,7 +5,7 @@ const Participation = sequelize.define('Participation', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   account_id: { 
     type: DataTypes.UUID, 
-    allowNull: false,
+    allowNull: true,
     references: { model: 'account', key: 'id' } 
   },
   event_id: { 
@@ -13,9 +13,15 @@ const Participation = sequelize.define('Participation', {
     allowNull: false,
     references: { model: 'event', key: 'id' }
   },
-  status: { type: DataTypes.ENUM('going', 'interested'), defaultValue: 'going' },
-  ticket_qr: { type: DataTypes.STRING, unique: true },
-  checkin_done: { type: DataTypes.BOOLEAN, defaultValue: false }
+  buyer_name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  buyer_email: { 
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  ticket_qr: { type: DataTypes.TEXT, unique: true }
 }, { tableName: 'participation' });
 
 export default Participation;

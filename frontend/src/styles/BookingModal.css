@@ -1,0 +1,259 @@
+.booking-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.booking-modal {
+  width: min(980px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  position: relative;
+}
+
+.booking-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  font-size: 30px;
+  color: #b8b8b8;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.booking-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+}
+
+.booking-layout-single {
+  grid-template-columns: 1fr;
+}
+
+.booking-layout-single .booking-right-panel {
+  padding: 52px 38px;
+}
+
+.booking-left-panel {
+  background: #f2f2f2;
+  padding: 52px 38px;
+}
+
+.booking-left-panel h2 {
+  margin: 0 0 20px;
+  font-size: 52px;
+  line-height: 1;
+}
+
+.booking-left-title {
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 32px;
+}
+
+.booking-pill-btn {
+  display: inline-block;
+  padding: 14px 46px;
+  border-radius: 30px;
+  background: #f08b22;
+  border: 0;
+  color: #111;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.booking-right-panel {
+  padding: 52px 46px;
+}
+
+.booking-main-title {
+  margin: 0 0 28px;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.booking-benefits-list {
+  margin: 0 0 20px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #222;
+  line-height: 1.4;
+  font-size: 16px;
+}
+
+.booking-right-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.booking-mode-switch {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.booking-mode-stack {
+  flex-direction: column;
+}
+
+.booking-mode-stack .booking-mode-btn {
+  width: 100%;
+  text-align: center;
+  padding: 14px 16px;
+}
+
+.booking-mode-btn {
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.booking-mode-btn.active {
+  border-color: #f08b22;
+  color: #f08b22;
+}
+
+.booking-guest-divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 18px 0;
+}
+
+.booking-guest-section h4 {
+  color: #f08b22;
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.booking-guest-section p {
+  margin: 0 0 12px;
+  color: #3f3f3f;
+  line-height: 1.4;
+}
+
+.booking-guest-btn {
+  width: 100%;
+}
+
+.booking-event-box {
+  border: 1px solid #ececec;
+  border-left: 4px solid #f08b22;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.booking-event-box p {
+  margin: 8px 0 0;
+  color: #555;
+}
+
+.booking-price {
+  color: #f08b22;
+  font-weight: 700;
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.booking-form label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.booking-form input {
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.booking-error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 3px solid #d32f2f;
+  background: #ffefef;
+  color: #d32f2f;
+  border-radius: 6px;
+}
+
+.booking-submit {
+  margin-top: 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #f08b22;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.booking-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.booking-ticket-result {
+  padding: 50px;
+  text-align: center;
+}
+
+.booking-ticket-result h3 {
+  margin: 0 0 8px;
+  font-size: 30px;
+}
+
+.booking-qr-image {
+  width: 210px;
+  height: 210px;
+  object-fit: contain;
+  margin: 14px auto;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .booking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-left-title {
+    font-size: 28px;
+  }
+
+  .booking-main-title {
+    font-size: 24px;
+  }
+
+  .booking-benefits-list {
+    font-size: 15px;
+  }
+
+  .booking-guest-section h4 {
+    font-size: 22px;
+  }
+}

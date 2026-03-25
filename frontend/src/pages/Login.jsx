@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import API from '../api';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../styles/AuthPages.css';
 
 const Login = ({ onLogin }) => {
@@ -8,6 +8,7 @@ const Login = ({ onLogin }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +23,9 @@ const Login = ({ onLogin }) => {
         const res = await API.post('/auth/login', formData);
         console.log("4. Serverul a răspuns!", res.data);
         onLogin(res.data);
-        navigate('/');
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      navigate(redirect || '/');
     } catch (err) {
         const msg = err.response?.data?.message || "Email sau parolă incorectă!";
         setError(msg);

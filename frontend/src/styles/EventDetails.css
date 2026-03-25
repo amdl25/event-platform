@@ -223,6 +223,13 @@
   box-shadow: 0 10px 25px rgba(255, 126, 95, 0.3);
 }
 
+.btn-book-primary:disabled {
+  cursor: not-allowed;
+  background: #c9c9c9;
+  box-shadow: none;
+  transform: none;
+}
+
 .availability-tracker {
   margin: 30px 0;
 }

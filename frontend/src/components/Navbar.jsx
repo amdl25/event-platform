@@ -14,14 +14,6 @@ const Navbar = ({ user, handleLogout }) => {
     }
   };
 
-  const handleCreateClick = () => {
-    if (user) {
-      navigate('/create-event');
-    } else {
-      navigate('/login');
-    }
-  };
-
   const onLogoutClick = () => {
     handleLogout();
     navigate('/');
@@ -41,20 +33,24 @@ const Navbar = ({ user, handleLogout }) => {
               <i className="fi fi-rr-search"></i> Explorează
             </Link>
             
-            <Link 
-              to={user ? "/calendar" : "/login"} 
-              className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`}
-            >
-              <i className="fi fi-rr-calendar"></i> Calendarul meu
-            </Link>
+            {user ? (
+              <>
+                <Link 
+                  to="/calendar" 
+                  className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`}
+                >
+                  <i className="fi fi-rr-calendar"></i> Calendarul meu
+                </Link>
 
-            <span 
-              className={`nav-link nav-create-link ${location.pathname === '/create' ? 'active' : ''}`}
-              onClick={handleCreateClick}
-            >
-              <i className="fi fi-rr-plus-small"></i>
-              Creează
-            </span>
+                <Link 
+                  to="/create-event"
+                  className={`nav-link nav-create-link ${location.pathname === '/create-event' ? 'active' : ''}`}
+                >
+                  <i className="fi fi-rr-plus-small"></i>
+                  Creează
+                </Link>
+              </>
+            ) : null}
 
           </nav>
         </div>
