@@ -40,7 +40,13 @@ const Navbar = ({ user, handleLogout }) => {
 
         <div className="navbar-actions">
           <div className="navbar-search">
-            <FiSearch size={18} className="navbar-search-icon" />
+            <FiSearch size={15} className="navbar-search-icon" />
+            <input
+              type="text"
+              placeholder=""
+              className="navbar-search-input"
+              aria-label="Cauta evenimente"
+            />
           </div>
 
           {user ? (

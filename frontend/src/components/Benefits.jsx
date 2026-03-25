@@ -33,6 +33,7 @@ const Benefits = () => {
       <div className="benefits-header">
         <span className="benefits-badge">Beneficii Cont</span>
         <h2 className="benefits-title">De ce sa iti faci cont?</h2>
+        <p className="benefits-subtitle">Descopera toate avantajele pe care le ai ca membru inregistrat</p>
       </div>
       
       <div className="benefits-grid">

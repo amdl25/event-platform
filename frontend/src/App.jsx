@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -23,6 +23,8 @@ function App() {
   });
   
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -47,7 +49,7 @@ function App() {
       <ScrollToTop />
       <Navbar user={user} handleLogout={handleLogout} />
       
-      <main className="app-main">
+      <main className={`app-main${isHome ? '' : ' page-offset'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
