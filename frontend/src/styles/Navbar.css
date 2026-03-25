@@ -3,14 +3,14 @@
   top: 0;
   z-index: 100;
   background: #ffffff;
-  border-bottom: 1px solid rgba(255, 126, 95, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .navbar-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 88px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,10 +18,10 @@
 }
 
 .navbar-logo {
-  font-size: 2.45rem;
+  font-size: 1.5rem;
   font-weight: 700;
   text-decoration: none;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   display: inline-flex;
   align-items: baseline;
 }
@@ -37,16 +37,16 @@
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .navbar-link {
   padding: 8px 14px;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #666;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
@@ -65,7 +65,7 @@
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .navbar-search {
@@ -75,42 +75,21 @@
 }
 
 .navbar-search-icon {
-  position: absolute;
-  left: 14px;
   color: #9CA3AF;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .navbar-search-input {
-  width: 236px;
-  height: 48px;
-  padding: 10px 14px 10px 38px;
-  font-size: 0.875rem;
-  color: #374151;
-  background: #f3f3f3;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.navbar-search-input::placeholder {
-  color: #9CA3AF;
-}
-
-.navbar-search-input:focus {
-  background: #fff;
-  border-color: #e5e7eb;
-  box-shadow: none;
+  display: none;
 }
 
 .navbar-btn-secondary {
   padding: 10px 10px;
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #3f3f46;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   border: 0;
   background: transparent;
@@ -123,12 +102,12 @@
 }
 
 .navbar-btn-primary {
-  padding: 12px 22px;
-  font-size: 0.98rem;
+  padding: 10px 20px;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
-  background: #171717;
+  background: #1f1f1f;
   border-radius: 999px;
   transition: all 0.2s ease;
   border: 0;

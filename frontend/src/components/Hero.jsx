@@ -8,23 +8,23 @@ const Hero = () => {
       <div className="hero-container">
         <div className="hero-image-wrapper">
           <img 
-            src="https://www.simpleiv.com/wp-content/uploads/2021/12/partybanner2-scaled.jpg" 
-            alt="Eveniment vibrant cu mulțime de oameni"
+            src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80" 
+            alt="Eveniment vibrant cu multime de oameni"
             className="hero-image"
           />
           <div className="hero-image-overlay"></div>
           
           <div className="hero-content">
             <h1 className="hero-title">
-              Trăiește<br />
-              experiența.
+              Traieste<br />
+              experienta.
             </h1>
             <p className="hero-subtitle">
-              DESCOPERĂ • PARTICIPĂ • CÂȘTIGĂ
+              Descopera &bull; Participa &bull; Castiga
             </p>
             <button className="hero-cta-button">
               <FiStar size={16} />
-              Recomandă-mi
+              Recomanda-mi
             </button>
           </div>
         </div>

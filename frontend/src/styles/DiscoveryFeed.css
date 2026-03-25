@@ -9,7 +9,7 @@
 }
 
 .filters-section {
-  padding: 36px 0 18px;
+  padding: 48px 0 20px;
 }
 
 .filters-header-row {
@@ -20,34 +20,40 @@
 }
 
 .filters-section h2 {
-  font-size: 3.2rem;
+  font-size: 2rem;
   color: #1A1A1A;
   margin: 0;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .filters-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .filter-select {
-  padding: 12px 18px;
+  padding: 10px 16px;
   border: 1px solid #e5e7eb;
   border-radius: 999px;
-  font-size: 1.02rem;
+  font-size: 0.9rem;
   background: white;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
   color: #4b5563;
-  min-width: 146px;
+  min-width: 120px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px;
 }
 
 .filter-select:hover {
-  border-color: var(--primary);
+  border-color: #d1d5db;
 }
 
 .events-section {
@@ -56,13 +62,13 @@
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 26px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
 }
 
 @media (max-width: 1200px) {
   .events-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -123,22 +129,26 @@
 .load-more-container {
   display: flex;
   justify-content: center;
-  margin-top: 36px;
-  padding-bottom: 36px;
+  margin-top: 40px;
+  padding-bottom: 24px;
 }
 
 .btn-load-more {
-  padding: 13px 34px;
+  padding: 12px 32px;
   background: white;
-  color: var(--primary);
-  border: 2px solid var(--primary);
-  border-radius: 30px;
-  font-weight: 700;
-  font-size: 0.98rem;
+  color: #ff7e5f;
+  border: 2px solid #ff7e5f;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   justify-content: center;
+}
+
+.btn-load-more:hover {
+  background: #fff5f3;
 }
 
 @media (max-width: 900px) {

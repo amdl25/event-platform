@@ -17,7 +17,7 @@ const Navbar = ({ user, handleLogout }) => {
         <div className="navbar-links">
           <NavLink to="/explore" className="navbar-link">
             <FiCompass size={14} />
-            Explorează
+            Exploreaza
           </NavLink>
           <NavLink to="/calendar" className="navbar-link">
             <FiCalendar size={14} />
@@ -25,18 +25,13 @@ const Navbar = ({ user, handleLogout }) => {
           </NavLink>
           <NavLink to="/create-event" className="navbar-link navbar-link-create">
             <FiPlus size={14} />
-            Creează
+            Creeaza
           </NavLink>
         </div>
 
         <div className="navbar-actions">
           <div className="navbar-search">
-            <FiSearch size={15} className="navbar-search-icon" />
-            <input 
-              type="text" 
-              placeholder=""
-              className="navbar-search-input"
-            />
+            <FiSearch size={18} className="navbar-search-icon" />
           </div>
 
           {user ? (
@@ -46,8 +41,8 @@ const Navbar = ({ user, handleLogout }) => {
             </>
           ) : (
             <>
-              <Link to="/login" className="navbar-btn-secondary">Intră în cont</Link>
-              <Link to="/register" className="navbar-btn-primary">Înregistrare</Link>
+              <Link to="/login" className="navbar-btn-secondary">Intra in cont</Link>
+              <Link to="/register" className="navbar-btn-primary">Inregistrare</Link>
             </>
           )}
         </div>
@@ -62,9 +57,9 @@ const Navbar = ({ user, handleLogout }) => {
 
       {mobileMenuOpen && (
         <div className="navbar-mobile-menu">
-          <Link to="/explore" className="navbar-mobile-link">Explorează</Link>
+          <Link to="/explore" className="navbar-mobile-link">Exploreaza</Link>
           <Link to="/calendar" className="navbar-mobile-link">Calendarul meu</Link>
-          <Link to="/create-event" className="navbar-mobile-link">Creează</Link>
+          <Link to="/create-event" className="navbar-mobile-link">Creeaza</Link>
           <div className="navbar-mobile-actions">
             {user ? (
               <>
@@ -73,8 +68,8 @@ const Navbar = ({ user, handleLogout }) => {
               </>
             ) : (
               <>
-                <Link to="/login" className="navbar-btn-secondary">Intră în cont</Link>
-                <Link to="/register" className="navbar-btn-primary">Înregistrare</Link>
+                <Link to="/login" className="navbar-btn-secondary">Intra in cont</Link>
+                <Link to="/register" className="navbar-btn-primary">Inregistrare</Link>
               </>
             )}
           </div>

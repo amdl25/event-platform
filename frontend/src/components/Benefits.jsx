@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar, FiUsers, FiZap, FiAward } from 'react-icons/fi';
+import { FiCalendar, FiUsers, FiStar, FiGift } from 'react-icons/fi';
 import '../styles/Benefits.css';
 
 const Benefits = () => {
@@ -9,22 +9,22 @@ const Benefits = () => {
     {
       icon: <FiCalendar />,
       title: "Calendar Personal",
-      description: "Toate biletele și evenimentele tale într-un singur loc. Nu mai pierzi niciun eveniment important."
+      description: "Toate biletele si evenimentele intr-un singur loc."
     },
     {
       icon: <FiUsers />,
-      title: "Creează Evenimente",
-      description: "Organizează-ți propriile evenimente și invită-ți prietenii. Simplu și rapid."
+      title: "Creeaza Evenimente",
+      description: "Organizeaza-ti propriile evenimente si invita-ti prietenii."
     },
     {
-      icon: <FiZap />,
+      icon: <FiStar />,
       title: "Puncte de Fidelitate",
-      description: "Câștigă puncte la fiecare participare și interacțiune cu comunitatea."
+      description: "Castigi puncte la fiecare participare."
     },
     {
-      icon: <FiAward />,
+      icon: <FiGift />,
       title: "Recompense Exclusive",
-      description: "Schimbă punctele în bilete gratuite, reduceri și experiențe VIP."
+      description: "Schimba punctele in bilete gratuite si reduceri."
     }
   ];
 
@@ -32,7 +32,7 @@ const Benefits = () => {
     <section className="benefits-section">
       <div className="benefits-header">
         <span className="benefits-badge">Beneficii Cont</span>
-        <h2 className="benefits-title">De ce să îți faci cont?</h2>
+        <h2 className="benefits-title">De ce sa iti faci cont?</h2>
       </div>
       
       <div className="benefits-grid">
@@ -49,7 +49,7 @@ const Benefits = () => {
       
       <div className="benefits-cta">
         <button className="cta-button" onClick={() => navigate('/register')}>
-          Înscrie-te gratuit
+          Inscrie-te gratuit
         </button>
       </div>
     </section>
