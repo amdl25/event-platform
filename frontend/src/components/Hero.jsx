@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiStar } from 'react-icons/fi';
+import { Sparkles } from 'lucide-react';
 import '../styles/Hero.css';
 
 const Hero = () => {
@@ -20,10 +20,14 @@ const Hero = () => {
               experiența.
             </h1>
             <p className="hero-subtitle">
-              DESCOPERĂ • PARTICIPĂ • CÂȘTIGĂ
+              Descoperă. Participă. Câștigă.
             </p>
+          </div>
+
+          <div className="hero-cta-card">
+            <span className="hero-cta-label">Nu știi ce să faci?</span>
             <button className="hero-cta-button">
-              <FiStar size={16} />
+              <Sparkles size={18} />
               Recomandă-mi
             </button>
           </div>

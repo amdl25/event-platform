@@ -5,9 +5,9 @@
   --primary-light: #FFDAB9;
   --primary-soft: rgba(255, 127, 80, 0.08);
   
-  --light-bg: #FFF9F6;
+  --light-bg: #FFF5F0;
   --neutral-100: #ffffff;
-  --neutral-200: #FFE4E1;
+  --neutral-200: #f0e8e4;
   
   --neutral-600: #71717a;       
   --neutral-800: #3f3f46;       
@@ -15,6 +15,18 @@
   
   --shadow-sm: 0 1px 3px rgba(255, 127, 80, 0.1);
   --shadow-md: 0 10px 25px -5px rgba(255, 127, 80, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {

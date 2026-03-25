@@ -97,63 +97,74 @@ const CategoryPage = ({ user }) => {
         <div className="category-page">
             <div className="container-max">
                 <header className="category-header">
-                    <h1>
-                        {filters.city !== 'Toate orașele' && filters.city.toLowerCase() === categoryName.toLowerCase()
-                            ? `Evenimente în ${categoryName}` 
-                            : categoryName}
-                    </h1>
-                    
-                    <div className="category-filters-bar">
-                        {filters.city === 'Toate orașele' && (
-                            <div className="filter-item">
-                                <label>Oraș</label>
-                                <div className="input-with-clear">
-                                    <select 
-                                        value={filters.city} 
-                                        onChange={(e) => handleFilterChange('city', e.target.value)}
-                                    >
-                                        <option>Toate orașele</option>
-                                        {availableCities.map(city => <option key={city} value={city}>{city}</option>)}
-                                    </select>
+                    <div className="category-top-row">
+                        <h1>
+                            {filters.city !== 'Toate orașele' && filters.city.toLowerCase() === categoryName.toLowerCase()
+                                ? `Evenimente în ${categoryName}`
+                                : categoryName}
+                        </h1>
+
+                        <div className="category-filters-shell">
+                            <div className="category-filters-bar">
+                                <div className="category-filter-pill-container">
+                                    <div className="category-input-with-clear">
+                                        <select
+                                            className="category-filter-select"
+                                            value={filters.city}
+                                            onChange={(e) => handleFilterChange('city', e.target.value)}
+                                        >
+                                            <option>Toate orașele</option>
+                                            {availableCities.map(city => <option key={city} value={city}>{city}</option>)}
+                                        </select>
+                                        {filters.city !== 'Toate orașele' && (
+                                            <button
+                                                type="button"
+                                                className="category-clear-filter-btn"
+                                                onClick={() => resetField('city')}
+                                                aria-label="Resetează orașul"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
 
-                        <div className="filter-item calendar-filter">
-                            <label>Când</label>
-                            <div className="input-with-clear">
-                                <DatePicker
-                                    selected={filters.selectedDate}
-                                    onChange={(date) => handleFilterChange('selectedDate', date)}
-                                    dateFormat="dd/MM/yyyy"
-                                    placeholderText="Selectează data"
-                                    locale="ro"
-                                    className="filter-select"
-                                />
-                                {filters.selectedDate !== null && (
-                                    <button className="clear-x-btn" onClick={() => resetField('selectedDate')}>×</button>
-                                )}
-                            </div>
-                        </div>
+                                <div className="category-filter-pill-container">
+                                    <div className="category-input-with-clear">
+                                        <DatePicker
+                                            selected={filters.selectedDate}
+                                            onChange={(date) => handleFilterChange('selectedDate', date)}
+                                            dateFormat="dd/MM/yyyy"
+                                            placeholderText="Orice dată"
+                                            locale="ro"
+                                            className="category-filter-select"
+                                        />
+                                        {filters.selectedDate !== null && (
+                                            <button className="category-clear-filter-btn" onClick={() => resetField('selectedDate')}>×</button>
+                                        )}
+                                    </div>
+                                </div>
 
-                        <div className="filter-item">
-                            <label>Acces</label>
-                            <div className="input-with-clear">
-                                <select 
-                                    value={filters.type} 
-                                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                                >
-                                    <option value="Toate">Oricare</option>
-                                    <option value="Gratuite">Gratuite</option>
-                                    <option value="Cu plată">Cu plată</option>
-                                </select>
-                                {filters.type !== 'Toate' && (
-                                    <button className="clear-x-btn" onClick={() => resetField('type')}>×</button>
-                                )}
+                                <div className="category-filter-pill-container">
+                                    <div className="category-input-with-clear">
+                                        <select
+                                            className="category-filter-select"
+                                            value={filters.type}
+                                            onChange={(e) => handleFilterChange('type', e.target.value)}
+                                        >
+                                            <option value="Toate">Toate prețurile</option>
+                                            <option value="Gratuite">Gratuite</option>
+                                            <option value="Cu plată">Cu plată</option>
+                                        </select>
+                                        {filters.type !== 'Toate' && (
+                                            <button className="category-clear-filter-btn" onClick={() => resetField('type')}>×</button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <p className="results-count">
                         {filteredResults.length} {filteredResults.length === 1 ? 'eveniment găsit' : 'evenimente găsite'}
                     </p>
