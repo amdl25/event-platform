@@ -1,9 +1,18 @@
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar--scrolled {
   background: #ffffff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
 }
 
 .navbar-container {
@@ -31,6 +40,10 @@
 }
 
 .logo-hub {
+  color: #fff;
+}
+
+.navbar--scrolled .logo-hub {
   color: #1f1f1f;
 }
 
@@ -44,7 +57,7 @@
   padding: 8px 14px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #666;
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
   border-radius: 8px;
   transition: all 0.2s ease;
@@ -54,11 +67,24 @@
 }
 
 .navbar-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.navbar-link-create {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.navbar--scrolled .navbar-link {
+  color: #666;
+}
+
+.navbar--scrolled .navbar-link:hover {
   color: #2e2e2e;
   background: #f5f5f5;
 }
 
-.navbar-link-create {
+.navbar--scrolled .navbar-link-create {
   color: #ff7e5f;
 }
 
@@ -75,8 +101,13 @@
 }
 
 .navbar-search-icon {
-  color: #9CA3AF;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.navbar--scrolled .navbar-search-icon {
+  color: #9CA3AF;
 }
 
 .navbar-search-input {
@@ -87,31 +118,52 @@
   padding: 10px 10px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #3f3f46;
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
 .navbar-btn-secondary:hover {
-  color: #171717;
+  color: #fff;
   background: transparent;
+}
+
+.navbar--scrolled .navbar-btn-secondary {
+  color: #3f3f46;
+}
+
+.navbar--scrolled .navbar-btn-secondary:hover {
+  color: #171717;
 }
 
 .navbar-btn-primary {
   padding: 10px 20px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #fff;
+  color: #1f1f1f;
   text-decoration: none;
-  background: #1f1f1f;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border: 0;
   cursor: pointer;
+}
+
+.navbar-btn-primary:hover {
+  background: #fff;
+}
+
+.navbar--scrolled .navbar-btn-primary {
+  color: #fff;
+  background: #1f1f1f;
+}
+
+.navbar--scrolled .navbar-btn-primary:hover {
+  background: #090909;
 }
 
 .navbar-btn-primary:hover {
