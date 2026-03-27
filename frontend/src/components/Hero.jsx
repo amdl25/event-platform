@@ -2,7 +2,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import '../styles/Hero.css';
 
-const Hero = () => {
+const Hero = ({ onRecommendClick }) => {
   return (
     <section className="hero">
       <div className="hero-container">
@@ -26,7 +26,7 @@ const Hero = () => {
 
           <div className="hero-cta-card">
             <span className="hero-cta-label">Nu știi ce să faci?</span>
-            <button className="hero-cta-button">
+            <button className="hero-cta-button" onClick={onRecommendClick}>
               <Sparkles size={18} />
               Recomandă-mi
             </button>

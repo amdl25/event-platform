@@ -14,6 +14,7 @@ import ExplorePage from './pages/ExplorePage';
 import CreatePersonalEvent from './pages/CreatePersonalEvent';
 import CalendarPage from './pages/CalendarPage';
 import TicketPurchasePage from './pages/TicketPurchasePage';
+import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import './App.css';
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/recommendations" element={<RecommendationResultsPage />} />
           <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
           <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
           <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
