@@ -8,16 +8,10 @@ import '../styles/EventDetails.css';
 const EventDetails = ({ event, user }) => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const navigate = useNavigate();
-  const seatsLeft = Math.max((event.max_capacity || 0) - (event.current_occupancy || 0), 0);
-  const isSoldOut = seatsLeft === 0;
+  const isSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
   const eventStart = getEventStartValue(event);
   const eventEnd = getEventEndValue(event);
   const eventTimeRange = getEventTimeRangeLabel(eventStart, eventEnd);
-
-  const occupancyPercentage = Math.min(
-    (event.current_occupancy / event.max_capacity) * 100, 
-    100
-  );
 
   return (
     <>
@@ -94,18 +88,6 @@ const EventDetails = ({ event, user }) => {
                 <span className="price-label">Preț Bilet</span>
                 <div className="price-display-bold">
                   {Number(event.price) > 0 ? `${Number(event.price).toFixed(2)} lei` : 'Gratuit'}
-                </div>
-              </div>
-
-              <div className="availability-tracker">
-                <div className="availability-labels">
-                  <span>Capacitate</span>
-                  <strong>{seatsLeft} locuri rămase</strong>
-                </div>
-                <div className="availability-progress">
-                  <div className="progress-bar-fill" 
-                  style={{ width: `${occupancyPercentage}%` }}
-                  ></div>
                 </div>
               </div>
 

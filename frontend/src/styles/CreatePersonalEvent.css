@@ -7,7 +7,7 @@
 .create-grid {
   display: flex;
   gap: 30px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .create-sidebar {
@@ -271,4 +271,193 @@
 
 .btn-submit-event:hover {
   opacity: 0.9;
+}
+
+.invite-share-sheet {
+  margin-top: 14px;
+  background: #f8fffb;
+  border: 1px solid #cfe9dc;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.invite-share-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #1f7a4d;
+}
+
+.invite-share-header strong {
+  display: block;
+  color: #1f7a4d;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.invite-share-header p {
+  margin: 0;
+  color: #5f7a6c;
+  font-size: 0.82rem;
+}
+
+.invite-link-box {
+  margin-top: 10px;
+  padding: 9px 10px;
+  background: #ffffff;
+  border: 1px dashed #bcd9ca;
+  border-radius: 10px;
+  color: #2b3a33;
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.invite-share-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.invite-action-btn {
+  border: none;
+  background: #e8f5ee;
+  color: #226d49;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.invite-action-btn.secondary {
+  background: #edf0f3;
+  color: #4b5563;
+}
+
+.invite-action-btn:hover {
+  opacity: 0.92;
+}
+
+.invite-copy-message {
+  margin: 8px 0 0;
+  color: #226d49;
+  font-size: 0.79rem;
+  font-weight: 600;
+}
+
+.input-seats {
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  padding: 7px 10px;
+  border-radius: 8px;
+  width: 120px;
+  min-height: 34px;
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.input-seats:focus {
+  outline: none;
+  border-color: #b8c5bf;
+  box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
+}
+
+.toggle-ui {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-ui input {
+  display: none;
+}
+
+.toggle-slider {
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  background: #d0d0d0;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.toggle-ui input:checked + .toggle-slider {
+  background: #22c55e;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: left 0.3s;
+}
+
+.toggle-ui input:checked + .toggle-slider::after {
+  left: 22px;
+}
+
+.toggle-text {
+  margin-left: 10px;
+  font-size: 0.87rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.option-item-fullwidth {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.option-item-fullwidth .option-control {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.input-guest-notes {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #374151;
+  font-weight: 500;
+  resize: vertical;
+}
+
+.input-guest-notes:focus {
+  outline: none;
+  border-color: #b8c5bf;
+  box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
+}
+
+.datepicker-deadline {
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  padding: 7px 10px;
+  border-radius: 8px;
+  width: 140px;
+  min-height: 34px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.datepicker-deadline:focus {
+  outline: none;
+  border-color: #b8c5bf;
+  box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
 }

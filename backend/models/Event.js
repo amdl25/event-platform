@@ -31,6 +31,19 @@ const Event = sequelize.define('Event', {
     type: DataTypes.UUID, 
     allowNull: true,
     references: { model: 'organization', key: 'id' }
+  },
+  
+  show_guest_list: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  guest_notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  confirmation_deadline: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, { tableName: 'event' });
 
