@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { FiCalendar, FiClock, FiMapPin, FiZap } from 'react-icons/fi';
 import { useEvents } from '../hooks/useEvents';
 import { getEventDateKey, getEventStartValue, getEventTimeLabel, getEventDayNumber, getEventMonthShort } from '../utils/eventDateTime';
 import '../styles/CalendarPage.css';
@@ -43,9 +44,17 @@ const CalendarPage = ({ user }) => {
     setSelectedDateEvents(filtered);
   };
 
+  const getEventColor = (event) => (event.org_id ? '#22c55e' : '#3b82f6');
+
   const handleDateChange = (newDate) => {
     onChange(newDate);
     filterEventsByDate(newDate, events);
+  };
+
+  const getEventCity = (location) => {
+    if (!location) return 'Oraș nespecificat';
+    const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
+    return parts[parts.length - 1] || location;
   };
 
   const tileContent = ({ date, view }) => {
@@ -83,7 +92,7 @@ const CalendarPage = ({ user }) => {
       <div className="calendar-dashboard-container">
         <header className="cal-dash-header">
           <div className="header-left">
-            <div className="icon-calendar-orange">📅</div>
+            <div className="icon-calendar-orange"><FiCalendar /></div>
             <div className="header-titles">
               <h1>Calendarul Meu</h1>
               <p>{todayFormatted}</p>
@@ -104,15 +113,21 @@ const CalendarPage = ({ user }) => {
 
             <div className="day-details-section">
               <div className="details-header">
-                <h3>{value.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                <h3 className="selected-day-title">{value.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
               </div>
               {selectedDateEvents.length > 0 ? (
                 selectedDateEvents.map(e => (
-                  <div key={e.id} className="event-detail-pill" onClick={() => navigate(`/event/${e.id}`)}>
-                    <div className="pill-color-bar" style={{ backgroundColor: e.org_id ? '#22c55e' : '#3b82f6' }}></div>
+                  <div key={e.id} className={`event-detail-pill ${e.org_id ? 'is-public' : 'is-private'}`} onClick={() => navigate(`/event/${e.id}`)}>
                     <div className="pill-info">
-                      <h4>{e.title}</h4>
-                      <p>{e.location || 'Locație nespecificată'} • {getEventStartValue(e) ? getEventTimeLabel(getEventStartValue(e)) : ''}</p>
+                      <h4 className="event-title-with-dot">
+                        <span className="event-color-dot" style={{ backgroundColor: getEventColor(e) }}></span>
+                        {e.title}
+                      </h4>
+                      <p className="event-description-line">{e.description || 'Eveniment fără descriere.'}</p>
+                      <div className="day-event-meta-row">
+                        <span className="day-event-meta-line"><FiClock /> {getEventStartValue(e) ? getEventTimeLabel(getEventStartValue(e)) : '--:--'}</span>
+                        <span className="day-event-meta-line"><FiMapPin /> {getEventCity(e.location)}</span>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -124,7 +139,7 @@ const CalendarPage = ({ user }) => {
 
           <div className="cal-widgets-column">
             <div className="widget-card">
-              <div className="widget-title">✨ EVENIMENTE VIITOARE</div>
+              <div className="widget-title"><FiZap /> EVENIMENTE VIITOARE</div>
               <div className="upcoming-list">
                 {events
                   .filter(e => getEventStartValue(e) && new Date(getEventStartValue(e)) >= new Date())
@@ -137,8 +152,12 @@ const CalendarPage = ({ user }) => {
                         <span className="month">{getEventMonthShort(getEventStartValue(e), 'ro-RO')}</span>
                       </div>
                       <div className="row-content">
-                        <h4 style={{ color: e.org_id ? '#22c55e' : '#3b82f6' }}>{e.title}</h4>
-                        <p>🕒 {getEventTimeLabel(getEventStartValue(e))}</p>
+                        <h4 className="event-title-with-dot">
+                          <span className="event-color-dot" style={{ backgroundColor: getEventColor(e) }}></span>
+                          {e.title}
+                        </h4>
+                        <p className="event-meta-line"><FiClock /> {getEventTimeLabel(getEventStartValue(e))}</p>
+                        <p className="event-meta-line"><FiMapPin /> {getEventCity(e.location)}</p>
                       </div>
                     </div>
                   ))}
