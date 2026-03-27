@@ -1,94 +1,151 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../api';
-import EventCard from '../components/EventCard';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import { useEvents } from '../hooks/useEvents';
+import { getEventDateKey, getEventStartValue, getEventTimeLabel, getEventDayNumber, getEventMonthShort } from '../utils/eventDateTime';
 import '../styles/CalendarPage.css';
 
-const CalendarPage = ({ user, userEvents = [] }) => {
+const CalendarPage = ({ user }) => {
   const navigate = useNavigate();
-  const [publicEvents, setPublicEvents] = useState([]);
-  const [loadingPublicEvents, setLoadingPublicEvents] = useState(false);
+  const [value, onChange] = useState(new Date());
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+
+  const { data: events = [], isLoading, error } = useEvents(user?.id);
+
+  const todayFormatted = new Date().toLocaleDateString('ro-RO', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
 
   useEffect(() => {
-    if (userEvents.length > 0) return;
+    if (!user?.id) {
+      navigate('/login');
+    }
+  }, [user?.id, navigate]);
 
-    const fetchPublicEvents = async () => {
-      setLoadingPublicEvents(true);
-      try {
-        const res = await API.get('/events');
-        const publicOnly = res.data
-          .filter((event) => event.org_id !== null && event.org_id !== undefined)
-          .sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+  useEffect(() => {
+    filterEventsByDate(value, events);
+  }, [events, value]);
 
-        setPublicEvents(publicOnly.slice(0, 8));
-      } catch (error) {
-        console.error('Eroare la încărcarea evenimentelor publice:', error);
-      } finally {
-        setLoadingPublicEvents(false);
-      }
-    };
+  const filterEventsByDate = (date, allEvents) => {
+    if (!date || !allEvents) return;
 
-    fetchPublicEvents();
-  }, [userEvents.length]);
+    const searchDate = getEventDateKey(date);
 
-  return (
-    <div className="discovery-page">
-      <div className="container-max page-section-top">
-        
-        <header className="calendar-header">
-          <h1 className="calendar-title">Calendarul meu</h1>
-          <p className="calendar-subtitle">Evenimentele la care participi sau pe care le organizezi.</p>
-        </header>
+    const filtered = allEvents.filter(e => {
+      const eventStart = getEventStartValue(e);
+      if (!eventStart) return false;
 
-        {userEvents.length > 0 ? (
-          <div className="calendar-events-grid">
-            {userEvents.map(event => (
-              <div key={event.id} className="event-card-wrapper">
-                <EventCard event={event} variant="compact" />
-              </div>
+      const eventDate = getEventDateKey(eventStart);
+      return eventDate === searchDate;
+    });
+
+    setSelectedDateEvents(filtered);
+  };
+
+  const handleDateChange = (newDate) => {
+    onChange(newDate);
+    filterEventsByDate(newDate, events);
+  };
+
+  const tileContent = ({ date, view }) => {
+    if (view === 'month' && events.length > 0) {
+      const cellDate = getEventDateKey(date);
+      const dayEvents = events.filter(e => {
+        const eventStart = getEventStartValue(e);
+        if (!eventStart) return false;
+        const d = getEventDateKey(eventStart);
+        return d === cellDate;
+      });
+      
+      if (dayEvents.length > 0) {
+        return (
+          <div className="dot-container">
+            {dayEvents.slice(0, 3).map((e, i) => (
+              <span key={i} className="calendar-dot" style={{ backgroundColor: e.org_id ? '#22c55e' : '#3b82f6' }}></span>
             ))}
           </div>
-        ) : (
-          <>
-            <div className="promo-banner-social">
-              <div className="promo-content">
-                <div className="promo-badge">SFAT</div>
-                <h2>Calendarul tau e liber?</h2>
-                <p>Invită-ți prietenii la o adunare rapidă și trimite-le link-ul de acces direct de aici.</p>
-                <button className="btn-promo-create" onClick={() => navigate('/create-event')}>
-                  <i className="fi fi-rr-plus-small"></i> Creează un eveniment privat
-                </button>
-              </div>
-              <div className="promo-illustration">
-                  <i className="fi fi-rr-calendar-star"></i>
-              </div>
+        );
+      }
+    }
+  };
+
+  if (isLoading) {
+    return <div className="calendar-dashboard-bg"><div className="calendar-dashboard-container">Se încarcă evenimentele...</div></div>;
+  }
+
+  if (error) {
+    return <div className="calendar-dashboard-bg"><div className="calendar-dashboard-container">Nu am putut încărca evenimentele.</div></div>;
+  }
+
+  return (
+    <div className="calendar-dashboard-bg">
+      <div className="calendar-dashboard-container">
+        <header className="cal-dash-header">
+          <div className="header-left">
+            <div className="icon-calendar-orange">📅</div>
+            <div className="header-titles">
+              <h1>Calendarul Meu</h1>
+              <p>{todayFormatted}</p>
             </div>
+          </div>
+          <button className="btn-today-pill" onClick={() => handleDateChange(new Date())}>Azi</button>
+        </header>
 
-            <section className="calendar-public-section">
-              <div className="calendar-public-header">
-                <h2>Explorează evenimente publice</h2>
-                <button className="btn-explore-public" onClick={() => navigate('/explore')}>
-                  Vezi toate în Explore
-                </button>
+        <div className="cal-dash-grid">
+          <div className="cal-main-card">
+            <Calendar
+              onChange={handleDateChange}
+              value={value}
+              locale="ro-RO"
+              tileContent={tileContent}
+              formatShortWeekday={(locale, date) => ['D', 'L', 'M', 'M', 'J', 'V', 'S'][date.getDay()]}
+            />
+
+            <div className="day-details-section">
+              <div className="details-header">
+                <h3>{value.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
               </div>
+              {selectedDateEvents.length > 0 ? (
+                selectedDateEvents.map(e => (
+                  <div key={e.id} className="event-detail-pill" onClick={() => navigate(`/event/${e.id}`)}>
+                    <div className="pill-color-bar" style={{ backgroundColor: e.org_id ? '#22c55e' : '#3b82f6' }}></div>
+                    <div className="pill-info">
+                      <h4>{e.title}</h4>
+                      <p>{e.location || 'Locație nespecificată'} • {getEventStartValue(e) ? getEventTimeLabel(getEventStartValue(e)) : ''}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="no-events-text">Niciun eveniment planificat.</p>
+              )}
+            </div>
+          </div>
 
-              {loadingPublicEvents ? (
-                <p className="calendar-public-loading">Se încarcă evenimentele publice...</p>
-              ) : publicEvents.length > 0 ? (
-                <div className="calendar-events-grid">
-                  {publicEvents.map((event) => (
-                    <div key={event.id} className="event-card-wrapper">
-                      <EventCard event={event} variant="compact" />
+          <div className="cal-widgets-column">
+            <div className="widget-card">
+              <div className="widget-title">✨ EVENIMENTE VIITOARE</div>
+              <div className="upcoming-list">
+                {events
+                  .filter(e => getEventStartValue(e) && new Date(getEventStartValue(e)) >= new Date())
+                  .sort((a, b) => new Date(getEventStartValue(a)) - new Date(getEventStartValue(b)))
+                  .slice(0, 4)
+                  .map(e => (
+                    <div key={e.id} className="upcoming-row" onClick={() => navigate(`/event/${e.id}`)}>
+                      <div className="date-box">
+                        <span className="day">{getEventDayNumber(getEventStartValue(e))}</span>
+                        <span className="month">{getEventMonthShort(getEventStartValue(e), 'ro-RO')}</span>
+                      </div>
+                      <div className="row-content">
+                        <h4 style={{ color: e.org_id ? '#22c55e' : '#3b82f6' }}>{e.title}</h4>
+                        <p>🕒 {getEventTimeLabel(getEventStartValue(e))}</p>
+                      </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <p className="calendar-public-empty">Momentan nu există evenimente publice disponibile.</p>
-              )}
-            </section>
-          </>
-        )}
-
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

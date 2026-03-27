@@ -17,13 +17,13 @@ Event.belongsTo(Organization, { foreignKey: 'org_id', as: 'organization' });
 
 
 Account.belongsToMany(Event, { 
-    through: Participation, 
+    through: { model: Participation, unique: false }, 
     foreignKey: 'account_id', 
     otherKey: 'event_id',
     as: 'attendedEvents' 
 });
 Event.belongsToMany(Account, { 
-    through: Participation, 
+    through: { model: Participation, unique: false }, 
     foreignKey: 'event_id', 
     otherKey: 'account_id',
     as: 'participants' 

@@ -32,6 +32,21 @@ const startServer = async () => {
     await sequelize.sync({ alter: true }); 
     console.log('Tabelele au fost create sau actualizate');
 
+    await sequelize.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'participation_account_id_event_id_key'
+        ) THEN
+          ALTER TABLE participation
+          DROP CONSTRAINT participation_account_id_event_id_key;
+        END IF;
+      END $$;
+    `);
+    console.log('Constraint-ul unic participation_account_id_event_id_key a fost verificat/eliminat');
+
     
     app.listen(PORT, () => {
       console.log(`Serverul ruleaza pe port ${PORT}`);

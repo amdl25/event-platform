@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { API_BASE } from '../api';
 import BookingModal from './BookingModal';
 import { useNavigate } from 'react-router-dom';
+import { getEventStartValue, getEventEndValue, getEventTimeRangeLabel, getEventDateLabel } from '../utils/eventDateTime';
 import '../styles/EventDetails.css';
 
 const EventDetails = ({ event, user }) => {
@@ -9,6 +10,9 @@ const EventDetails = ({ event, user }) => {
   const navigate = useNavigate();
   const seatsLeft = Math.max((event.max_capacity || 0) - (event.current_occupancy || 0), 0);
   const isSoldOut = seatsLeft === 0;
+  const eventStart = getEventStartValue(event);
+  const eventEnd = getEventEndValue(event);
+  const eventTimeRange = getEventTimeRangeLabel(eventStart, eventEnd);
 
   const occupancyPercentage = Math.min(
     (event.current_occupancy / event.max_capacity) * 100, 
@@ -51,9 +55,9 @@ const EventDetails = ({ event, user }) => {
               <div className="logistic-block">
                 <span className="logistic-label">Când</span>
                 <div className="logistic-value">
-                  {new Date(event.start_date).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  {eventStart ? getEventDateLabel(eventStart, 'ro-RO') : '-'}
                 </div>
-                <div className="logistic-sub">Ora 18:00 - 21:00</div>
+                <div className="logistic-sub">{eventTimeRange ? `Ora ${eventTimeRange}` : 'Ora nespecificată'}</div>
               </div>
 
               <div className="logistic-block">

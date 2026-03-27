@@ -3,7 +3,7 @@ import API from '../api';
 import { useParams } from 'react-router-dom';
 import EventDetails from '../components/EventDetails';
 
-const EventDetailsPage = () => {
+const EventDetailsPage = ({ user }) => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const EventDetailsPage = () => {
   if (loading) return <div className="loading-state"></div>;
   if (!event) return <div className="error-state">Evenimentul nu a fost găsit.</div>;
 
-  return <EventDetails event={event} />;
+  return <EventDetails event={event} user={user} />;
 };
 
 export default EventDetailsPage;

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -16,6 +17,16 @@ import CalendarPage from './pages/CalendarPage';
 import TicketPurchasePage from './pages/TicketPurchasePage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import './App.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -44,27 +55,29 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <ScrollToTop />
-      <Navbar user={user} handleLogout={handleLogout} />
-      
-      <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/category/:categoryName" element={<CategoryPage />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register onLogin={handleLogin} />} />
-          <Route path="/event/:id" element={<EventDetailsPage user={user} />} />
-          <Route path="/profile" element={<Profile user={user} />} />
-          <Route path="/search" element={<SearchResults />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/recommendations" element={<RecommendationResultsPage />} />
-          <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
-          <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
-          <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
-        </Routes>
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="App">
+        <ScrollToTop />
+        <Navbar user={user} handleLogout={handleLogout} />
+        
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/category/:categoryName" element={<CategoryPage />} />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route path="/register" element={<Register onLogin={handleLogin} />} />
+            <Route path="/event/:id" element={<EventDetailsPage user={user} />} />
+            <Route path="/profile" element={<Profile user={user} />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/recommendations" element={<RecommendationResultsPage />} />
+            <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
+            <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
+            <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
+          </Routes>
+        </main>
+      </div>
+    </QueryClientProvider>
   );
 }
 

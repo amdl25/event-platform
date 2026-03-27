@@ -71,7 +71,12 @@ export const purchaseAsUser = async (req, res) => {
 			tickets: ticketData
 		});
 	} catch (error) {
-		return res.status(500).json({ message: error.message });
+		console.error('Purchase User Error:', error);
+		return res.status(500).json({ 
+			message: 'Eroare la cumpărare',
+			error: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+		});
 	}
 };
 
@@ -136,6 +141,11 @@ export const purchaseAsGuest = async (req, res) => {
 			tickets: ticketData
 		});
 	} catch (error) {
-		return res.status(500).json({ message: error.message });
+		console.error('Purchase Guest Error:', error);
+		return res.status(500).json({ 
+			message: 'Eroare la cumpărare',
+			error: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+		});
 	}
 };

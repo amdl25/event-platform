@@ -1,4 +1,68 @@
-import { Event, Organization, Category } from '../models/relationships.js';
+import { Event, Organization, Category, Account, Participation } from '../models/relationships.js';
+
+export const getUserCalendarEvents = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await Account.findByPk(userId, {
+      include: [
+        {
+          model: Event,
+          as: 'createdEvents',
+          include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+        }
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizator nu a fost găsit' });
+    }
+
+    const participations = await Participation.findAll({
+      where: { account_id: userId },
+      include: [
+        {
+          model: Event,
+          include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+        }
+      ]
+    });
+
+    const participatedEvents = participations
+      .map((participation) => participation.Event)
+      .filter(Boolean);
+
+    const allEvents = [...(user.createdEvents || []), ...participatedEvents];
+    const uniqueEvents = Array.from(
+      new Map(allEvents.map(evt => [evt.id, evt])).values()
+    );
+
+    const calendarEvents = uniqueEvents
+      .filter(evt => evt.start_date && evt.end_date)
+      .map(evt => ({
+        id: evt.id,
+        title: evt.title,
+        start_date: evt.start_date,
+        end_date: evt.end_date,
+        start: evt.start_date,
+        end: evt.end_date,
+        org_id: evt.org_id,
+        type: evt.type,
+        description: evt.description,
+        location: evt.location,
+        image_url: evt.image_url,
+        backgroundColor: evt.type === 'private' ? '#9c87ff' : '#00a884',
+        textColor: '#ffffff',
+        borderColor: 'transparent'
+      }))
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+
+    res.json(calendarEvents);
+  } catch (error) {
+    console.error('Eroare la preluarea evenimentelor calendar:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 export const getAllEvents = async (req, res) => {
   try {

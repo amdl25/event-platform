@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,7 +17,7 @@ import {
   FaGlobe,
   FaCompass
 } from 'react-icons/fa6';
-import API from '../api';
+import { useAllEvents, useCategories } from '../hooks/useEvents';
 import EventCard from '../components/EventCard';
 import '../styles/ExplorePage.css';
 
@@ -30,14 +30,13 @@ const initialFilters = {
 };
 
 const ExplorePage = () => {
-  const [categories, setCategories] = useState([]);
-  const [cities, setCities] = useState([]);
   const [citySearch, setCitySearch] = useState('');
-  const [allEvents, setAllEvents] = useState([]);
   const [filters, setFilters] = useState(initialFilters);
   const [showAll, setShowAll] = useState(false);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
 
   const getVisuals = (name) => {
     const normalizedName = name?.toLowerCase()?.trim();
@@ -68,29 +67,12 @@ const ExplorePage = () => {
     return map[normalizedName] || FaCompass;
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [catRes, eventRes] = await Promise.all([
-          API.get('/categories'),
-          API.get('/events')
-        ]);
-        setCategories(catRes.data);
-        setAllEvents(eventRes.data);
-        
-        const uniqueCities = [...new Set(eventRes.data.map(event => {
-          const parts = event.location.split(',');
-          return parts[parts.length - 1]?.trim();
-        }))].filter(Boolean);
-        setCities(uniqueCities);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const cities = useMemo(() => {
+    return [...new Set(allEvents.map(event => {
+      const parts = event.location?.split(',');
+      return parts?.[parts.length - 1]?.trim();
+    }))].filter(Boolean);
+  }, [allEvents]);
 
   const normalizedSearch = citySearch.trim().toLowerCase();
   const filteredCities = cities.filter((city) => city.toLowerCase().includes(normalizedSearch));
@@ -138,6 +120,8 @@ const ExplorePage = () => {
   const handleCitySelect = (city) => {
     navigate(`/category/${city}`);
   };
+
+  const loading = categoriesLoading || eventsLoading;
 
   if (loading) return <div className="explore-loader">Se încarcă...</div>;
 
