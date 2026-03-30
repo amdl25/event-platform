@@ -132,7 +132,7 @@ const CreatePersonalEvent = ({ user }) => {
         start_date: startDateTime.toISOString(),
         end_date: endDateTime.toISOString(),
         creator_id: user.id,
-        org_id: null,
+        org_id: user.role === 'organizer' ? user.organizationId : null,
         price: 0,
         max_capacity: 0,
         show_guest_list: showGuestList,

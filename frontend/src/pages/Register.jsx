@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import '../styles/AuthPages.css';
 
 const Register = ({ onLogin }) => {
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '', 
     lastName: '', 
@@ -16,12 +17,19 @@ const Register = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (formData.role === 'organizer' && !formData.companyName.trim()) {
+      setError('Pentru organizator este obligatoriu numele firmei/brand-ului.');
+      return;
+    }
+
     try {
       const res = await API.post('/auth/register', formData);
       onLogin(res.data);
-      navigate('/');
+      navigate(res.data?.role === 'organizer' ? '/organizer/dashboard' : '/');
     } catch (err) {
-      alert("Eroare la înregistrare");
+      setError(err.response?.data?.message || 'Eroare la înregistrare');
     }
   };
 
@@ -59,12 +67,17 @@ const Register = ({ onLogin }) => {
             <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <input 
                 type="text" 
-                placeholder="Numele organizației" 
+                placeholder="Nume firmă (ex: Jazz Society S.R.L.)" 
                 required 
                 onChange={e => setFormData({...formData, companyName: e.target.value})} 
                 />
+                <small style={{ color: '#6b7280', marginTop: '-8px' }}>
+                  Datele fiscale (CUI, adresă, telefon oficial) le completezi după login, în pasul de verificare business.
+                </small>
             </div>
             )}
+
+          {error ? <div className="auth-error-msg">{error}</div> : null}
 
           <button type="submit" className="btn-auth-main">Creează Cont</button>
         </form>

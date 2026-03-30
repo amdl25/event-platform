@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
@@ -18,6 +18,8 @@ import TicketPurchasePage from './pages/TicketPurchasePage';
 import TicketsDownloadPage from './pages/TicketsDownloadPage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
+import OrganizerDashboard from './pages/OrganizerDashboard';
+import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -31,6 +33,8 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const location = useLocation();
+
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('eventHubUser');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -56,15 +60,20 @@ function App() {
     return <Onboarding user={user} onFinish={() => setShowOnboarding(false)} />;
   }
 
+  const isOrganizerLayout = location.pathname.startsWith('/organizer');
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="App">
         <ScrollToTop />
-        <Navbar user={user} handleLogout={handleLogout} />
+        {!isOrganizerLayout ? <Navbar user={user} handleLogout={handleLogout} /> : null}
         
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route
+              path="/"
+              element={user?.role === 'organizer' ? <Navigate to="/organizer/dashboard" replace /> : <Home />}
+            />
             <Route path="/category/:categoryName" element={<CategoryPage />} />
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register onLogin={handleLogin} />} />
@@ -78,6 +87,9 @@ function App() {
             <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
             <Route path="/tickets-download" element={<TicketsDownloadPage />} />
             <Route path="/invite/:eventId" element={<InviteEventPage user={user} />} />
+            <Route path="/organizer" element={<Navigate to="/organizer/dashboard" replace />} />
+            <Route path="/organizer/dashboard" element={<OrganizerDashboard user={user} handleLogout={handleLogout} />} />
+            <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
           </Routes>
         </main>
       </div>

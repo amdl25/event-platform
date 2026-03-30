@@ -9,6 +9,16 @@ const Profile = ({ user }) => {
     const navigate = useNavigate();
     const [myEvents, setMyEvents] = useState([]); 
     const [activeTab, setActiveTab] = useState('tickets'); 
+    const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || null);
+    const [verificationForm, setVerificationForm] = useState({
+        companyName: user?.organizationName || '',
+        companyCui: '',
+        registeredAddress: '',
+        officialPhone: ''
+    });
+    const [verificationMessage, setVerificationMessage] = useState('');
+    const [verificationError, setVerificationError] = useState('');
+    const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
@@ -22,6 +32,18 @@ const Profile = ({ user }) => {
                 
                 const hosted = eventsRes.data.filter(event => event.user_id === user.id);
                 setMyEvents(hosted);
+
+                if (user?.role === 'organizer') {
+                    const statusRes = await API.get(`/auth/organizer/status/${user.id}`);
+                    setOrganizerStatus(statusRes.data?.verificationStatus || 'unverified');
+                    setVerificationForm((prev) => ({
+                        ...prev,
+                        companyName: statusRes.data?.organizationName || prev.companyName,
+                        companyCui: statusRes.data?.cuiCif || '',
+                        registeredAddress: statusRes.data?.registeredAddress || '',
+                        officialPhone: statusRes.data?.officialPhone || ''
+                    }));
+                }
                 
             } catch (err) {
                 console.error("Eroare la încărcarea datelor de profil:", err);
@@ -31,6 +53,39 @@ const Profile = ({ user }) => {
         };
         fetchProfileData();
     }, [user]);
+
+    const handleSubmitVerification = async (e) => {
+        e.preventDefault();
+        setVerificationError('');
+        setVerificationMessage('');
+
+        if (!verificationForm.companyName.trim() || !verificationForm.companyCui.trim() || !verificationForm.registeredAddress.trim() || !verificationForm.officialPhone.trim()) {
+            setVerificationError('Completează toate câmpurile profilului business.');
+            return;
+        }
+
+        try {
+            setIsSubmittingVerification(true);
+            const payload = {
+                account_id: user.id,
+                company_name: verificationForm.companyName.trim(),
+                company_cui: verificationForm.companyCui.trim(),
+                registered_address: verificationForm.registeredAddress.trim(),
+                official_phone: verificationForm.officialPhone.trim()
+            };
+
+            const response = await API.post('/auth/organizer/verification', payload, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            setOrganizerStatus(response.data?.verificationStatus || 'pending');
+            setVerificationMessage(response.data?.message || 'Documentele au fost trimise cu succes.');
+        } catch (err) {
+            setVerificationError(err.response?.data?.message || 'Nu am putut trimite documentele.');
+        } finally {
+            setIsSubmittingVerification(false);
+        }
+    };
 
     const handleViewTicket = (ticketData) => {
         setSelectedTicket(ticketData);
@@ -56,7 +111,12 @@ const Profile = ({ user }) => {
                         </div>
                     </div>
                     <div className="profile-actions">
-                        <button className="btn-create-event-header" onClick={() => navigate('/create-event')}>
+                        <button
+                            className="btn-create-event-header"
+                            onClick={() => navigate('/create-event')}
+                            disabled={user?.role === 'organizer' && organizerStatus !== 'verified'}
+                            title={user?.role === 'organizer' && organizerStatus !== 'verified' ? 'Cont în așteptare. Trimite documentele pentru validare.' : ''}
+                        >
                             + Creează Eveniment
                         </button>
                         <button className="btn-settings-header" onClick={() => navigate('/settings')}>
@@ -64,6 +124,65 @@ const Profile = ({ user }) => {
                         </button>
                     </div>
                 </header>
+
+                {user?.role === 'organizer' && organizerStatus !== 'verified' ? (
+                    <section className="organizer-verification-banner">
+                        <h3>Cont organizator în așteptare</h3>
+                        <p>
+                            Status curent: <strong>{organizerStatus || 'unverified'}</strong>. 
+                            Completează profilul business pentru verificare înainte să publici evenimente în feed-ul public.
+                        </p>
+
+                        {organizerStatus !== 'pending' ? (
+                            <form className="organizer-verification-form" onSubmit={handleSubmitVerification}>
+                                <input
+                                    type="text"
+                                    placeholder="Nume firmă (ex: Jazz Society S.R.L.)"
+                                    value={verificationForm.companyName}
+                                    onChange={(event) => setVerificationForm({ ...verificationForm, companyName: event.target.value })}
+                                    required
+                                    disabled={isSubmittingVerification}
+                                />
+
+                                <input
+                                    type="text"
+                                    placeholder="CUI / CIF (ex: RO12345678)"
+                                    value={verificationForm.companyCui}
+                                    onChange={(event) => setVerificationForm({ ...verificationForm, companyCui: event.target.value })}
+                                    required
+                                    disabled={isSubmittingVerification}
+                                />
+
+                                <input
+                                    type="text"
+                                    placeholder="Adresă sediu social"
+                                    value={verificationForm.registeredAddress}
+                                    onChange={(event) => setVerificationForm({ ...verificationForm, registeredAddress: event.target.value })}
+                                    required
+                                    disabled={isSubmittingVerification}
+                                />
+
+                                <input
+                                    type="tel"
+                                    placeholder="Număr de telefon oficial"
+                                    value={verificationForm.officialPhone}
+                                    onChange={(event) => setVerificationForm({ ...verificationForm, officialPhone: event.target.value })}
+                                    required
+                                    disabled={isSubmittingVerification}
+                                />
+
+                                {verificationError ? <p className="organizer-verification-error">{verificationError}</p> : null}
+                                {verificationMessage ? <p className="organizer-verification-success">{verificationMessage}</p> : null}
+
+                                <button type="submit" className="btn-primary" disabled={isSubmittingVerification}>
+                                    {isSubmittingVerification ? 'Se trimite...' : 'Trimite profilul business pentru verificare'}
+                                </button>
+                            </form>
+                        ) : (
+                            <p className="organizer-verification-pending">Profilul business a fost trimis. Așteaptă aprobarea adminului.</p>
+                        )}
+                    </section>
+                ) : null}
 
                 <nav className="profile-nav-tabs">
                     <button 

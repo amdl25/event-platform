@@ -68,13 +68,18 @@ export const getAllEvents = async (req, res) => {
   try {
     const events = await Event.findAll({
       include: [
-        { model: Organization, as: 'organization', attributes: ['name'] },
+        { model: Organization, as: 'organization', attributes: ['name', 'verification_status'] },
         { model: Category, as: 'categories', through: { attributes: [] } }
       ],
       order: [['start_date', 'ASC']]
     });
 
-    const eventData = events.map(event => ({
+    const visibleEvents = events.filter((event) => {
+      if (!event.org_id) return true;
+      return event.organization?.verification_status === 'verified';
+    });
+
+    const eventData = visibleEvents.map(event => ({
       ...event.toJSON(),
       isFull: event.current_occupancy >= event.max_capacity,
       availableSlots: event.max_capacity - event.current_occupancy
@@ -114,10 +119,54 @@ export const getEventById = async (req, res) => {
 export const createEvent = async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
+    const { creator_id, org_id } = req.body;
+
+    if (!creator_id) {
+      return res.status(400).json({ message: 'creator_id este obligatoriu.' });
+    }
+
+    const creator = await Account.findByPk(creator_id);
+    if (!creator) {
+      return res.status(404).json({ message: 'Contul creatorului nu a fost găsit.' });
+    }
+
+    if (creator.role === 'organizer') {
+      if (!org_id) {
+        return res.status(403).json({
+          message: 'Contul de organizator poate publica doar evenimente business, asociate unei organizații.'
+        });
+      }
+
+      const organization = await Organization.findOne({
+        where: {
+          id: org_id,
+          owner_id: creator_id
+        }
+      });
+
+      if (!organization) {
+        return res.status(403).json({ message: 'Nu ai acces la această organizație.' });
+      }
+
+      if (organization.verification_status !== 'verified') {
+        return res.status(403).json({
+          message: 'Cont în așteptare. Încarcă documentele și așteaptă validarea pentru a publica evenimente.'
+        });
+      }
+    }
+
+    if (creator.role === 'user' && org_id) {
+      return res.status(403).json({ message: 'Contul participant nu poate publica evenimente business.' });
+    }
+
+    const payload = {
+      ...req.body,
+      org_id: creator.role === 'user' ? null : org_id,
+      image_url: imageUrl
+    };
 
     const newEvent = await Event.create({
-      ...req.body,
-      image_url: imageUrl
+      ...payload
     });
 
     res.status(201).json(newEvent);
