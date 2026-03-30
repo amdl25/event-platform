@@ -12,7 +12,6 @@ const TicketPurchasePage = ({ user }) => {
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [loadingPurchase, setLoadingPurchase] = useState(false);
   const [error, setError] = useState('');
-  const [successData, setSuccessData] = useState(null);
 
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
@@ -83,7 +82,12 @@ const TicketPurchasePage = ({ user }) => {
         ? await API.post('/events/purchase/user', { ...payload, account_id: user.id })
         : await API.post('/events/purchase/guest', payload);
 
-      setSuccessData(response.data);
+      navigate('/tickets-download', {
+        state: {
+          successData: response.data,
+          event: event
+        }
+      });
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la cumpărarea biletelor.');
     } finally {
@@ -93,37 +97,6 @@ const TicketPurchasePage = ({ user }) => {
 
   if (loadingEvent) return <div className="auth-page-container"><div className="auth-card">Se încarcă...</div></div>;
   if (!event) return <div className="auth-page-container"><div className="auth-card">Evenimentul nu a fost găsit.</div></div>;
-
-  if (successData) {
-    const firstTicket = successData.tickets?.[0];
-
-    return (
-      <div className="auth-page-container">
-        <div className="auth-card" style={{ maxWidth: 640 }}>
-          <h2>✅ Bilete cumpărate</h2>
-          <p>Ai cumpărat {successData.quantity} bilet(e) pentru <strong>{event.title}</strong>.</p>
-          <p>Total: <strong>{Number(successData.totalPrice || 0).toFixed(2)} lei</strong></p>
-
-          {firstTicket ? (
-            <div style={{ textAlign: 'center', margin: '16px 0' }}>
-              <p>Primul QR generat:</p>
-              <img src={firstTicket.qr} alt="QR Ticket" style={{ width: 220, height: 220 }} />
-              <p style={{ marginTop: 8 }}>Cod: <strong>{firstTicket.code}</strong></p>
-            </div>
-          ) : null}
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16 }}>
-            <Link to={`/event/${id}`} className="btn-auth-main" style={{ textDecoration: 'none', textAlign: 'center' }}>
-              Înapoi la eveniment
-            </Link>
-            <Link to="/" className="btn-auth-main" style={{ textDecoration: 'none', textAlign: 'center' }}>
-              Acasă
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="auth-page-container">
@@ -163,7 +136,7 @@ const TicketPurchasePage = ({ user }) => {
           {error ? <div className="auth-error-msg">{error}</div> : null}
 
           <button className="btn-auth-main" onClick={handlePurchase} disabled={loadingPurchase}>
-            {loadingPurchase ? 'Se procesează...' : 'Confirmă cumpărarea'}
+            {loadingPurchase ? 'Se procesează...' : 'Confirmă cumpărarea (Descarcă Bilete)'}
           </button>
 
           <Link to={`/event/${id}`} className="auth-footer-text" style={{ textAlign: 'center' }}>

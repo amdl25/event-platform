@@ -15,6 +15,7 @@ import ExplorePage from './pages/ExplorePage';
 import CreatePersonalEvent from './pages/CreatePersonalEvent';
 import CalendarPage from './pages/CalendarPage';
 import TicketPurchasePage from './pages/TicketPurchasePage';
+import TicketsDownloadPage from './pages/TicketsDownloadPage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
 import './App.css';
@@ -75,6 +76,7 @@ function App() {
             <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
             <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
             <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
+            <Route path="/tickets-download" element={<TicketsDownloadPage />} />
             <Route path="/invite/:eventId" element={<InviteEventPage user={user} />} />
           </Routes>
         </main>

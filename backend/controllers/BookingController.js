@@ -1,13 +1,54 @@
 import crypto from 'crypto';
 import { Event, Participation } from '../models/relationships.js';
+import { sendTicketEmail } from '../services/EmailService.js';
 
 const generateTicketCode = () => `TKT-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
 
 const generateTicketQrUrl = (ticketCode, event) => {
 	const payload = `ticket:${ticketCode}|event:${event.id}|title:${event.title}|date:${event.start_date}`;
 	return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(payload)}`;
+
 };
 
+export const sendTicketsByEmail = async (req, res) => {
+	const { buyerEmail, buyerName, eventTitle, eventDate, eventLocation, tickets, quantity, totalPrice } = req.body;
+
+	if (!buyerEmail || !buyerName || !eventTitle || !eventDate || !eventLocation || !tickets || quantity === undefined) {
+		return res.status(400).json({ message: 'Missing required fields' });
+	}
+
+	try {
+		const result = await sendTicketEmail({
+			buyerEmail,
+			buyerName,
+			eventTitle,
+			eventDate,
+			eventLocation,
+			tickets,
+			quantity,
+			totalPrice
+		});
+
+		if (result.success) {
+			return res.status(200).json({
+				message: 'Email sent successfully',
+				messageId: result.messageId
+			});
+		} else {
+			return res.status(500).json({
+				message: 'Failed to send email',
+				error: result.message
+			});
+		}
+	} catch (error) {
+		console.error('Send Email Error:', error);
+		return res.status(500).json({
+			message: 'Error sending email',
+			error: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+		});
+	}
+};
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 export const purchaseAsUser = async (req, res) => {
