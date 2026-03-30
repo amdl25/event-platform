@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { FiCalendar, FiGrid, FiSettings, FiUsers, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiCalendar, FiGrid, FiSettings, FiUsers, FiCheckCircle, FiAlertCircle, FiClock } from 'react-icons/fi';
 import API from '../api';
 import '../styles/OrganizerDashboard.css';
 import '../styles/OrganizerSettings.css';
@@ -93,59 +93,64 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
   };
 
   if (loading) {
-    return (
-      <div className="organizer-loading">
-        <div className="spinner"></div>
-        <p>Se încarcă setările...</p>
-      </div>
-    );
+    return <div className="organizer-loading">Se încarcă...</div>;
   }
 
   return (
     <div className="organizer-shell">
-      <header className="organizer-topbar">
-        <Link to="/organizer/dashboard" className="organizer-logo">
-          <span className="organizer-logo-event">Event</span>
-          <span className="organizer-logo-hub">Hub</span>
-          <span className="organizer-logo-badge">Organizer</span>
-        </Link>
-        <div className="organizer-topbar-right">
-          <div className="organizer-company">{verificationForm.companyName || 'Organizație'}</div>
-          <button 
-            className="organizer-new-event-btn" 
-            onClick={() => navigate('/create-event')}
-            disabled={organizerStatus !== 'verified'}
-          >
-            + Eveniment nou
-          </button>
-          <button className="organizer-logout-btn" onClick={handleLogout}>Logout</button>
+      <aside className="organizer-sidebar">
+        <div className="organizer-sidebar-header">
+          <Link to="/organizer/dashboard" className="organizer-logo">
+            <span className="organizer-logo-event">Event</span>
+            <span className="organizer-logo-hub">Hub</span>
+            <span className="organizer-logo-badge">ORGANIZER</span>
+          </Link>
         </div>
-      </header>
 
-      <div className="organizer-body">
-        <aside className="organizer-sidebar">
-          <nav className="organizer-nav">
-            <NavLink to="/organizer/dashboard" className="organizer-nav-item">
-              <FiGrid /> Dashboard
-            </NavLink>
-            <button className="organizer-nav-item muted" disabled><FiCalendar /> Evenimentele mele</button>
-            <button className="organizer-nav-item muted" disabled><FiUsers /> Participanți</button>
-            <NavLink to="/organizer/settings" className="organizer-nav-item active">
-              <FiSettings /> Setări
-            </NavLink>
-          </nav>
-        </aside>
+        <nav className="organizer-nav">
+          <NavLink to="/organizer/dashboard" className="organizer-nav-item">
+            <FiGrid /> Dashboard
+          </NavLink>
+          <button className="organizer-nav-item muted" disabled><FiCalendar /> Evenimentele mele</button>
+          <button className="organizer-nav-item muted" disabled><FiUsers /> Participanți</button>
+          <NavLink to="/organizer/settings" className="organizer-nav-item active">
+            <FiSettings /> Setări
+          </NavLink>
+        </nav>
+      </aside>
 
-        <main className="organizer-content">
+      <main className="organizer-main">
+        <header className="organizer-topbar">
+          <div className="organizer-search">
+             <FiClock style={{marginRight: '8px', opacity: 0.5}} />
+             <span>Status: {statusLabels[organizerStatus]}</span>
+          </div>
+          <div className="organizer-topbar-right">
+            <button 
+                className="organizer-new-event-btn" 
+                onClick={() => navigate('/create-event')}
+                disabled={organizerStatus !== 'verified'}
+            >
+              + Eveniment nou
+            </button>
+            <div className="organizer-user-profile">
+              <div className="user-avatar">OR</div>
+              <span className="user-name">{verificationForm.companyName || 'Organizator'}</span>
+            </div>
+            <button className="organizer-logout-btn" onClick={handleLogout}>Logout</button>
+          </div>
+        </header>
+
+        <div className="organizer-content-scroll">
           <div className="settings-container">
             <div className="settings-header">
               <h1>Verificare Identitate Business</h1>
               <p className="settings-subtitle">
-                Pentru a asigura siguranța platformei, avem nevoie de datele oficiale ale firmei tale înainte de a publica evenimente.
+                Completează datele oficiale ale firmei tale pentru a putea publica evenimente pe platformă.
               </p>
             </div>
 
-            <div className={`status-box status-${organizerStatus}`}>
+            <div className={`status-box`}>
               Status curent: <strong>{statusLabels[organizerStatus]}</strong>
             </div>
 
@@ -164,7 +169,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
                 <label>CUI / CIF</label>
                 <input
                   type="text"
-                  placeholder="RO12345678"
+                  placeholder="ex: RO12345678"
                   value={verificationForm.companyCui}
                   onChange={(e) => setVerificationForm({ ...verificationForm, companyCui: e.target.value })}
                   disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
@@ -176,7 +181,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
                 <label>Adresă Sediu Social</label>
                 <input
                   type="text"
-                  placeholder="Strada, Număr, Oraș"
+                  placeholder="Oraș, Strada, Număr"
                   value={verificationForm.registeredAddress}
                   onChange={(e) => setVerificationForm({ ...verificationForm, registeredAddress: e.target.value })}
                   disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
@@ -198,13 +203,13 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
 
               {submitError && (
                 <div className="error-msg">
-                  <FiAlertCircle /> {submitError}
+                  <FiAlertCircle style={{marginRight: '8px'}} /> {submitError}
                 </div>
               )}
 
               {submitMessage && (
                 <div className="success-msg">
-                  <FiCheckCircle /> {submitMessage}
+                  <FiCheckCircle style={{marginRight: '8px'}} /> {submitMessage}
                 </div>
               )}
 
@@ -215,12 +220,14 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
               )}
               
               {organizerStatus === 'pending' && (
-                <p className="info-note">Datele tale sunt în curs de verificare. Nu pot fi modificate acum.</p>
+                <p style={{marginTop: '20px', color: '#64748b', fontSize: '13px', textAlign: 'center'}}>
+                  Datele tale sunt în curs de verificare de către un administrator.
+                </p>
               )}
             </form>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

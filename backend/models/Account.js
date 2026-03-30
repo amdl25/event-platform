@@ -7,7 +7,7 @@ const Account = sequelize.define('Account', {
   password_hash: { type: DataTypes.STRING, allowNull: false },
   first_name: { type: DataTypes.STRING, allowNull: false },
   last_name: { type: DataTypes.STRING, allowNull: false },
-  role: { type: DataTypes.ENUM('user', 'organizer'), defaultValue: 'user' }
+  role: { type: DataTypes.ENUM('user', 'organizer', 'admin'), defaultValue: 'user' }
 }, { tableName: 'account' });
 
 export default Account;

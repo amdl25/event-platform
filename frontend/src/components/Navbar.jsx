@@ -38,6 +38,11 @@ const Navbar = ({ user, handleLogout }) => {
             <FiCompass size={14} />
             Explorează
           </NavLink>
+          {user?.role === 'admin' && (
+            <NavLink to="/admin/verification-queue" className="navbar-link">
+              Admin Panel
+            </NavLink>
+          )}
           {user && (
             <NavLink to="/calendar" className="navbar-link">
               <FiCalendar size={14} />
@@ -100,6 +105,9 @@ const Navbar = ({ user, handleLogout }) => {
              />
           </div>
           <Link to="/explore" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Explorează</Link>
+          {user?.role === 'admin' && (
+            <Link to="/admin/verification-queue" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Admin Panel</Link>
+          )}
           {user && (
             <Link to="/calendar" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Calendarul meu</Link>
           )}

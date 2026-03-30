@@ -20,6 +20,7 @@ import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
+import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -61,18 +62,25 @@ function App() {
   }
 
   const isOrganizerLayout = location.pathname.startsWith('/organizer');
+  const isAdminLayout = location.pathname.startsWith('/admin');
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="App">
         <ScrollToTop />
-        {!isOrganizerLayout ? <Navbar user={user} handleLogout={handleLogout} /> : null}
+        {!isOrganizerLayout && !isAdminLayout ? <Navbar user={user} handleLogout={handleLogout} /> : null}
         
         <main className="app-main">
           <Routes>
             <Route
               path="/"
-              element={user?.role === 'organizer' ? <Navigate to="/organizer/dashboard" replace /> : <Home />}
+              element={
+                user?.role === 'organizer'
+                  ? <Navigate to="/organizer/dashboard" replace />
+                  : user?.role === 'admin'
+                    ? <Navigate to="/admin/verification-queue" replace />
+                    : <Home />
+              }
             />
             <Route path="/category/:categoryName" element={<CategoryPage />} />
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
@@ -90,6 +98,8 @@ function App() {
             <Route path="/organizer" element={<Navigate to="/organizer/dashboard" replace />} />
             <Route path="/organizer/dashboard" element={<OrganizerDashboard user={user} handleLogout={handleLogout} />} />
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
+            <Route path="/admin" element={<Navigate to="/admin/verification-queue" replace />} />
+            <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} />} />
           </Routes>
         </main>
       </div>

@@ -215,3 +215,91 @@ export const reviewOrganizerVerification = async (req, res) => {
     return res.status(500).json({ message: 'Eroare la validarea organizatorului.' });
   }
 };
+
+export const getPendingOrganizations = async (req, res) => {
+  try {
+    const adminToken = req.headers['x-admin-token'];
+    if (!process.env.ADMIN_APPROVAL_TOKEN || adminToken !== process.env.ADMIN_APPROVAL_TOKEN) {
+      return res.status(403).json({ message: 'Nu ai permisiunea de a vedea coada de verificări.' });
+    }
+
+    const pendingOrganizations = await Organization.findAll({
+      where: { verification_status: 'pending' },
+      include: [{ model: Account, as: 'owner', attributes: ['id', 'email', 'first_name', 'last_name'] }],
+      order: [['updatedAt', 'ASC']]
+    });
+
+    const verifiedCount = await Organization.count({
+      where: { verification_status: 'verified' }
+    });
+
+    const rejectedCount = await Organization.count({
+      where: { verification_status: 'rejected' }
+    });
+
+    return res.status(200).json({
+      pending: pendingOrganizations.map((org) => ({
+        id: org.id,
+        companyName: org.name,
+        cuiCif: org.business_identifier,
+        registeredAddress: org.registered_address,
+        officialPhone: org.official_phone,
+        verificationStatus: org.verification_status,
+        verificationNotes: org.verification_notes,
+        requestedAt: org.updatedAt,
+        owner: {
+          id: org.owner?.id || null,
+          email: org.owner?.email || null,
+          fullName: org.owner ? `${org.owner.first_name} ${org.owner.last_name}` : null
+        }
+      })),
+      stats: {
+        total: pendingOrganizations.length + verifiedCount + rejectedCount,
+        pendingCount: pendingOrganizations.length,
+        verifiedCount,
+        rejectedCount
+      }
+    });
+  } catch (error) {
+    console.error('Eroare la obținerea organizațiilor pending:', error);
+    return res.status(500).json({ message: 'Eroare la încărcarea cozii de verificare.' });
+  }
+};
+
+export const verifyOrganizationByAdmin = async (req, res) => {
+  try {
+    const adminToken = req.headers['x-admin-token'];
+    if (!process.env.ADMIN_APPROVAL_TOKEN || adminToken !== process.env.ADMIN_APPROVAL_TOKEN) {
+      return res.status(403).json({ message: 'Nu ai permisiunea de a valida organizatori.' });
+    }
+
+    const { id } = req.params;
+    const { status, notes } = req.body;
+
+    if (!['verified', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Status invalid. Folosește verified sau rejected.' });
+    }
+
+    const organization = await Organization.findByPk(id);
+    if (!organization) {
+      return res.status(404).json({ message: 'Organizația nu a fost găsită.' });
+    }
+
+    await organization.update({
+      verification_status: status,
+      verification_notes: notes?.trim() || null,
+      verified_at: status === 'verified' ? new Date() : null
+    });
+
+    return res.status(200).json({
+      message: status === 'verified' ? 'Organizație aprobată.' : 'Organizație respinsă.',
+      id: organization.id,
+      verificationStatus: organization.verification_status,
+      verificationNotes: organization.verification_notes,
+      verifiedAt: organization.verified_at
+    });
+  } catch (error) {
+    console.error('Eroare la verificarea organizației de către admin:', error);
+    return res.status(500).json({ message: 'Eroare la procesarea verificării.' });
+  }
+};
