@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
@@ -35,6 +35,7 @@ const queryClient = new QueryClient({
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('eventHubUser');
@@ -55,6 +56,8 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('eventHubUser');
+    setShowOnboarding(false);
+    navigate('/', { replace: true });
   };
 
   if (showOnboarding && user) {
@@ -99,7 +102,7 @@ function App() {
             <Route path="/organizer/dashboard" element={<OrganizerDashboard user={user} handleLogout={handleLogout} />} />
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
             <Route path="/admin" element={<Navigate to="/admin/verification-queue" replace />} />
-            <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} />} />
+            <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} handleLogout={handleLogout} />} />
           </Routes>
         </main>
       </div>

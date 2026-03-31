@@ -28,7 +28,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
 
   useEffect(() => {
     if (!user?.id) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 

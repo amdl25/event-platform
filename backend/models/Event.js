@@ -40,10 +40,6 @@ const Event = sequelize.define('Event', {
   guest_notes: {
     type: DataTypes.TEXT,
     allowNull: true
-  },
-  confirmation_deadline: {
-    type: DataTypes.DATE,
-    allowNull: true
   }
 }, { tableName: 'event' });
 

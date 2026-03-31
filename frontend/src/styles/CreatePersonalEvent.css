@@ -443,21 +443,3 @@
   border-color: #b8c5bf;
   box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
 }
-
-.datepicker-deadline {
-  border: 1px solid #e0e0e0;
-  background: #ffffff;
-  padding: 7px 10px;
-  border-radius: 8px;
-  width: 140px;
-  min-height: 34px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.datepicker-deadline:focus {
-  outline: none;
-  border-color: #b8c5bf;
-  box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
-}

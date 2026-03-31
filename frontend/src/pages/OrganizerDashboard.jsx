@@ -28,7 +28,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || 'unverified');
 
   useEffect(() => {
-    if (!user?.id) { navigate('/login'); return; }
+    if (!user?.id) { navigate('/'); return; }
     if (user.role !== 'organizer') { navigate('/'); return; }
 
     const loadData = async () => {
