@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { useNavigate } from 'react-router-dom';
-import { FiCheckCircle, FiCopy, FiExternalLink } from 'react-icons/fi';
+import { FiCheckCircle, FiCopy, FiExternalLink, FiImage } from 'react-icons/fi';
 import API from '../api';
 import '../styles/CreatePersonalEvent.css';
 
@@ -16,6 +16,8 @@ const CreatePersonalEvent = ({ user }) => {
   const [submitError, setSubmitError] = useState('');
   const [createdEventId, setCreatedEventId] = useState('');
   const [copyMessage, setCopyMessage] = useState('');
+  const [eventImagePreview, setEventImagePreview] = useState('');
+  const [eventImageName, setEventImageName] = useState('');
   const [startTime, setStartTime] = useState('14:30');
   const [endTime, setEndTime] = useState('15:30');
   const [activeTimeMenu, setActiveTimeMenu] = useState(null);
@@ -162,16 +164,44 @@ const CreatePersonalEvent = ({ user }) => {
     }
   };
 
+  const handleImageSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setEventImageName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEventImagePreview(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="create-event-page">
       <div className="container-max create-grid">
         
         <aside className="create-sidebar">
           <div className="event-preview-card">
-            <div className="preview-image-box">
-               <i className="fi fi-rr-picture"></i>
-               <span>Încarcă o imagine</span>
-            </div>
+            <label className="preview-image-box">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="preview-image-input"
+                onChange={handleImageSelect}
+              />
+
+              {eventImagePreview ? (
+                <img src={eventImagePreview} alt="Preview eveniment" className="preview-image-preview" />
+              ) : (
+                <>
+                  <FiImage className="preview-image-icon" />
+                  <span>Încarcă o imagine</span>
+                  <small>JPG, PNG, max 5MB</small>
+                </>
+              )}
+            </label>
+            {eventImageName ? <p className="preview-image-name">{eventImageName}</p> : null}
           </div>
         </aside>
 
