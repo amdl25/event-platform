@@ -130,7 +130,7 @@ export const createEvent = async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
     const creator_id = req.user?.id;
-    const { org_id } = req.body;
+    const { org_id, category_ids = [], category_id = null } = req.body;
 
     if (!creator_id) {
       return res.status(400).json({ message: 'creator_id este obligatoriu.' });
@@ -170,18 +170,42 @@ export const createEvent = async (req, res) => {
       return res.status(403).json({ message: 'Contul participant nu poate publica evenimente business.' });
     }
 
+    const normalizedCategoryIds = Array.isArray(category_ids)
+      ? category_ids.filter(Boolean)
+      : [];
+
+    if (category_id) {
+      normalizedCategoryIds.push(category_id);
+    }
+
     const payload = {
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      location: req.body.location,
+      start_date: req.body.start_date,
+      end_date: req.body.end_date,
+      max_capacity: req.body.max_capacity,
+      price: req.body.price,
+      points_value: req.body.points_value,
       creator_id,
       org_id: creator.role === 'user' ? null : org_id,
       image_url: imageUrl
     };
 
-    const newEvent = await Event.create({
-      ...payload
+    const newEvent = await Event.create(payload);
+
+    if (normalizedCategoryIds.length > 0) {
+      const categories = await Category.findAll({ where: { id: normalizedCategoryIds } });
+      if (categories.length > 0) {
+        await newEvent.setCategories(categories.map((category) => category.id));
+      }
+    }
+
+    const createdEvent = await Event.findByPk(newEvent.id, {
+      include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
     });
 
-    res.status(201).json(newEvent);
+    res.status(201).json(createdEvent || newEvent);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
