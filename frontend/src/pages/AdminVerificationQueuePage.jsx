@@ -16,7 +16,6 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState({ total: 0, pendingCount: 0, verifiedCount: 0, rejectedCount: 0 });
   const [processingId, setProcessingId] = useState('');
-  const [removingIds, setRemovingIds] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
@@ -34,7 +33,7 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
             'x-admin-id': user.id
           }
         });
-        setItems(response.data?.pending || []);
+        setItems(response.data?.requests || []);
         setStats(response.data?.stats || { total: 0, pendingCount: 0, verifiedCount: 0, rejectedCount: 0 });
       } catch (err) {
         setError(err.response?.data?.message || 'Eroare la încărcarea cererilor.');
@@ -54,11 +53,10 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
           'x-admin-id': user.id
         }
       });
-      setRemovingIds(prev => [...prev, id]);
-      setTimeout(() => {
-        setItems(prev => prev.filter(item => item.id !== id));
-        setStats(prev => ({ ...prev, pendingCount: prev.pendingCount - 1, verifiedCount: prev.verifiedCount + 1 }));
-      }, 300);
+      setItems(prev => prev.map(item => (
+        item.id === id ? { ...item, verificationStatus: 'verified', requestedAt: new Date().toISOString() } : item
+      )));
+      setStats(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1), verifiedCount: prev.verifiedCount + 1 }));
     } catch (err) { setError('Eroare la aprobare.'); } 
     finally { setProcessingId(''); }
   };
@@ -74,13 +72,32 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
           'x-admin-id': user.id
         }
       });
-      setRemovingIds(prev => [...prev, id]);
-      setTimeout(() => {
-        setItems(prev => prev.filter(item => item.id !== id));
-        setStats(prev => ({ ...prev, pendingCount: prev.pendingCount - 1, rejectedCount: prev.rejectedCount + 1 }));
-      }, 300);
+      setItems(prev => prev.map(item => (
+        item.id === id ? { ...item, verificationStatus: 'rejected', requestedAt: new Date().toISOString() } : item
+      )));
+      setStats(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1), rejectedCount: prev.rejectedCount + 1 }));
     } catch (err) { setError('Eroare la respingere.'); } 
     finally { setProcessingId(''); }
+  };
+
+  const filteredItems = items.filter((item) => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'pending') return item.verificationStatus === 'pending';
+    if (activeTab === 'verified') return item.verificationStatus === 'verified';
+    if (activeTab === 'rejected') return item.verificationStatus === 'rejected';
+    return true;
+  });
+
+  const statusLabelMap = {
+    pending: 'În așteptare',
+    verified: 'Aprobată',
+    rejected: 'Respinsă'
+  };
+
+  const statusPillClassMap = {
+    pending: 'pill-pending',
+    verified: 'pill-verified',
+    rejected: 'pill-rejected'
   };
 
   if (loading) return <div className="admin-loading">Se încarcă...</div>;
@@ -166,10 +183,18 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
             </div>
 
             <div className="admin-tabs">
-              <button className="active">Toate ({items.length})</button>
-              <button>În așteptare</button>
-              <button>Aprobate</button>
-              <button>Respinse</button>
+              <button className={activeTab === 'all' ? 'active' : ''} onClick={() => setActiveTab('all')}>
+                Toate ({stats.total})
+              </button>
+              <button className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}>
+                În așteptare ({stats.pendingCount})
+              </button>
+              <button className={activeTab === 'verified' ? 'active' : ''} onClick={() => setActiveTab('verified')}>
+                Aprobate ({stats.verifiedCount})
+              </button>
+              <button className={activeTab === 'rejected' ? 'active' : ''} onClick={() => setActiveTab('rejected')}>
+                Respinse ({stats.rejectedCount})
+              </button>
             </div>
 
             <div className="table-container">
@@ -185,8 +210,8 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map(org => (
-                    <tr key={org.id} className={removingIds.includes(org.id) ? 'fade-out' : ''}>
+                  {filteredItems.map(org => (
+                    <tr key={org.id}>
                       <td>
                         <div className="company-info">
                           <div className="company-icon"><FiCalendar /></div>
@@ -205,15 +230,35 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
                         <p className="sub">{org.officialPhone}</p>
                       </td>
                       <td><p className="sub">{new Date(org.requestedAt).toLocaleDateString('ro-RO')}</p></td>
-                      <td><span className="pill-pending">În așteptare</span></td>
+                      <td><span className={statusPillClassMap[org.verificationStatus] || 'pill-pending'}>{statusLabelMap[org.verificationStatus] || 'În așteptare'}</span></td>
                       <td>
                         <div className="actions">
-                          <button className="act-btn approve" onClick={() => handleApprove(org.id)}><FiCheckCircle /></button>
-                          <button className="act-btn reject" onClick={() => handleReject(org.id)}><FiXCircle /></button>
+                          <button
+                            className="act-btn approve"
+                            onClick={() => handleApprove(org.id)}
+                            disabled={org.verificationStatus !== 'pending' || processingId === org.id}
+                            title={org.verificationStatus !== 'pending' ? 'Doar cererile în așteptare pot fi aprobate' : 'Aprobă'}
+                          >
+                            <FiCheckCircle />
+                          </button>
+                          <button
+                            className="act-btn reject"
+                            onClick={() => handleReject(org.id)}
+                            disabled={org.verificationStatus !== 'pending' || processingId === org.id}
+                            title={org.verificationStatus !== 'pending' ? 'Doar cererile în așteptare pot fi respinse' : 'Respinge'}
+                          >
+                            <FiXCircle />
+                          </button>
                         </div>
                       </td>
                     </tr>
                   ))}
+
+                  {filteredItems.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="admin-empty-row">Nu există cereri pentru filtrul selectat.</td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>

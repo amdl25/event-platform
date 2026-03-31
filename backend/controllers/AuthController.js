@@ -241,22 +241,18 @@ export const getPendingOrganizations = async (req, res) => {
       return res.status(403).json({ message: 'Nu ai permisiunea de a vedea coada de verificări.' });
     }
 
-    const pendingOrganizations = await Organization.findAll({
-      where: { verification_status: 'pending' },
+    const organizations = await Organization.findAll({
+      where: { verification_status: ['pending', 'verified', 'rejected'] },
       include: [{ model: Account, as: 'owner', attributes: ['id', 'email', 'first_name', 'last_name'] }],
       order: [['updatedAt', 'ASC']]
     });
 
-    const verifiedCount = await Organization.count({
-      where: { verification_status: 'verified' }
-    });
-
-    const rejectedCount = await Organization.count({
-      where: { verification_status: 'rejected' }
-    });
+    const pendingCount = organizations.filter((org) => org.verification_status === 'pending').length;
+    const verifiedCount = organizations.filter((org) => org.verification_status === 'verified').length;
+    const rejectedCount = organizations.filter((org) => org.verification_status === 'rejected').length;
 
     return res.status(200).json({
-      pending: pendingOrganizations.map((org) => ({
+      requests: organizations.map((org) => ({
         id: org.id,
         companyName: org.name,
         cuiCif: org.business_identifier,
@@ -272,8 +268,8 @@ export const getPendingOrganizations = async (req, res) => {
         }
       })),
       stats: {
-        total: pendingOrganizations.length + verifiedCount + rejectedCount,
-        pendingCount: pendingOrganizations.length,
+        total: organizations.length,
+        pendingCount,
         verifiedCount,
         rejectedCount
       }
