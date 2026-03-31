@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { 
   FiBell, FiCalendar, FiCheckCircle, FiClock, FiFilter, 
-  FiGrid, FiSearch, FiSettings, FiUsers, FiXCircle, FiEye 
+  FiGrid, FiSearch, FiSettings, FiUsers, FiXCircle
 } from 'react-icons/fi';
 import API from '../api';
 import '../styles/AdminVerificationQueuePage.css';
@@ -29,7 +29,10 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
       try {
         setLoading(true);
         const response = await API.get('/auth/admin/pending-organizations', {
-          headers: { 'x-admin-token': ADMIN_TOKEN }
+          headers: {
+            'x-admin-token': ADMIN_TOKEN,
+            'x-admin-id': user.id
+          }
         });
         setItems(response.data?.pending || []);
         setStats(response.data?.stats || { total: 0, pendingCount: 0, verifiedCount: 0, rejectedCount: 0 });
@@ -46,7 +49,10 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
     try {
       setProcessingId(id);
       await API.patch(`/auth/admin/verify-organization/${id}`, { status: 'verified' }, {
-        headers: { 'x-admin-token': ADMIN_TOKEN }
+        headers: {
+          'x-admin-token': ADMIN_TOKEN,
+          'x-admin-id': user.id
+        }
       });
       setRemovingIds(prev => [...prev, id]);
       setTimeout(() => {
@@ -63,7 +69,10 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
     try {
       setProcessingId(id);
       await API.patch(`/auth/admin/verify-organization/${id}`, { status: 'rejected', notes: reason }, {
-        headers: { 'x-admin-token': ADMIN_TOKEN }
+        headers: {
+          'x-admin-token': ADMIN_TOKEN,
+          'x-admin-id': user.id
+        }
       });
       setRemovingIds(prev => [...prev, id]);
       setTimeout(() => {
@@ -117,6 +126,8 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
         </header>
 
         <div className="admin-content">
+          {error ? <div className="admin-error-banner">{error}</div> : null}
+
           <section className="admin-stats">
             <div className="stat-card">
               <div className="stat-text">

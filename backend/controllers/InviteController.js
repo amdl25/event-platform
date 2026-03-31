@@ -46,7 +46,7 @@ export const getInvitePreview = async (req, res) => {
 export const confirmInviteParticipation = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { account_id } = req.body;
+    const account_id = req.user?.id;
 
     if (!account_id) {
       return res.status(400).json({ message: 'account_id este obligatoriu' });

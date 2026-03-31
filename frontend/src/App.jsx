@@ -21,6 +21,7 @@ import InviteEventPage from './pages/InviteEventPage';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
 import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
+import { AUTH_TOKEN_STORAGE_KEY } from './api';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -39,16 +40,23 @@ function App() {
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('eventHubUser');
-    return savedUser ? JSON.parse(savedUser) : null;
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    if (!savedUser || !token) return null;
+    return JSON.parse(savedUser);
   });
   
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('eventHubUser', JSON.stringify(userData));
+    const { token, ...userPayload } = userData;
+
+    setUser(userPayload);
+    localStorage.setItem('eventHubUser', JSON.stringify(userPayload));
+    if (token) {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    }
     
-    if (userData.isNewUser && userData.role === 'user') {
+    if (userPayload.isNewUser && userPayload.role === 'user') {
       setShowOnboarding(true);
     }
   };
@@ -56,6 +64,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('eventHubUser');
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     setShowOnboarding(false);
     navigate('/', { replace: true });
   };

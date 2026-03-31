@@ -1,8 +1,18 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import sequelize from '../config/database.js';
 import { Account, Organization } from '../models/relationships.js';
 
-const buildAuthPayload = (user, organization = null) => ({
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+const createAccessToken = (user) => jwt.sign({
+  sub: user.id,
+  role: user.role,
+  email: user.email
+}, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+const buildAuthPayload = (user, organization = null, token = null) => ({
   id: user.id,
   email: user.email,
   firstName: user.first_name,
@@ -11,7 +21,8 @@ const buildAuthPayload = (user, organization = null) => ({
   organizationId: organization?.id || null,
   organizationName: organization?.name || null,
   organizerVerificationStatus: organization?.verification_status || null,
-  isAuthenticated: true
+  isAuthenticated: true,
+  token
 });
 
 export const register = async (req, res) => {
@@ -70,8 +81,10 @@ export const register = async (req, res) => {
       return { newUser, organization };
     });
 
+    const token = createAccessToken(result.newUser);
+
     return res.status(201).json({
-      ...buildAuthPayload(result.newUser, result.organization),
+      ...buildAuthPayload(result.newUser, result.organization, token),
       isNewUser: true
     });
   } catch (error) {
@@ -102,8 +115,9 @@ export const login = async (req, res) => {
     }
 
     const organizer = user.ownedOrganizations?.[0] || null;
+    const token = createAccessToken(user);
 
-    return res.status(200).json(buildAuthPayload(user, organizer));
+    return res.status(200).json(buildAuthPayload(user, organizer, token));
 
   } catch (error) {
     console.error('Eroare la login:', error);
@@ -114,8 +128,13 @@ export const login = async (req, res) => {
 export const getOrganizerStatus = async (req, res) => {
   try {
     const { accountId } = req.params;
+    const effectiveAccountId = req.user?.role === 'admin' && accountId ? accountId : req.user?.id;
 
-    const organization = await Organization.findOne({ where: { owner_id: accountId } });
+    if (!effectiveAccountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const organization = await Organization.findOne({ where: { owner_id: effectiveAccountId } });
     if (!organization) {
       return res.status(404).json({ message: 'Organizația nu a fost găsită pentru acest cont.' });
     }
@@ -137,17 +156,18 @@ export const getOrganizerStatus = async (req, res) => {
 
 export const submitOrganizerVerification = async (req, res) => {
   try {
-    const { account_id, company_name, company_cui, registered_address, official_phone } = req.body;
+    const { company_name, company_cui, registered_address, official_phone } = req.body;
+    const accountId = req.user?.id;
 
-    if (!account_id) {
-      return res.status(400).json({ message: 'account_id este obligatoriu.' });
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
     }
 
     if (!company_name?.trim() || !company_cui?.trim() || !registered_address?.trim() || !official_phone?.trim()) {
       return res.status(400).json({ message: 'Completează profilul business: nume firmă, CUI/CIF, adresă și telefon oficial.' });
     }
 
-    const organization = await Organization.findOne({ where: { owner_id: account_id } });
+    const organization = await Organization.findOne({ where: { owner_id: accountId } });
     if (!organization) {
       return res.status(404).json({ message: 'Organizația nu a fost găsită.' });
     }
@@ -181,8 +201,7 @@ export const submitOrganizerVerification = async (req, res) => {
 
 export const reviewOrganizerVerification = async (req, res) => {
   try {
-    const adminToken = req.headers['x-admin-token'];
-    if (!process.env.ADMIN_APPROVAL_TOKEN || adminToken !== process.env.ADMIN_APPROVAL_TOKEN) {
+    if (req.user?.role !== 'admin') {
       return res.status(403).json({ message: 'Nu ai permisiunea de a valida organizatori.' });
     }
 
@@ -218,8 +237,7 @@ export const reviewOrganizerVerification = async (req, res) => {
 
 export const getPendingOrganizations = async (req, res) => {
   try {
-    const adminToken = req.headers['x-admin-token'];
-    if (!process.env.ADMIN_APPROVAL_TOKEN || adminToken !== process.env.ADMIN_APPROVAL_TOKEN) {
+    if (req.user?.role !== 'admin') {
       return res.status(403).json({ message: 'Nu ai permisiunea de a vedea coada de verificări.' });
     }
 
@@ -268,8 +286,7 @@ export const getPendingOrganizations = async (req, res) => {
 
 export const verifyOrganizationByAdmin = async (req, res) => {
   try {
-    const adminToken = req.headers['x-admin-token'];
-    if (!process.env.ADMIN_APPROVAL_TOKEN || adminToken !== process.env.ADMIN_APPROVAL_TOKEN) {
+    if (req.user?.role !== 'admin') {
       return res.status(403).json({ message: 'Nu ai permisiunea de a valida organizatori.' });
     }
 

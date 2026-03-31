@@ -52,7 +52,8 @@ export const sendTicketsByEmail = async (req, res) => {
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 export const purchaseAsUser = async (req, res) => {
-	const { event_id, account_id, buyer_name, buyer_email, quantity = 1 } = req.body;
+	const { event_id, buyer_name, buyer_email, quantity = 1 } = req.body;
+	const account_id = req.user?.id;
 	const parsedQuantity = Number(quantity);
 
 	if (!event_id || !account_id || !buyer_name || !buyer_email) {

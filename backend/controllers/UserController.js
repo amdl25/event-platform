@@ -3,6 +3,17 @@ import { Account, Category } from '../models/relationships.js';
 export const getUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
+    const requesterId = req.user?.id;
+    const requesterRole = req.user?.role;
+
+    if (!requesterId) {
+      return res.status(401).json({ message: 'Neautorizat' });
+    }
+
+    if (requesterRole !== 'admin' && requesterId !== id) {
+      return res.status(403).json({ message: 'Nu ai acces la acest profil.' });
+    }
+
     const user = await Account.findByPk(id, {
       attributes: ['id', 'email', 'first_name', 'last_name', 'role'],
       include: [
@@ -23,7 +34,13 @@ export const getUserProfile = async (req, res) => {
 
 export const setInterests = async (req, res) => {
   try {
-    const { userId, interests } = req.body;
+    const { interests } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Neautorizat' });
+    }
+
     const user = await Account.findByPk(userId);
     if (!user) return res.status(404).json({ message: "Utilizator negăsit" });
 

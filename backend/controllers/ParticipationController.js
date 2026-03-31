@@ -2,7 +2,15 @@ import { Participation, Event, LoyaltyWallet } from '../models/relationships.js'
 
 export const joinEvent = async (req, res) => {
   const { event_id } = req.body;
-  const test_account_id = "ID_USER_TEST";
+  const account_id = req.user?.id;
+
+  if (!account_id) {
+    return res.status(401).json({ message: 'Neautorizat' });
+  }
+
+  if (!event_id) {
+    return res.status(400).json({ message: 'event_id este obligatoriu' });
+  }
 
   try {
     const event = await Event.findByPk(event_id);
@@ -12,7 +20,7 @@ export const joinEvent = async (req, res) => {
     }
 
     const participation = await Participation.create({
-      account_id: test_account_id,
+      account_id,
       event_id: event_id,
       status: 'going',
       ticket_qr: `QR-${Math.random().toString(36).substr(2, 9)}`

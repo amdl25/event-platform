@@ -3,6 +3,16 @@ import { Event, Organization, Category, Account, Participation } from '../models
 export const getUserCalendarEvents = async (req, res) => {
   try {
     const { userId } = req.params;
+    const requesterId = req.user?.id;
+    const requesterRole = req.user?.role;
+
+    if (!requesterId) {
+      return res.status(401).json({ message: 'Neautorizat' });
+    }
+
+    if (requesterRole !== 'admin' && requesterId !== userId) {
+      return res.status(403).json({ message: 'Nu ai acces la calendarul altui utilizator.' });
+    }
 
     const user = await Account.findByPk(userId, {
       include: [
@@ -119,7 +129,8 @@ export const getEventById = async (req, res) => {
 export const createEvent = async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
-    const { creator_id, org_id } = req.body;
+    const creator_id = req.user?.id;
+    const { org_id } = req.body;
 
     if (!creator_id) {
       return res.status(400).json({ message: 'creator_id este obligatoriu.' });
@@ -161,6 +172,7 @@ export const createEvent = async (req, res) => {
 
     const payload = {
       ...req.body,
+      creator_id,
       org_id: creator.role === 'user' ? null : org_id,
       image_url: imageUrl
     };
