@@ -65,6 +65,7 @@ function App() {
     setUser(null);
     localStorage.removeItem('eventHubUser');
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    queryClient.clear();
     setShowOnboarding(false);
     navigate('/', { replace: true });
   };

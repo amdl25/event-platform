@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiCalendar, FiClock, FiMapPin, FiCheckCircle, FiCopy, FiEdit2 } from 'react-icons/fi';
 import API from '../api';
 import { getEventDateLabel, getEventTimeRangeLabel } from '../utils/eventDateTime';
+import EventDetailsModal from '../components/EventDetailsModal';
 import '../styles/InviteEventPage.css';
 
 const InviteEventPage = ({ user }) => {
@@ -14,6 +15,8 @@ const InviteEventPage = ({ user }) => {
   const [error, setError] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState('');
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [modalInitialMode, setModalInitialMode] = useState('view');
 
   const inviteLink = useMemo(() => `${window.location.origin}/invite/${eventId}`, [eventId]);
   const isOrganizerView = !!(user?.id && eventData?.creator_id && user.id === eventData.creator_id);
@@ -42,6 +45,11 @@ const InviteEventPage = ({ user }) => {
     } catch {
       setJoinMessage('Nu am putut copia link-ul automat.');
     }
+  };
+
+  const handleOpenEventModal = () => {
+    setModalInitialMode(isOrganizerView ? 'edit' : 'view');
+    setIsEventModalOpen(true);
   };
 
   const handleConfirmParticipation = async () => {
@@ -97,7 +105,7 @@ const InviteEventPage = ({ user }) => {
               <button className="invite-btn primary" type="button" onClick={handleCopyLink}>
                 <FiCopy /> Copiază Link Invitație
               </button>
-              <button className="invite-btn secondary" type="button" onClick={() => navigate(`/event/${eventData.id}`)}>
+              <button className="invite-btn secondary" type="button" onClick={handleOpenEventModal}>
                 <FiEdit2 /> Vezi / Editează Eveniment
               </button>
             </>
@@ -111,6 +119,15 @@ const InviteEventPage = ({ user }) => {
         {isOrganizerView ? <p className="invite-hint">Ești organizatorul. Distribuie link-ul invitaților tăi.</p> : null}
         {joinMessage ? <p className="invite-message">{joinMessage}</p> : null}
       </div>
+
+      <EventDetailsModal
+        isOpen={isEventModalOpen}
+        event={eventData}
+        onClose={() => setIsEventModalOpen(false)}
+        canEdit={isOrganizerView}
+        initialMode={modalInitialMode}
+        onSaved={(updatedEvent) => setEventData(updatedEvent)}
+      />
     </div>
   );
 };

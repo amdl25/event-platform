@@ -1,4 +1,7 @@
 import { Event, Organization, Category, Account, Participation } from '../models/relationships.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
 
 export const getUserCalendarEvents = async (req, res) => {
   try {
@@ -52,6 +55,7 @@ export const getUserCalendarEvents = async (req, res) => {
       .map(evt => ({
         id: evt.id,
         title: evt.title,
+        creator_id: evt.creator_id,
         start_date: evt.start_date,
         end_date: evt.end_date,
         start: evt.start_date,
@@ -61,6 +65,11 @@ export const getUserCalendarEvents = async (req, res) => {
         description: evt.description,
         location: evt.location,
         image_url: evt.image_url,
+        max_capacity: evt.max_capacity,
+        current_occupancy: evt.current_occupancy,
+        price: evt.price,
+        points_value: evt.points_value,
+        categories: evt.categories || [],
         backgroundColor: evt.type === 'private' ? '#9c87ff' : '#00a884',
         textColor: '#ffffff',
         borderColor: 'transparent'
@@ -76,6 +85,19 @@ export const getUserCalendarEvents = async (req, res) => {
 
 export const getAllEvents = async (req, res) => {
   try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    let requesterId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        requesterId = decoded?.sub || null;
+      } catch (tokenError) {
+        requesterId = null;
+      }
+    }
+
     const events = await Event.findAll({
       include: [
         { model: Organization, as: 'organization', attributes: ['name', 'verification_status'] },
@@ -85,8 +107,11 @@ export const getAllEvents = async (req, res) => {
     });
 
     const visibleEvents = events.filter((event) => {
-      if (!event.org_id) return true;
-      return event.organization?.verification_status === 'verified';
+      if (!event.org_id) {
+        return Boolean(requesterId && event.creator_id === requesterId);
+      }
+
+      return true;
     });
 
     const eventData = visibleEvents.map(event => ({
@@ -111,6 +136,11 @@ export const getEventById = async (req, res) => {
           model: Organization,
           as: 'organization',
           attributes: ['name', 'description']
+        },
+        {
+          model: Category,
+          as: 'categories',
+          through: { attributes: [] }
         }
       ]
     });
@@ -123,6 +153,84 @@ export const getEventById = async (req, res) => {
   } catch (error) {
     console.error("Eroare la preluarea evenimentului:", error);
     res.status(500).json({ message: "Eroare internă de server" });
+  }
+};
+
+export const updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const creatorId = req.user?.id;
+
+    if (!creatorId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const event = await Event.findByPk(id, {
+      include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Evenimentul nu a fost găsit.' });
+    }
+
+    const creator = await Account.findByPk(creatorId);
+    if (!creator) {
+      return res.status(404).json({ message: 'Contul creatorului nu a fost găsit.' });
+    }
+
+    if (creator.role === 'organizer') {
+      const organization = await Organization.findOne({
+        where: { id: event.org_id, owner_id: creatorId }
+      });
+
+      if (!organization) {
+        return res.status(403).json({ message: 'Nu ai acces la acest eveniment.' });
+      }
+
+      if (organization.verification_status !== 'verified') {
+        return res.status(403).json({ message: 'Cont în așteptare. Nu poți edita evenimentul până la validare.' });
+      }
+    }
+
+    if (creator.role === 'user' && event.creator_id !== creatorId) {
+      return res.status(403).json({ message: 'Nu ai acces la acest eveniment.' });
+    }
+
+    const { category_ids = [], category_id = null } = req.body;
+    const normalizedCategoryIds = Array.isArray(category_ids)
+      ? category_ids.filter(Boolean)
+      : [];
+
+    if (category_id) {
+      normalizedCategoryIds.push(category_id);
+    }
+
+    await event.update({
+      title: req.body.title,
+      description: req.body.description,
+      location: req.body.location,
+      start_date: req.body.start_date,
+      end_date: req.body.end_date,
+      max_capacity: req.body.max_capacity,
+      price: req.body.price,
+      points_value: req.body.points_value
+    });
+
+    if (normalizedCategoryIds.length > 0) {
+      const categories = await Category.findAll({ where: { id: normalizedCategoryIds } });
+      await event.setCategories(categories.map((category) => category.id));
+    }
+
+    const updatedEvent = await Event.findByPk(id, {
+      include: [
+        { model: Organization, as: 'organization', attributes: ['name', 'description'] },
+        { model: Category, as: 'categories', through: { attributes: [] } }
+      ]
+    });
+
+    return res.status(200).json(updatedEvent);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
 

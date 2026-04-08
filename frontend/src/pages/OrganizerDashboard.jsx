@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FiCalendar, FiEye, FiUsers, FiTrendingUp, FiMapPin, FiClock, FiGrid, FiSettings, FiBell, FiImage } from 'react-icons/fi';
 import API from '../api';
 import '../styles/OrganizerDashboard.css';
@@ -33,6 +33,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   };
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || 'unverified');
@@ -42,6 +43,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [eventFormError, setEventFormError] = useState('');
   const [eventImagePreview, setEventImagePreview] = useState('');
   const [eventImageName, setEventImageName] = useState('');
+  const [editingEventId, setEditingEventId] = useState('');
   const [eventForm, setEventForm] = useState(() => {
     const now = new Date();
     const inTwoHours = new Date(now.getTime() + (2 * 60 * 60 * 1000));
@@ -95,6 +97,48 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     loadData();
   }, [navigate, user]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editEventId = params.get('editEvent');
+    if (!editEventId) return;
+
+    const loadEventForEditing = async () => {
+      try {
+        const response = await API.get(`/events/${editEventId}`);
+        const eventToEdit = response.data;
+        if (!eventToEdit) return;
+
+        const startDate = eventToEdit.start_date ? toLocalDateInput(new Date(eventToEdit.start_date)) : '';
+        const startTime = eventToEdit.start_date ? toLocalTimeInput(new Date(eventToEdit.start_date)) : '';
+        const endDate = eventToEdit.end_date ? toLocalDateInput(new Date(eventToEdit.end_date)) : '';
+        const endTime = eventToEdit.end_date ? toLocalTimeInput(new Date(eventToEdit.end_date)) : '';
+
+        setEditingEventId(eventToEdit.id);
+        setEventForm({
+          title: eventToEdit.title || '',
+          description: eventToEdit.description || '',
+          location: eventToEdit.location || '',
+          startDate,
+          startTime,
+          endDate,
+          endTime,
+          maxCapacity: Number(eventToEdit.max_capacity || 50),
+          price: Number(eventToEdit.price || 0),
+          pointsValue: Number(eventToEdit.points_value || 0),
+          categoryId: eventToEdit.categories?.[0]?.id || categories[0]?.id || ''
+        });
+        setEventImagePreview(eventToEdit.image_url || '');
+        setEventImageName('');
+        setEventFormError('');
+        setShowCreateModal(true);
+      } catch (error) {
+        console.error('Eroare la încărcarea evenimentului pentru editare:', error);
+      }
+    };
+
+    loadEventForEditing();
+  }, [categories, location.search]);
+
   const handleCreateFormChange = (field, value) => {
     setEventForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -104,6 +148,23 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       return;
     }
     setEventFormError('');
+    setEditingEventId('');
+    setEventForm((prev) => ({
+      ...prev,
+      title: '',
+      description: '',
+      location: '',
+      startDate: '',
+      startTime: '',
+      endDate: '',
+      endTime: '',
+      maxCapacity: 50,
+      price: 0,
+      pointsValue: 0,
+      categoryId: categories[0]?.id || ''
+    }));
+    setEventImagePreview('');
+    setEventImageName('');
     setShowCreateModal(true);
   };
 
@@ -144,7 +205,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
     try {
       setIsSubmittingEvent(true);
-      const response = await API.post('/events', {
+      const payload = {
         title: eventForm.title.trim(),
         description: eventForm.description.trim() || null,
         location: eventForm.location.trim(),
@@ -155,14 +216,24 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         points_value: Number(eventForm.pointsValue || 0),
         org_id: user?.organizationId,
         category_id: eventForm.categoryId || null
-      });
+      };
+
+      const response = editingEventId
+        ? await API.patch(`/events/${editingEventId}`, payload)
+        : await API.post('/events', payload);
 
       const createdEvent = response.data;
       if (createdEvent?.id) {
-        setEvents((prev) => [createdEvent, ...prev]);
+        setEvents((prev) => {
+          if (editingEventId) {
+            return prev.map((item) => (item.id === createdEvent.id ? createdEvent : item));
+          }
+          return [createdEvent, ...prev];
+        });
       }
 
       setShowCreateModal(false);
+      setEditingEventId('');
       setEventForm((prev) => ({
         ...prev,
         title: '',
@@ -348,7 +419,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         <div className="organizer-create-modal-backdrop" onClick={() => setShowCreateModal(false)}>
           <div className="organizer-create-modal" onClick={(event) => event.stopPropagation()}>
             <div className="organizer-create-modal-header">
-              <h3>Eveniment nou</h3>
+              <h3>{editingEventId ? 'Editează eveniment' : 'Eveniment nou'}</h3>
               <button type="button" className="organizer-create-close" onClick={() => setShowCreateModal(false)}>×</button>
             </div>
 
@@ -435,7 +506,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
               <div className="organizer-create-modal-footer">
                 <button type="button" className="organizer-create-cancel" onClick={() => setShowCreateModal(false)}>Anulează</button>
                 <button type="submit" className="organizer-create-submit" disabled={isSubmittingEvent || categories.length === 0}>
-                  {isSubmittingEvent ? 'Se creează...' : 'Creează eveniment'}
+                  {isSubmittingEvent ? (editingEventId ? 'Se salvează...' : 'Se creează...') : (editingEventId ? 'Salvează modificările' : 'Creează eveniment')}
                 </button>
               </div>
             </form>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin } from 'react-icons/fi';
+import { API_BASE } from '../api';
 import '../styles/EventCard.css';
 
 const EventCard = ({ event, variant = 'default' }) => {
@@ -8,6 +9,11 @@ const EventCard = ({ event, variant = 'default' }) => {
   const month = dateObj.toLocaleDateString('ro-RO', { month: 'short' }).toUpperCase();
   const day = dateObj.getDate();
   const isSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
+  const cardImageSrc = event.image_url
+    ? (event.image_url.startsWith('http') || event.image_url.startsWith('data:')
+      ? event.image_url
+      : `${API_BASE}${event.image_url}`)
+    : '';
 
   if (variant === 'compact') {
     return (
@@ -15,7 +21,7 @@ const EventCard = ({ event, variant = 'default' }) => {
         <div className="event-card compact">
           <div className="card-image-container">
             {event.image_url ? (
-              <img src={event.image_url} alt={event.title} className="card-main-image" />
+              <img src={cardImageSrc} alt={event.title} className="card-main-image" />
             ) : (
               <div className="card-image-placeholder no-image">{event.title?.charAt(0)}</div>
             )}

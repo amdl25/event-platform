@@ -5,12 +5,15 @@ import 'react-calendar/dist/Calendar.css';
 import { FiCalendar, FiClock, FiMapPin, FiZap } from 'react-icons/fi';
 import { useEvents } from '../hooks/useEvents';
 import { getEventDateKey, getEventStartValue, getEventTimeLabel, getEventDayNumber, getEventMonthShort } from '../utils/eventDateTime';
+import EventDetailsModal from '../components/EventDetailsModal';
 import '../styles/CalendarPage.css';
 
 const CalendarPage = ({ user }) => {
   const navigate = useNavigate();
   const [value, onChange] = useState(new Date());
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   const { data: events = [], isLoading, error } = useEvents(user?.id);
 
@@ -55,6 +58,11 @@ const CalendarPage = ({ user }) => {
     if (!location) return 'Oraș nespecificat';
     const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
     return parts[parts.length - 1] || location;
+  };
+
+  const openEventModal = (event) => {
+    setActiveEvent(event);
+    setIsEventModalOpen(true);
   };
 
   const tileContent = ({ date, view }) => {
@@ -117,7 +125,7 @@ const CalendarPage = ({ user }) => {
               </div>
               {selectedDateEvents.length > 0 ? (
                 selectedDateEvents.map(e => (
-                  <div key={e.id} className={`event-detail-pill ${e.org_id ? 'is-public' : 'is-private'}`} onClick={() => navigate(`/event/${e.id}`)}>
+                  <div key={e.id} className={`event-detail-pill ${e.org_id ? 'is-public' : 'is-private'}`} onClick={() => openEventModal(e)}>
                     <div className="pill-info">
                       <h4 className="event-title-with-dot">
                         <span className="event-color-dot" style={{ backgroundColor: getEventColor(e) }}></span>
@@ -146,7 +154,7 @@ const CalendarPage = ({ user }) => {
                   .sort((a, b) => new Date(getEventStartValue(a)) - new Date(getEventStartValue(b)))
                   .slice(0, 4)
                   .map(e => (
-                    <div key={e.id} className="upcoming-row" onClick={() => navigate(`/event/${e.id}`)}>
+                    <div key={e.id} className="upcoming-row" onClick={() => openEventModal(e)}>
                       <div className="date-box">
                         <span className="day">{getEventDayNumber(getEventStartValue(e))}</span>
                         <span className="month">{getEventMonthShort(getEventStartValue(e), 'ro-RO')}</span>
@@ -166,6 +174,12 @@ const CalendarPage = ({ user }) => {
           </div>
         </div>
       </div>
+      <EventDetailsModal
+        isOpen={isEventModalOpen}
+        event={activeEvent}
+        onClose={() => setIsEventModalOpen(false)}
+        canEdit={Boolean(user?.id && activeEvent?.creator_id && user.id === activeEvent.creator_id)}
+      />
     </div>
   );
 };

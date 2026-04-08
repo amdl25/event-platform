@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEvent, getAllEvents, getEventById, getUserCalendarEvents } from '../controllers/EventController.js';
+import { createEvent, getAllEvents, getEventById, getUserCalendarEvents, updateEvent } from '../controllers/EventController.js';
 import { joinEvent } from '../controllers/ParticipationController.js';
 import { purchaseAsGuest, purchaseAsUser, sendTicketsByEmail } from '../controllers/BookingController.js';
 import { confirmInviteParticipation, getInvitePreview } from '../controllers/InviteController.js';
@@ -16,6 +16,7 @@ router.post('/purchase/user', authenticateToken, purchaseAsUser);
 router.post('/purchase/guest', purchaseAsGuest);
 router.post('/tickets/send-email', sendTicketsByEmail);
 router.post('/', authenticateToken, createEvent);
+router.patch('/:id', authenticateToken, updateEvent);
 router.get('/:id', getEventById);
 
 export default router;
