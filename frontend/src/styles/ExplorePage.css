@@ -5,8 +5,27 @@
 
 .explore-header {
   padding: 40px 0 20px 0;
-  border-bottom: 1px solid var(--neutral-200);
-  margin-bottom: 40px;
+  border-bottom: none;
+  margin-bottom: 18px;
+}
+
+.explore-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.explore-header-text {
+  flex: 1;
+}
+
+.explore-header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 .explore-title {
@@ -98,52 +117,41 @@
 
 .explore-all-events-wrap {
   width: 100%;
+  margin-top: 0;
 }
 
 .explore-filters-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 24px 0;
-  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 10px;
+  margin-left: auto;
+  margin-bottom: 14px;
+  padding: 0;
+  border-bottom: none;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.explore-results-under-title {
+  margin-top: 2px;
+  margin-bottom: 16px;
 }
 
 .filter-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  min-width: 190px;
 }
 
 .filter-item label {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #999;
+  color: #8a95a5;
   letter-spacing: 0.5px;
-}
-
-.filter-item select {
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  color: #333;
-  width: 100%;
-  outline: none;
-}
-
-.filter-item select:hover {
-  border-color: var(--primary, #ff7f50);
-}
-
-.filter-item select:focus {
-  border-color: var(--primary, #ff7f50);
-  box-shadow: 0 0 0 3px rgba(255, 127, 80, 0.1);
 }
 
 .explore-events-grid {
@@ -217,56 +225,58 @@
 .input-with-clear select,
 .input-with-clear .react-datepicker-wrapper input {
   width: 100%;
-  padding: 12px 14px;
-  padding-right: 45px !important;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  background: white;
+  height: 34px;
+  padding: 0 12px;
+  padding-right: 30px !important;
+  border: 1px solid #d6dde8;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  background: #fff;
   cursor: pointer;
+  font-weight: 600;
+  color: #334155;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   outline: none;
   transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px;
+}
+
+.input-with-clear .react-datepicker-wrapper input {
+  background-image: none;
+  padding-right: 12px !important;
 }
 
 .clear-x-btn {
   position: absolute;
-  right: 12px;
-  background-color: #ff7f50;
-  color: white;
+  right: 24px;
+  background-color: #edf2f7;
+  color: #64748b;
   border: none;
-  width: 22px;
-  height: 22px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 9px;
   cursor: pointer;
-  z-index: 10;
+  z-index: 2;
   padding: 0;
   line-height: 1;
 }
 
 .clear-x-btn:hover {
-  transform: scale(1.1);
-  background-color: #e66e45;
+  transform: none;
+  background-color: #e2e8f0;
 }
 
 .input-with-clear::after {
-  content: "▼";
-  font-size: 10px;
-  color: #999;
-  position: absolute;
-  right: 15px;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-
-.input-with-clear:has(.clear-x-btn)::after {
-  opacity: 0;
+  content: none;
 }
 
 .react-datepicker-wrapper {
@@ -275,13 +285,14 @@
 
 .react-datepicker__input-container input {
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #d6dde8;
+  border-radius: 100px;
+  font-size: 0.9rem;
   background: white;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #334155;
 }
 
 .react-datepicker-popper {
@@ -423,7 +434,25 @@
 @media (max-width: 800px) {
   .category-grid { grid-template-columns: repeat(2, 1fr); }
   .explore-events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .explore-filters-bar { grid-template-columns: 1fr; }
+  .explore-header-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .explore-header-controls {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .explore-filters-bar {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .filter-item {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 500px) {

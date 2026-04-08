@@ -24,6 +24,7 @@ import '../styles/ExplorePage.css';
 registerLocale('ro', ro);
 
 const initialFilters = {
+  category: 'Toate categoriile',
   city: 'Toate orașele',
   selectedDate: null,
   type: 'Toate'
@@ -82,6 +83,10 @@ const ExplorePage = () => {
   }))].filter(Boolean);
 
   const filteredEvents = allEvents.filter((event) => {
+    const matchCategory =
+      filters.category === 'Toate categoriile' ||
+      event.categories?.some((cat) => cat.name === filters.category);
+
     const eventCity = event.location?.split(',')?.pop()?.trim();
     const matchCity = filters.city === 'Toate orașele' || eventCity === filters.city;
 
@@ -97,10 +102,11 @@ const ExplorePage = () => {
       (filters.type === 'Gratuite' && isFree) ||
       (filters.type === 'Cu plată' && !isFree);
 
-    return matchCity && matchDate && matchType;
+    return matchCategory && matchCity && matchDate && matchType;
   });
 
   const hasActiveFilters =
+    filters.category !== 'Toate categoriile' ||
     filters.city !== 'Toate orașele' ||
     filters.selectedDate !== null ||
     filters.type !== 'Toate';
@@ -130,81 +136,107 @@ const ExplorePage = () => {
       <div className="container-max">
         
         <header className="explore-header">
-          <h1 className="explore-title">Descoperă</h1>
-          <p className="explore-subtitle">Găsește următoarea ta experiență memorabilă.</p>
-        </header>
+          <div className="explore-header-top">
+            <div className="explore-header-text">
+              <h1 className="explore-title">Descoperă</h1>
+              <p className="explore-subtitle">Găsește următoarea ta experiență memorabilă.</p>
+            </div>
 
-        <section className="explore-section">
-          <div className="section-header-row">
-            <h2 className="section-label">
-              {showAll ? "": "Categorii"}
-            </h2>
-            <button className="btn-browse-all" onClick={() => setShowAll(!showAll)}>
-                {showAll ? (
-                  <><i className="fi fi-rr-arrow-left"></i> Înapoi la categorii</>
-                ) : (
-                  <>Vezi toate evenimentele <i className="fi fi-rr-arrow-right"></i></>
-                )}
-            </button>
-          </div>
+            {showAll ? (
+              <div className="explore-header-controls">
+                <button className="btn-browse-all" onClick={() => setShowAll(!showAll)}>
+                  <i className="fi fi-rr-arrow-left"></i> Înapoi la categorii
+                </button>
 
-          {showAll ? (
-            <div className="explore-all-events-wrap">
-              <div className="explore-filters-bar">
-                <div className="filter-item">
-                  <label>Oraș</label>
-                  <div className="input-with-clear">
-                    <select
-                      value={filters.city}
-                      onChange={(e) => handleFilterChange('city', e.target.value)}
-                    >
-                      <option>Toate orașele</option>
-                      {availableCities.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                    {filters.city !== 'Toate orașele' && (
-                      <button className="clear-x-btn" onClick={() => resetField('city')}>×</button>
-                    )}
+                <div className="explore-filters-bar">
+                  <div className="filter-item">
+                    <label>Categorie</label>
+                    <div className="input-with-clear">
+                      <select
+                        value={filters.category}
+                        onChange={(e) => handleFilterChange('category', e.target.value)}
+                      >
+                        <option value="Toate categoriile">Toate categoriile</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </select>
+                      {filters.category !== 'Toate categoriile' && (
+                        <button className="clear-x-btn" onClick={() => resetField('category')}>×</button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="filter-item">
-                  <label>Când</label>
-                  <div className="input-with-clear">
-                    <DatePicker
-                      selected={filters.selectedDate}
-                      onChange={(date) => handleFilterChange('selectedDate', date)}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="Selectează data"
-                      locale="ro"
-                      className="filter-select"
-                    />
-                    {filters.selectedDate !== null && (
-                      <button className="clear-x-btn" onClick={() => resetField('selectedDate')}>×</button>
-                    )}
+                  <div className="filter-item">
+                    <label>Oraș</label>
+                    <div className="input-with-clear">
+                      <select
+                        value={filters.city}
+                        onChange={(e) => handleFilterChange('city', e.target.value)}
+                      >
+                        <option>Toate orașele</option>
+                        {availableCities.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                      {filters.city !== 'Toate orașele' && (
+                        <button className="clear-x-btn" onClick={() => resetField('city')}>×</button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="filter-item">
-                  <label>Acces</label>
-                  <div className="input-with-clear">
-                    <select
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange('type', e.target.value)}
-                    >
-                      <option value="Toate">Oricare</option>
-                      <option value="Gratuite">Gratuite</option>
-                      <option value="Cu plată">Cu plată</option>
-                    </select>
-                    {filters.type !== 'Toate' && (
-                      <button className="clear-x-btn" onClick={() => resetField('type')}>×</button>
-                    )}
+                  <div className="filter-item">
+                    <label>Când</label>
+                    <div className="input-with-clear">
+                      <DatePicker
+                        selected={filters.selectedDate}
+                        onChange={(date) => handleFilterChange('selectedDate', date)}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Selectează data"
+                        locale="ro"
+                        className="filter-select"
+                      />
+                      {filters.selectedDate !== null && (
+                        <button className="clear-x-btn" onClick={() => resetField('selectedDate')}>×</button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="filter-item">
+                    <label>Acces</label>
+                    <div className="input-with-clear">
+                      <select
+                        value={filters.type}
+                        onChange={(e) => handleFilterChange('type', e.target.value)}
+                      >
+                        <option value="Toate">Oricare</option>
+                        <option value="Gratuite">Gratuite</option>
+                        <option value="Cu plată">Cu plată</option>
+                      </select>
+                      {filters.type !== 'Toate' && (
+                        <button className="clear-x-btn" onClick={() => resetField('type')}>×</button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
+            ) : null}
+          </div>
+        </header>
 
-              <p className="results-count">
+        <section className="explore-section">
+          {!showAll ? (
+            <div className="section-header-row">
+              <h2 className="section-label">Categorii</h2>
+              <button className="btn-browse-all" onClick={() => setShowAll(true)}>
+                <>Vezi toate evenimentele <i className="fi fi-rr-arrow-right"></i></>
+              </button>
+            </div>
+          ) : null}
+
+          {showAll ? (
+            <div className="explore-all-events-wrap">
+              <p className="results-count explore-results-under-title">
                 {filteredEvents.length} {filteredEvents.length === 1 ? 'eveniment găsit' : 'evenimente găsite'}
               </p>
 
