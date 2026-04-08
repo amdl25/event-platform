@@ -78,7 +78,7 @@ const Navbar = ({ user, handleLogout }) => {
 
           {user ? (
             <>
-              <Link to="/profile" className="navbar-btn-secondary">Profil</Link>
+              <Link to="/profile" className="navbar-btn-secondary navbar-btn-profile">Profil</Link>
               <button className="navbar-btn-primary" onClick={handleLogout}>Logout</button>
             </>
           ) : (
@@ -126,7 +126,7 @@ const Navbar = ({ user, handleLogout }) => {
           <div className="navbar-mobile-actions">
             {user ? (
               <>
-                <Link to="/profile" className="navbar-btn-secondary" onClick={() => setMobileMenuOpen(false)}>Profil</Link>
+                <Link to="/profile" className="navbar-btn-secondary navbar-btn-profile" onClick={() => setMobileMenuOpen(false)}>Profil</Link>
                 <button className="navbar-btn-primary" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>Logout</button>
               </>
             ) : (
