@@ -318,3 +318,151 @@ export const createEvent = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMyPrivateEvents = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const createdEvents = await Event.findAll({
+      where: { creator_id: accountId, org_id: null },
+      include: [
+        { model: Participation, attributes: ['id', 'account_id', 'invite_status'] }
+      ],
+      order: [['start_date', 'DESC']]
+    });
+
+    const invitedParticipations = await Participation.findAll({
+      where: { account_id: accountId },
+      include: [
+        {
+          model: Event,
+          where: { org_id: null },
+          include: [
+            { model: Account, as: 'creator', attributes: ['id', 'first_name', 'last_name'] }
+          ]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const created = createdEvents.map((event) => {
+      const data = event.toJSON();
+      const totalInvited = (data.Participations || []).length;
+      const confirmedCount = (data.Participations || []).filter((item) => item.invite_status !== 'rejected').length;
+
+      return {
+        id: data.id,
+        title: data.title,
+        location: data.location,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        inviteLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invite/${data.id}`,
+        confirmedCount,
+        totalInvited: data.max_capacity > 0 ? data.max_capacity : totalInvited,
+        image_url: data.image_url
+      };
+    });
+
+    const invited = invitedParticipations
+      .map((participation) => {
+        const event = participation.Event;
+        if (!event || event.creator_id === accountId) {
+          return null;
+        }
+
+        const hostName = `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Gazdă';
+
+        return {
+          participationId: participation.id,
+          inviteStatus: participation.invite_status || 'accepted',
+          event: {
+            id: event.id,
+            title: event.title,
+            location: event.location,
+            start_date: event.start_date,
+            end_date: event.end_date,
+            hostName,
+            image_url: event.image_url
+          }
+        };
+      })
+      .filter(Boolean);
+
+    return res.status(200).json({
+      created,
+      invited
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const respondToPrivateInvitation = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    const { participationId } = req.params;
+    const { action } = req.body;
+
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    if (!['accept', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Acțiune invalidă.' });
+    }
+
+    const participation = await Participation.findByPk(participationId, {
+      include: [{ model: Event }]
+    });
+
+    if (!participation || !participation.Event || participation.Event.org_id !== null) {
+      return res.status(404).json({ message: 'Invitația nu a fost găsită.' });
+    }
+
+    if (participation.account_id !== accountId) {
+      return res.status(403).json({ message: 'Nu ai acces la această invitație.' });
+    }
+
+    await participation.update({
+      invite_status: action === 'accept' ? 'accepted' : 'rejected',
+      status: action === 'accept' ? 'going' : 'canceled'
+    });
+
+    return res.status(200).json({
+      message: action === 'accept' ? 'Invitație acceptată.' : 'Invitație refuzată.',
+      inviteStatus: participation.invite_status
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const deletePrivateEvent = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    const { eventId } = req.params;
+
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const event = await Event.findByPk(eventId);
+    if (!event || event.org_id !== null) {
+      return res.status(404).json({ message: 'Eveniment privat negăsit.' });
+    }
+
+    if (event.creator_id !== accountId) {
+      return res.status(403).json({ message: 'Nu poți șterge acest eveniment.' });
+    }
+
+    await Participation.destroy({ where: { event_id: eventId } });
+    await event.destroy();
+
+    return res.status(200).json({ message: 'Evenimentul privat a fost șters.' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};

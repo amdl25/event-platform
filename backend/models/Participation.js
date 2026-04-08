@@ -21,6 +21,16 @@ const Participation = sequelize.define('Participation', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'going'
+  },
+  invite_status: {
+    type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+    allowNull: false,
+    defaultValue: 'accepted'
+  },
   ticket_qr: { type: DataTypes.TEXT, unique: true }
 }, { tableName: 'participation' });
 

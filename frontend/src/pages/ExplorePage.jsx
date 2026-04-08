@@ -38,6 +38,7 @@ const ExplorePage = () => {
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
+  const publicEvents = useMemo(() => allEvents.filter((event) => Boolean(event.org_id)), [allEvents]);
 
   const getVisuals = (name) => {
     const normalizedName = name?.toLowerCase()?.trim();
@@ -69,20 +70,20 @@ const ExplorePage = () => {
   };
 
   const cities = useMemo(() => {
-    return [...new Set(allEvents.map(event => {
+    return [...new Set(publicEvents.map(event => {
       const parts = event.location?.split(',');
       return parts?.[parts.length - 1]?.trim();
     }))].filter(Boolean);
-  }, [allEvents]);
+  }, [publicEvents]);
 
   const normalizedSearch = citySearch.trim().toLowerCase();
   const filteredCities = cities.filter((city) => city.toLowerCase().includes(normalizedSearch));
-  const availableCities = [...new Set(allEvents.map((event) => {
+  const availableCities = [...new Set(publicEvents.map((event) => {
     const parts = event.location?.split(',') || [];
     return parts[parts.length - 1]?.trim();
   }))].filter(Boolean);
 
-  const filteredEvents = allEvents.filter((event) => {
+  const filteredEvents = publicEvents.filter((event) => {
     const matchCategory =
       filters.category === 'Toate categoriile' ||
       event.categories?.some((cat) => cat.name === filters.category);

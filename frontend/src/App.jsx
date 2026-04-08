@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import CategoryPage from './pages/CategoryPage';
 import SearchResults from './pages/SearchResults';
 import ExplorePage from './pages/ExplorePage';
+import MyEventsPage from './pages/MyEventsPage';
 import CreatePersonalEvent from './pages/CreatePersonalEvent';
 import CalendarPage from './pages/CalendarPage';
 import TicketPurchasePage from './pages/TicketPurchasePage';
@@ -102,6 +103,7 @@ function App() {
             <Route path="/profile" element={<Profile user={user} />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/my-events" element={user ? <MyEventsPage user={user} /> : <Navigate to="/login" replace />} />
             <Route path="/recommendations" element={<RecommendationResultsPage />} />
             <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
             <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
