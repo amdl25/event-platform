@@ -88,13 +88,16 @@ export const getAllEvents = async (req, res) => {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     let requesterId = null;
+    let requesterRole = null;
 
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
         requesterId = decoded?.sub || null;
+        requesterRole = decoded?.role || null;
       } catch (tokenError) {
         requesterId = null;
+        requesterRole = null;
       }
     }
 
@@ -107,6 +110,10 @@ export const getAllEvents = async (req, res) => {
     });
 
     const visibleEvents = events.filter((event) => {
+      if (event.moderation_status === 'hidden') {
+        return requesterRole === 'admin' || (requesterId && event.creator_id === requesterId);
+      }
+
       if (!event.org_id) {
         return Boolean(requesterId && event.creator_id === requesterId);
       }
@@ -129,6 +136,21 @@ export const getAllEvents = async (req, res) => {
 export const getEventById = async (req, res) => {
   try {
     const { id } = req.params;
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    let requesterId = null;
+    let requesterRole = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        requesterId = decoded?.sub || null;
+        requesterRole = decoded?.role || null;
+      } catch (tokenError) {
+        requesterId = null;
+        requesterRole = null;
+      }
+    }
 
     const event = await Event.findByPk(id, {
       include: [
@@ -146,6 +168,10 @@ export const getEventById = async (req, res) => {
     });
 
     if (!event) {
+      return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
+    }
+
+    if (event.moderation_status === 'hidden' && requesterRole !== 'admin' && event.creator_id !== requesterId) {
       return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
     }
 

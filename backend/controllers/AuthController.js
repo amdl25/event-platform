@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import sequelize from '../config/database.js';
+import { Op } from 'sequelize';
 import { Account, Organization } from '../models/relationships.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
@@ -221,7 +222,8 @@ export const reviewOrganizerVerification = async (req, res) => {
     await organization.update({
       verification_status: isApproved ? 'verified' : 'rejected',
       verification_notes: notes?.trim() || null,
-      verified_at: isApproved ? new Date() : null
+      verified_at: isApproved ? new Date() : null,
+      admin_status: isApproved ? 'active' : 'suspended'
     });
 
     return res.status(200).json({
@@ -242,7 +244,7 @@ export const getPendingOrganizations = async (req, res) => {
     }
 
     const organizations = await Organization.findAll({
-      where: { verification_status: ['pending', 'verified', 'rejected'] },
+      where: { verification_status: { [Op.in]: ['pending', 'verified', 'rejected'] } },
       include: [{ model: Account, as: 'owner', attributes: ['id', 'email', 'first_name', 'last_name'] }],
       order: [['updatedAt', 'ASC']]
     });
@@ -301,7 +303,8 @@ export const verifyOrganizationByAdmin = async (req, res) => {
     await organization.update({
       verification_status: status,
       verification_notes: notes?.trim() || null,
-      verified_at: status === 'verified' ? new Date() : null
+      verified_at: status === 'verified' ? new Date() : null,
+      admin_status: status === 'verified' ? 'active' : 'suspended'
     });
 
     return res.status(200).json({

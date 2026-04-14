@@ -21,6 +21,23 @@ const Event = sequelize.define('Event', {
     type: DataTypes.STRING, 
     allowNull: true
   },
+
+  moderation_status: {
+    type: DataTypes.ENUM('published', 'reported', 'hidden'),
+    allowNull: false,
+    defaultValue: 'published'
+  },
+
+  report_count: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+
+  moderation_note: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   
   creator_id: { 
     type: DataTypes.UUID, 

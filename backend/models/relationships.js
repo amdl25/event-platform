@@ -5,9 +5,14 @@ import Participation from './Participation.js';
 import Category from './Category.js';
 import LoyaltyWallet from './LoyaltyWallet.js';
 import LoyaltyTransaction from './LoyaltyTransaction.js';
+import AuditLog from './AuditLog.js';
+import PlatformSetting from './PlatformSetting.js';
 
 Account.hasMany(Organization, { foreignKey: 'owner_id', as: 'ownedOrganizations' });
 Organization.belongsTo(Account, { foreignKey: 'owner_id', as: 'owner' });
+
+Account.hasMany(AuditLog, { foreignKey: 'actor_id', as: 'auditLogs' });
+AuditLog.belongsTo(Account, { foreignKey: 'actor_id', as: 'actor' });
 
 Account.hasMany(Event, { foreignKey: 'creator_id', as: 'createdEvents' });
 Event.belongsTo(Account, { foreignKey: 'creator_id', as: 'creator' });
@@ -83,5 +88,7 @@ export {
   Participation, 
   Category, 
   LoyaltyWallet, 
-  LoyaltyTransaction 
+    LoyaltyTransaction,
+    AuditLog,
+    PlatformSetting
 };

@@ -1,26 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, NavLink } from 'react-router-dom';
-import { 
-  FiBell, FiCalendar, FiCheckCircle, FiClock, FiFilter, 
-  FiGrid, FiSearch, FiSettings, FiUsers, FiXCircle
-} from 'react-icons/fi';
+import { useEffect, useMemo, useState } from 'react';
+import { FiCheckCircle, FiClock, FiSearch, FiXCircle } from 'react-icons/fi';
 import API from '../api';
-import '../styles/AdminVerificationQueuePage.css';
+import AdminShell from '../components/AdminShell';
+import '../styles/AdminPanel.css';
 
 const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_APPROVAL_TOKEN || '';
 
 const AdminVerificationQueuePage = ({ user, handleLogout }) => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState({ total: 0, pendingCount: 0, verifiedCount: 0, rejectedCount: 0 });
   const [processingId, setProcessingId] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (!user?.id || user.role !== 'admin') {
-      navigate('/');
       return;
     }
 
@@ -42,7 +38,7 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
       }
     };
     loadPending();
-  }, [navigate, user]);
+  }, [user]);
 
   const handleApprove = async (id) => {
     try {
@@ -80,13 +76,15 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
     finally { setProcessingId(''); }
   };
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = useMemo(() => items.filter((item) => {
+    const matchesSearch = `${item.companyName} ${item.owner?.fullName || ''} ${item.owner?.email || ''}`.toLowerCase().includes(search.toLowerCase());
+    if (!matchesSearch) return false;
     if (activeTab === 'all') return true;
     if (activeTab === 'pending') return item.verificationStatus === 'pending';
     if (activeTab === 'verified') return item.verificationStatus === 'verified';
     if (activeTab === 'rejected') return item.verificationStatus === 'rejected';
     return true;
-  });
+  }), [activeTab, items, search]);
 
   const statusLabelMap = {
     pending: 'În așteptare',
@@ -95,177 +93,116 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
   };
 
   const statusPillClassMap = {
-    pending: 'pill-pending',
-    verified: 'pill-verified',
-    rejected: 'pill-rejected'
+    pending: 'warning',
+    verified: 'success',
+    rejected: 'danger'
   };
 
-  if (loading) return <div className="admin-loading">Se încarcă...</div>;
+  if (loading) {
+    return <AdminShell user={user} handleLogout={handleLogout} title="Cereri Firme" subtitle="Aprobări organizatori"><div className="admin-card">Se încarcă...</div></AdminShell>;
+  }
 
   return (
-    <div className="admin-shell">
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar-header">
-          <Link to="/admin/dashboard" className="admin-logo">
-            <span className="logo-event">Event</span>
-            <span className="logo-hub">Hub</span>
-            <span className="admin-badge">ADMIN</span>
-          </Link>
+    <AdminShell
+      user={user}
+      handleLogout={handleLogout}
+      title="Cereri înregistrare"
+      notificationsCount={stats.pendingCount}
+    >
+      {error ? <div className="admin-card admin-badge-pill danger">{error}</div> : null}
+
+      <section className="admin-grid-4">
+        <div className="admin-card compact"><div className="admin-stat"><div><label>TOTAL CERERI</label><strong>{stats.total}</strong></div><div className="admin-stat-icon blue"><FiCheckCircle /></div></div></div>
+        <div className="admin-card compact"><div className="admin-stat"><div><label>ÎN AȘTEPTARE</label><strong className="admin-text orange">{stats.pendingCount}</strong></div><div className="admin-stat-icon orange"><FiClock /></div></div></div>
+        <div className="admin-card compact"><div className="admin-stat"><div><label>APROBATE</label><strong className="admin-text green">{stats.verifiedCount}</strong></div><div className="admin-stat-icon green"><FiCheckCircle /></div></div></div>
+        <div className="admin-card compact"><div className="admin-stat"><div><label>RESPINSE</label><strong className="admin-text red">{stats.rejectedCount}</strong></div><div className="admin-stat-icon red"><FiXCircle /></div></div></div>
+      </section>
+
+      <div className="admin-toolbar">
+        <div className="admin-tabs">
+          <button type="button" className={`admin-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>Toate ({stats.total})</button>
+          <button type="button" className={`admin-tab${activeTab === 'pending' ? ' active' : ''}`} onClick={() => setActiveTab('pending')}>În așteptare ({stats.pendingCount})</button>
+          <button type="button" className={`admin-tab${activeTab === 'verified' ? ' active' : ''}`} onClick={() => setActiveTab('verified')}>Aprobate ({stats.verifiedCount})</button>
+          <button type="button" className={`admin-tab${activeTab === 'rejected' ? ' active' : ''}`} onClick={() => setActiveTab('rejected')}>Respinse ({stats.rejectedCount})</button>
         </div>
-
-        <nav className="admin-nav">
-          <NavLink to="/admin/dashboard" className="admin-nav-item muted">
-            <FiGrid /> Dashboard
-          </NavLink>
-          <NavLink to="/admin/verification-queue" className="admin-nav-item active">
-            <FiCalendar /> Cereri Firme
-          </NavLink>
-          <button className="admin-nav-item muted" disabled><FiUsers /> Organizatori</button>
-          <button className="admin-nav-item muted" disabled><FiUsers /> Participanți</button>
-          <button className="admin-nav-item muted" disabled><FiSettings /> Setări</button>
-        </nav>
-      </aside>
-
-      <main className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-search">
-            <FiSearch />
-            <input type="text" placeholder="Caută în baza de date..." />
-          </div>
-          <div className="admin-topbar-right">
-            <div className="admin-notif"><FiBell /><span>3</span></div>
-            <div className="admin-user">
-              <div className="admin-avatar">AD</div>
-              <span className="admin-name">Administrator</span>
-            </div>
-            <button className="admin-logout" onClick={handleLogout}>Logout</button>
-          </div>
-        </header>
-
-        <div className="admin-content">
-          {error ? <div className="admin-error-banner">{error}</div> : null}
-
-          <section className="admin-stats">
-            <div className="stat-card">
-              <div className="stat-text">
-                <label>TOTAL CERERI</label>
-                <strong>{stats.total}</strong>
-              </div>
-              <FiGrid className="stat-icon" />
-            </div>
-            <div className="stat-card">
-              <div className="stat-text">
-                <label>ÎN AȘTEPTARE</label>
-                <strong className="text-orange">{stats.pendingCount}</strong>
-              </div>
-              <FiClock className="stat-icon orange" />
-            </div>
-            <div className="stat-card">
-              <div className="stat-text">
-                <label>APROBATE</label>
-                <strong className="text-green">{stats.verifiedCount}</strong>
-              </div>
-              <FiCheckCircle className="stat-icon green" />
-            </div>
-            <div className="stat-card">
-              <div className="stat-text">
-                <label>RESPINSE</label>
-                <strong className="text-red">{stats.rejectedCount}</strong>
-              </div>
-              <FiXCircle className="stat-icon red" />
-            </div>
-          </section>
-
-          <div className="admin-panel">
-            <div className="panel-header">
-              <h1>Cereri inregistrare</h1>
-              <button className="admin-filter"><FiFilter /> Filtrează</button>
-            </div>
-
-            <div className="admin-tabs">
-              <button className={activeTab === 'all' ? 'active' : ''} onClick={() => setActiveTab('all')}>
-                Toate ({stats.total})
-              </button>
-              <button className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}>
-                În așteptare ({stats.pendingCount})
-              </button>
-              <button className={activeTab === 'verified' ? 'active' : ''} onClick={() => setActiveTab('verified')}>
-                Aprobate ({stats.verifiedCount})
-              </button>
-              <button className={activeTab === 'rejected' ? 'active' : ''} onClick={() => setActiveTab('rejected')}>
-                Respinse ({stats.rejectedCount})
-              </button>
-            </div>
-
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Companie</th>
-                    <th>Contact</th>
-                    <th>Adresă & Telefon</th>
-                    <th>Data</th>
-                    <th>Status</th>
-                    <th>Acțiuni</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map(org => (
-                    <tr key={org.id}>
-                      <td>
-                        <div className="company-info">
-                          <div className="company-icon"><FiCalendar /></div>
-                          <div>
-                            <p className="name">{org.companyName}</p>
-                            <p className="sub">{org.cuiCif}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <p className="contact-p">{org.owner?.fullName}</p>
-                        <p className="sub">{org.owner?.email}</p>
-                      </td>
-                      <td>
-                        <p className="sub">{org.registeredAddress}</p>
-                        <p className="sub">{org.officialPhone}</p>
-                      </td>
-                      <td><p className="sub">{new Date(org.requestedAt).toLocaleDateString('ro-RO')}</p></td>
-                      <td><span className={statusPillClassMap[org.verificationStatus] || 'pill-pending'}>{statusLabelMap[org.verificationStatus] || 'În așteptare'}</span></td>
-                      <td>
-                        <div className="actions">
-                          <button
-                            className="act-btn approve"
-                            onClick={() => handleApprove(org.id)}
-                            disabled={org.verificationStatus !== 'pending' || processingId === org.id}
-                            title={org.verificationStatus !== 'pending' ? 'Doar cererile în așteptare pot fi aprobate' : 'Aprobă'}
-                          >
-                            <FiCheckCircle />
-                          </button>
-                          <button
-                            className="act-btn reject"
-                            onClick={() => handleReject(org.id)}
-                            disabled={org.verificationStatus !== 'pending' || processingId === org.id}
-                            title={org.verificationStatus !== 'pending' ? 'Doar cererile în așteptare pot fi respinse' : 'Respinge'}
-                          >
-                            <FiXCircle />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {filteredItems.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="admin-empty-row">Nu există cereri pentru filtrul selectat.</td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div className="admin-search" style={{ width: 'min(420px, 100%)' }}>
+          <FiSearch className="admin-search-icon" />
+          <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Caută companie sau contact..." />
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Companie</th>
+              <th>Contact</th>
+              <th>Adresă & Telefon</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Acțiuni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredItems.map((org) => (
+              <tr key={org.id}>
+                <td>
+                  <div className="admin-row-inline">
+                    <div className="admin-avatar-soft">{org.companyName.slice(0, 2).toUpperCase()}</div>
+                    <div>
+                      <p className="admin-row-title">{org.companyName}</p>
+                      <p className="admin-row-subtitle">{org.cuiCif || 'Fără CUI'}</p>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div className="admin-row-stack">
+                    <span className="admin-row-title">{org.owner?.fullName}</span>
+                    <span className="admin-row-subtitle">{org.owner?.email}</span>
+                  </div>
+                </td>
+                <td>
+                  <p className="admin-row-subtitle">{org.registeredAddress || '-'}</p>
+                  <p className="admin-row-subtitle">{org.officialPhone || '-'}</p>
+                </td>
+                <td><span className="admin-row-subtitle">{new Date(org.requestedAt).toLocaleDateString('ro-RO')}</span></td>
+                <td><span className={`admin-pill ${statusPillClassMap[org.verificationStatus] || 'warning'}`}>{statusLabelMap[org.verificationStatus] || 'În așteptare'}</span></td>
+                <td>
+                  {org.verificationStatus === 'pending' ? (
+                    <div className="admin-actions admin-actions-icon-only">
+                      <button
+                        type="button"
+                        className="admin-action-button admin-action-icon success"
+                        onClick={() => handleApprove(org.id)}
+                        disabled={processingId === org.id}
+                        aria-label="Aprobă"
+                        title="Aprobă"
+                      >
+                        <FiCheckCircle />
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-action-button admin-action-icon danger"
+                        onClick={() => handleReject(org.id)}
+                        disabled={processingId === org.id}
+                        aria-label="Respinge"
+                        title="Respinge"
+                      >
+                        <FiXCircle />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="admin-no-actions">-</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+
+            {filteredItems.length === 0 ? <tr><td colSpan="6" className="admin-table-empty">Nu există cereri pentru filtrul selectat.</td></tr> : null}
+          </tbody>
+        </table>
+      </div>
+    </AdminShell>
   );
 };
 

@@ -22,6 +22,12 @@ import InviteEventPage from './pages/InviteEventPage';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
 import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminOrganizationsPage from './pages/AdminOrganizationsPage';
+import AdminParticipantsPage from './pages/AdminParticipantsPage';
+import AdminEventsPage from './pages/AdminEventsPage';
+import AdminReportsPage from './pages/AdminReportsPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
 import { AUTH_TOKEN_STORAGE_KEY } from './api';
 import './App.css';
 
@@ -92,7 +98,7 @@ function App() {
                 user?.role === 'organizer'
                   ? <Navigate to="/organizer/dashboard" replace />
                   : user?.role === 'admin'
-                    ? <Navigate to="/admin/verification-queue" replace />
+                    ? <Navigate to="/admin/dashboard" replace />
                     : <Home />
               }
             />
@@ -113,8 +119,14 @@ function App() {
             <Route path="/organizer" element={<Navigate to="/organizer/dashboard" replace />} />
             <Route path="/organizer/dashboard" element={<OrganizerDashboard user={user} handleLogout={handleLogout} />} />
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
-            <Route path="/admin" element={<Navigate to="/admin/verification-queue" replace />} />
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={user ? <AdminDashboardPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} handleLogout={handleLogout} />} />
+            <Route path="/admin/organizations" element={user ? <AdminOrganizationsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+            <Route path="/admin/participants" element={user ? <AdminParticipantsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+            <Route path="/admin/events" element={user ? <AdminEventsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+            <Route path="/admin/reports" element={user ? <AdminReportsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+            <Route path="/admin/settings" element={user ? <AdminSettingsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
           </Routes>
         </main>
       </div>

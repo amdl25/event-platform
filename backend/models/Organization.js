@@ -26,6 +26,11 @@ const Organization = sequelize.define('Organization', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  admin_status: {
+    type: DataTypes.ENUM('active', 'suspended'),
+    allowNull: false,
+    defaultValue: 'active'
+  },
   verified_at: {
     type: DataTypes.DATE,
     allowNull: true
