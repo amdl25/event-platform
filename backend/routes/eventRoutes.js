@@ -1,6 +1,7 @@
 import express from 'express';
 import {
 	createEvent,
+	deleteEvent,
 	deletePrivateEvent,
 	getAllEvents,
 	getEventById,
@@ -29,6 +30,7 @@ router.post('/purchase/user', authenticateToken, purchaseAsUser);
 router.post('/purchase/guest', purchaseAsGuest);
 router.post('/tickets/send-email', sendTicketsByEmail);
 router.post('/', authenticateToken, createEvent);
+router.delete('/:id', authenticateToken, deleteEvent);
 router.patch('/:id', authenticateToken, updateEvent);
 router.get('/:id', getEventById);
 

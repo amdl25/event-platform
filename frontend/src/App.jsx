@@ -19,7 +19,9 @@ import TicketPurchasePage from './pages/TicketPurchasePage';
 import TicketsDownloadPage from './pages/TicketsDownloadPage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
-import OrganizerDashboard from './pages/OrganizerDashboard';
+import OrganizerOverviewPage from './pages/OrganizerOverviewPage';
+import OrganizerEventsPage from './pages/OrganizerEventsPage';
+import OrganizerParticipantsPage from './pages/OrganizerParticipantsPage';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
 import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
@@ -96,7 +98,7 @@ function App() {
               path="/"
               element={
                 user?.role === 'organizer'
-                  ? <Navigate to="/organizer/dashboard" replace />
+                  ? <Navigate to="/organizer/events" replace />
                   : user?.role === 'admin'
                     ? <Navigate to="/admin/dashboard" replace />
                     : <Home />
@@ -116,8 +118,10 @@ function App() {
             <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
             <Route path="/tickets-download" element={<TicketsDownloadPage />} />
             <Route path="/invite/:eventId" element={<InviteEventPage user={user} />} />
-            <Route path="/organizer" element={<Navigate to="/organizer/dashboard" replace />} />
-            <Route path="/organizer/dashboard" element={<OrganizerDashboard user={user} handleLogout={handleLogout} />} />
+            <Route path="/organizer" element={<Navigate to="/organizer/events" replace />} />
+            <Route path="/organizer/dashboard" element={<Navigate to="/organizer/events" replace />} />
+            <Route path="/organizer/events" element={<OrganizerEventsPage user={user} handleLogout={handleLogout} />} />
+            <Route path="/organizer/participants" element={<OrganizerParticipantsPage user={user} handleLogout={handleLogout} />} />
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/admin/dashboard" element={user ? <AdminDashboardPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />

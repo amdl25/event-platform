@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FiCalendar, FiEye, FiUsers, FiTrendingUp, FiMapPin, FiClock, FiGrid, FiSettings, FiBell, FiImage } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FiClock, FiDollarSign, FiEdit2, FiEye, FiImage, FiMapPin, FiPlus, FiStar, FiTicket, FiTrash2 } from 'react-icons/fi';
 import API from '../api';
+import OrganizerShell from '../components/OrganizerShell';
 import '../styles/OrganizerDashboard.css';
 
 const toLocalDateInput = (date) => {
@@ -16,11 +17,12 @@ const toLocalTimeInput = (date) => {
 
 const statusLabel = (event) => {
   const now = new Date();
-  const start = event.start_date ? new Date(event.start_date) : null;
   const end = event.end_date ? new Date(event.end_date) : null;
 
   if (end && end < now) return { text: 'Încheiat', className: 'ended' };
-  if ((event.current_occupancy || 0) === 0 && start && start > now) return { text: 'Draft', className: 'draft' };
+  if (event.moderation_status === 'hidden') {
+    return { text: 'Draft', className: 'draft' };
+  }
   return { text: 'Publicat', className: 'published' };
 };
 
@@ -44,6 +46,12 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [eventImagePreview, setEventImagePreview] = useState('');
   const [eventImageName, setEventImageName] = useState('');
   const [editingEventId, setEditingEventId] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [overviewStats, setOverviewStats] = useState({
+    totalRevenue: 0,
+    soldTickets: 0,
+    pointsAwarded: 0
+  });
   const [eventForm, setEventForm] = useState(() => {
     const now = new Date();
     const inTwoHours = new Date(now.getTime() + (2 * 60 * 60 * 1000));
@@ -69,10 +77,11 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
     const loadData = async () => {
       try {
-        const [eventsRes, statusRes, categoriesRes] = await Promise.all([
+        const [eventsRes, statusRes, categoriesRes, dashboardRes] = await Promise.all([
           API.get('/events'),
           API.get(`/auth/organizer/status/${user.id}`),
-          API.get('/categories')
+          API.get('/categories'),
+          API.get('/organizer/dashboard')
         ]);
 
         const organizerEvents = (eventsRes.data || []).filter((event) => {
@@ -82,6 +91,11 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
         setEvents(organizerEvents);
         setOrganizerStatus(statusRes.data?.verificationStatus || user?.organizerVerificationStatus || 'unverified');
+        setOverviewStats({
+          totalRevenue: Number(dashboardRes.data?.stats?.totalRevenue || 0),
+          soldTickets: Number(dashboardRes.data?.stats?.soldTickets || 0),
+          pointsAwarded: Number(dashboardRes.data?.stats?.pointsAwarded || 0)
+        });
         const categoryList = categoriesRes.data || [];
         setCategories(categoryList);
         if (categoryList.length > 0) {
@@ -168,6 +182,26 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     setShowCreateModal(true);
   };
 
+  const handleViewEvent = (eventId) => {
+    navigate(`/event/${eventId}`);
+  };
+
+  const handleEditEvent = (eventId) => {
+    navigate(`/organizer/events?editEvent=${eventId}`);
+  };
+
+  const handleDeleteEvent = async (event) => {
+    const confirmed = window.confirm(`Sigur vrei să ștergi evenimentul "${event.title}"?`);
+    if (!confirmed) return;
+
+    try {
+      await API.delete(`/events/${event.id}`);
+      setEvents((prev) => prev.filter((item) => item.id !== event.id));
+    } catch (error) {
+      setEventFormError(error.response?.data?.message || 'Nu am putut șterge evenimentul.');
+    }
+  };
+
   const handleImageSelect = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -181,7 +215,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleCreateEvent = async (event) => {
+  const handleCreateEvent = async (event, targetStatus = 'published') => {
     event.preventDefault();
     setEventFormError('');
 
@@ -214,6 +248,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         max_capacity: Number(eventForm.maxCapacity || 0),
         price: Number(eventForm.price || 0),
         points_value: Number(eventForm.pointsValue || 0),
+        moderation_status: targetStatus,
         org_id: user?.organizationId,
         category_id: eventForm.categoryId || null
       };
@@ -255,165 +290,129 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     }
   };
 
-  const stats = useMemo(() => {
-    const totalEvents = events.length;
-    const publishedEvents = events.filter((event) => statusLabel(event).text === 'Publicat').length;
-    const totalParticipants = events.reduce((sum, event) => sum + Number(event.current_occupancy || 0), 0);
-    const capacityEvents = events.filter((event) => Number(event.max_capacity || 0) > 0);
-    const totalCapacity = capacityEvents.reduce((sum, event) => sum + Number(event.max_capacity || 0), 0);
-    const occupancyForRated = capacityEvents.reduce((sum, event) => sum + Number(event.current_occupancy || 0), 0);
-    const enrollmentRate = totalCapacity > 0 ? Math.round((occupancyForRated / totalCapacity) * 100) : 0;
+  const totalEvents = useMemo(() => events.length, [events]);
+  const formatMoney = (value) => `${Number(value || 0).toFixed(0)} RON`;
 
-    return { totalEvents, publishedEvents, totalParticipants, enrollmentRate };
-  }, [events]);
+  const filteredEvents = useMemo(() => {
+    if (activeTab === 'all') return events;
+    if (activeTab === 'published') return events.filter((event) => statusLabel(event).text === 'Publicat');
+    if (activeTab === 'draft') return events.filter((event) => statusLabel(event).text === 'Draft');
+    if (activeTab === 'ended') return events.filter((event) => statusLabel(event).text === 'Încheiat');
+    return events;
+  }, [activeTab, events]);
 
-  if (loading) return <div className="organizer-loading">Se încarcă...</div>;
+  const actions = (
+    <button
+      className="organizer-primary-button organizer-primary-button-large"
+      onClick={handleOpenCreateModal}
+      disabled={organizerStatus !== 'verified'}
+      type="button"
+    >
+      <FiPlus />
+      <span>Eveniment nou</span>
+    </button>
+  );
+
+  if (loading) {
+    return <OrganizerShell user={user} handleLogout={handleLogout} title="Evenimentele mele" subtitle="Se încarcă..." actions={actions}><div className="organizer-card">Se încarcă...</div></OrganizerShell>;
+  }
 
   return (
-    <div className="organizer-shell">
-      <aside className="organizer-sidebar">
-        <div className="organizer-sidebar-header">
-          <Link to="/organizer/dashboard" className="organizer-logo">
-            <span className="organizer-logo-event">Event</span>
-            <span className="organizer-logo-hub">Hub</span>
-            <span className="organizer-logo-badge">ORGANIZER</span>
-          </Link>
-        </div>
-
-        <nav className="organizer-nav">
-          <NavLink to="/organizer/dashboard" className="organizer-nav-item">
-            <FiGrid /> Dashboard
-          </NavLink>
-          <button className="organizer-nav-item muted" disabled><FiCalendar /> Evenimentele mele</button>
-          <button className="organizer-nav-item muted" disabled><FiUsers /> Participanți</button>
-          <NavLink to="/organizer/settings" className="organizer-nav-item">
-            <FiSettings /> Setări
-          </NavLink>
-        </nav>
-
-        <div className="organizer-summary-box">
-          <label>SUMAR ACTIVITATE</label>
-          <p>Evenimente <span>{stats.totalEvents}</span></p>
-          <p>Active <span>{stats.publishedEvents}</span></p>
-          <p>Participanți <span>{stats.totalParticipants}</span></p>
-        </div>
-      </aside>
-
-      <main className="organizer-main">
-        <header className="organizer-topbar">
-          <div className="organizer-search">
-             {organizerStatus !== 'verified' && (
-               <>
-                 <FiClock style={{marginRight: '8px', opacity: 0.5}} />
-                 <span>Status: {statusLabels[organizerStatus]}</span>
-               </>
-             )}
+    <>
+      <OrganizerShell user={user} handleLogout={handleLogout} title="Evenimentele mele" subtitle={`${totalEvents} evenimente total`} actions={actions}>
+      <section className="organizer-stat-grid organizer-status-row" style={{ marginTop: 0 }}>
+        <div className="organizer-stat-card compact">
+          <div className="organizer-stat-info">
+            <label>VENITURI</label>
+            <h3>{formatMoney(overviewStats.totalRevenue)}</h3>
           </div>
-          <div className="organizer-topbar-right">
-            <button 
-                className="organizer-new-event-btn" 
-              onClick={handleOpenCreateModal}
-                disabled={organizerStatus !== 'verified'}
-            >
-              + Eveniment nou
-            </button>
-            <div className="organizer-user-profile">
-              <div className="user-avatar">OR</div>
-              <span className="user-name">{user?.organizationName || 'Organizator'}</span>
-            </div>
-            <button className="organizer-logout-btn" onClick={handleLogout}>Logout</button>
+          <div className="organizer-stat-icon icon-orange"><FiDollarSign /></div>
+        </div>
+        <div className="organizer-stat-card compact">
+          <div className="organizer-stat-info">
+            <label>BILETE VÂNDUTE</label>
+            <h3 className="text-blue">{overviewStats.soldTickets}</h3>
           </div>
-        </header>
+          <div className="organizer-stat-icon icon-blue"><FiTicket /></div>
+        </div>
+        <div className="organizer-stat-card compact">
+          <div className="organizer-stat-info">
+            <label>PUNCTE DATE</label>
+            <h3 className="text-green">{overviewStats.pointsAwarded}</h3>
+          </div>
+          <div className="organizer-stat-icon icon-green"><FiStar /></div>
+        </div>
+      </section>
 
-        <div className="organizer-content-scroll">
-          {organizerStatus !== 'verified' && (
-            <div className="organizer-status-banner-new" onClick={() => navigate('/organizer/settings')}>
-              <p>
-                {organizerStatus === 'pending'
-                  ? '⏳ Cerere în curs de procesare. Datele tale sunt analizate de un administrator.'
-                  : 'Cont neverificat. Completează profilul business pentru a publica evenimente.'}
-              </p>
-              <button>{organizerStatus === 'pending' ? 'Vezi status' : 'Click pentru verificare'}</button>
-            </div>
-          )}
+      <div className="organizer-events-toolbar">
+        <div className="organizer-tabs">
+          <button type="button" className={`organizer-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>Toate</button>
+          <button type="button" className={`organizer-tab${activeTab === 'published' ? ' active' : ''}`} onClick={() => setActiveTab('published')}>Publicate</button>
+          <button type="button" className={`organizer-tab${activeTab === 'draft' ? ' active' : ''}`} onClick={() => setActiveTab('draft')}>Draft</button>
+          <button type="button" className={`organizer-tab${activeTab === 'ended' ? ' active' : ''}`} onClick={() => setActiveTab('ended')}>Încheiate</button>
+        </div>
+      </div>
 
-          <section className="organizer-stat-grid">
-            <div className="stat-card">
-              <div className="stat-info">
-                <label>TOTAL EVENIMENTE</label>
-                <h3>{stats.totalEvents}</h3>
-              </div>
-              <div className="stat-icon"><FiCalendar /></div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-info">
-                <label>PUBLICATE</label>
-                <h3 className="text-green">{stats.publishedEvents}</h3>
-              </div>
-              <div className="stat-icon icon-green"><FiEye /></div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-info">
-                <label>PARTICIPANȚI</label>
-                <h3 className="text-blue">{stats.totalParticipants}</h3>
-              </div>
-              <div className="stat-icon icon-blue"><FiUsers /></div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-info">
-                <label>RATĂ ÎNSCRIERE</label>
-                <h3 className="text-orange">{stats.enrollmentRate}%</h3>
-              </div>
-              <div className="stat-icon icon-orange"><FiTrendingUp /></div>
-            </div>
-          </section>
-
-          <section className="organizer-panel">
-            <div className="panel-header">
-              <h2>Evenimentele mele</h2>
-              <span>{events.length} evenimente</span>
-            </div>
-
-            <div className="events-table-wrapper">
-              {events.length === 0 ? (
-                <div className="organizer-empty">Nu ai evenimente încă. Creează primul eveniment nou.</div>
-              ) : (
-                events.map((event, index) => {
-                  const progress = Number(event.max_capacity || 0) > 0
-                    ? Math.min(100, Math.round((Number(event.current_occupancy || 0) / Number(event.max_capacity || 1)) * 100))
-                    : 0;
-                  const status = statusLabel(event);
-                  return (
-                    <article key={event.id} className="event-row-new">
-                      <div className="event-info-cell">
-                        <div className="event-icon-box"><FiCalendar /></div>
-                        <div>
-                          <h4>{event.title}</h4>
-                          <span className={`status-tag ${status.className}`}>{status.text}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="event-meta-cell">
+      <section className="organizer-events-panel">
+        <div className="events-table-wrapper">
+          {filteredEvents.length === 0 ? (
+            <div className="organizer-empty">Nu ai evenimente încă. Creează primul eveniment nou.</div>
+          ) : (
+            filteredEvents.map((event) => {
+              const progress = Number(event.max_capacity || 0) > 0
+                ? Math.min(100, Math.round((Number(event.current_occupancy || 0) / Number(event.max_capacity || 1)) * 100))
+                : 0;
+              const status = statusLabel(event);
+              return (
+                <article key={event.id} className="event-row-new">
+                  <div className={`event-accent ${status.className}`} />
+                  <div className="event-info-cell">
+                    <div className="event-info-main">
+                      <div className="event-title-row">
+                      <h4>{event.title}</h4>
+                      <span className={`status-tag ${status.className}`}>{status.text}</span>
+                    </div>
+                      <div className="event-meta-line">
                         <p><FiClock /> {new Date(event.start_date).toLocaleDateString('ro-RO')}</p>
                         <p className="sub"><FiMapPin /> {event.location || 'Locație'}</p>
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="event-progress-cell">
-                         <p>Participanți: <strong>{event.current_occupancy || 0}/{event.max_capacity || '∞'}</strong></p>
-                         <div className="progress-bg"><div className="progress-fill" style={{width: `${progress}%`}}></div></div>
-                      </div>
+                  <div className="event-progress-cell">
+                    <p>Participanți: <strong>{event.current_occupancy || 0}/{event.max_capacity || '∞'}</strong></p>
+                    <div className="progress-bg"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+                  </div>
 
-                      <div className="event-price-cell">
-                        {Number(event.price || 0) <= 0 ? 'Gratuit' : `${Number(event.price).toFixed(0)} RON`}
-                      </div>
-                    </article>
-                  );
-                })
-              )}
-            </div>
-          </section>
+                  <div className="event-price-cell">
+                    <span className={`event-price-value${Number(event.price || 0) <= 0 ? ' free' : ''}`}>
+                      {Number(event.price || 0) <= 0 ? 'Gratuit' : `${Number(event.price).toFixed(0)} RON`}
+                    </span>
+                    <div className="event-actions-cell">
+                      <button type="button" className="event-icon-action view" onClick={() => handleViewEvent(event.id)} title="Vizualizare" aria-label="Vizualizare">
+                        <FiEye />
+                      </button>
+                      <button type="button" className="event-icon-action edit" onClick={() => handleEditEvent(event.id)} title="Modificare" aria-label="Modificare">
+                        <FiEdit2 />
+                      </button>
+                      <button
+                        type="button"
+                        className="event-icon-action delete"
+                        onClick={() => handleDeleteEvent(event)}
+                        title="Ștergere"
+                        aria-label="Ștergere"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
-      </main>
+      </section>
+      </OrganizerShell>
 
       {showCreateModal ? (
         <div className="organizer-create-modal-backdrop" onClick={() => setShowCreateModal(false)}>
@@ -423,7 +422,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
               <button type="button" className="organizer-create-close" onClick={() => setShowCreateModal(false)}>×</button>
             </div>
 
-            <form className="organizer-create-form" onSubmit={handleCreateEvent}>
+            <form className="organizer-create-form" onSubmit={(event) => handleCreateEvent(event, 'published')}>
               <div className="organizer-create-modal-body">
                 {eventFormError ? <div className="organizer-create-error">{eventFormError}</div> : null}
 
@@ -505,15 +504,23 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
               <div className="organizer-create-modal-footer">
                 <button type="button" className="organizer-create-cancel" onClick={() => setShowCreateModal(false)}>Anulează</button>
+                <button
+                  type="button"
+                  className="organizer-create-draft"
+                  onClick={(event) => handleCreateEvent(event, 'hidden')}
+                  disabled={isSubmittingEvent || categories.length === 0}
+                >
+                  {isSubmittingEvent ? 'Se salvează...' : 'Salvează draft'}
+                </button>
                 <button type="submit" className="organizer-create-submit" disabled={isSubmittingEvent || categories.length === 0}>
-                  {isSubmittingEvent ? (editingEventId ? 'Se salvează...' : 'Se creează...') : (editingEventId ? 'Salvează modificările' : 'Creează eveniment')}
+                  {isSubmittingEvent ? (editingEventId ? 'Se salvează...' : 'Se creează...') : (editingEventId ? 'Publică modificările' : 'Publică evenimentul')}
                 </button>
               </div>
             </form>
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   );
 };
 

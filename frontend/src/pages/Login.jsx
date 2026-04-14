@@ -25,7 +25,7 @@ const Login = ({ onLogin }) => {
         onLogin(res.data);
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      const fallback = res.data?.role === 'organizer' ? '/organizer/dashboard' : '/';
+      const fallback = res.data?.role === 'organizer' ? '/organizer/events' : '/';
       navigate(redirect || fallback);
     } catch (err) {
         const msg = err.response?.data?.message || "Email sau parolă incorectă!";

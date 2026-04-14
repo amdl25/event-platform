@@ -27,7 +27,7 @@ const Register = ({ onLogin }) => {
     try {
       const res = await API.post('/auth/register', formData);
       onLogin(res.data);
-      navigate(res.data?.role === 'organizer' ? '/organizer/dashboard' : '/');
+      navigate(res.data?.role === 'organizer' ? '/organizer/events' : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la înregistrare');
     }

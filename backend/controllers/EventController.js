@@ -223,6 +223,12 @@ export const updateEvent = async (req, res) => {
     }
 
     const { category_ids = [], category_id = null } = req.body;
+    const requestedStatus = req.body.moderation_status;
+    const allowedOrganizerStatuses = ['published', 'hidden'];
+
+    if (requestedStatus && !allowedOrganizerStatuses.includes(requestedStatus)) {
+      return res.status(400).json({ message: 'Status invalid pentru eveniment.' });
+    }
     const normalizedCategoryIds = Array.isArray(category_ids)
       ? category_ids.filter(Boolean)
       : [];
@@ -239,7 +245,8 @@ export const updateEvent = async (req, res) => {
       end_date: req.body.end_date,
       max_capacity: req.body.max_capacity,
       price: req.body.price,
-      points_value: req.body.points_value
+      points_value: req.body.points_value,
+      moderation_status: requestedStatus || event.moderation_status
     });
 
     if (normalizedCategoryIds.length > 0) {
@@ -260,11 +267,63 @@ export const updateEvent = async (req, res) => {
   }
 };
 
+export const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requesterId = req.user?.id;
+    const requesterRole = req.user?.role;
+
+    if (!requesterId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const event = await Event.findByPk(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Evenimentul nu a fost găsit.' });
+    }
+
+    if (requesterRole === 'organizer') {
+      const organization = await Organization.findOne({
+        where: { id: event.org_id, owner_id: requesterId }
+      });
+
+      if (!organization) {
+        return res.status(403).json({ message: 'Nu ai acces la acest eveniment.' });
+      }
+
+      if (organization.verification_status !== 'verified') {
+        return res.status(403).json({ message: 'Cont în așteptare. Nu poți șterge evenimentul până la validare.' });
+      }
+    }
+
+    if (requesterRole === 'user' && event.creator_id !== requesterId) {
+      return res.status(403).json({ message: 'Nu ai acces la acest eveniment.' });
+    }
+
+    if (requesterRole !== 'admin' && requesterRole !== 'organizer' && requesterRole !== 'user') {
+      return res.status(403).json({ message: 'Nu ai acces la acest eveniment.' });
+    }
+
+    await Participation.destroy({ where: { event_id: id } });
+    await event.destroy();
+
+    return res.status(200).json({ message: 'Evenimentul a fost șters.' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 export const createEvent = async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
     const creator_id = req.user?.id;
     const { org_id, category_ids = [], category_id = null } = req.body;
+    const requestedStatus = req.body.moderation_status;
+    const allowedOrganizerStatuses = ['published', 'hidden'];
+
+    if (requestedStatus && !allowedOrganizerStatuses.includes(requestedStatus)) {
+      return res.status(400).json({ message: 'Status invalid pentru eveniment.' });
+    }
 
     if (!creator_id) {
       return res.status(400).json({ message: 'creator_id este obligatoriu.' });
@@ -321,6 +380,7 @@ export const createEvent = async (req, res) => {
       max_capacity: req.body.max_capacity,
       price: req.body.price,
       points_value: req.body.points_value,
+      moderation_status: requestedStatus || 'published',
       creator_id,
       org_id: creator.role === 'user' ? null : org_id,
       image_url: imageUrl

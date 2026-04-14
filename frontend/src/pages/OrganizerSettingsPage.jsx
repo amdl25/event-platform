@@ -4,6 +4,7 @@ import { FiCalendar, FiGrid, FiSettings, FiUsers, FiCheckCircle, FiAlertCircle, 
 import API from '../api';
 import '../styles/OrganizerDashboard.css';
 import '../styles/OrganizerSettings.css';
+import OrganizerShell from '../components/OrganizerShell';
 
 const OrganizerSettingsPage = ({ user, handleLogout }) => {
   const statusLabels = {
@@ -27,12 +28,8 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user?.id) {
-      navigate('/');
-      return;
-    }
 
-    if (user.role !== 'organizer') {
+    if (!user?.id || user.role !== 'organizer') {
       navigate('/');
       return;
     }
@@ -56,7 +53,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
     };
 
     loadStatus();
-  }, [navigate, user]);
+  }, [user]);
 
   const handleSubmitVerification = async (event) => {
     event.preventDefault();
@@ -83,7 +80,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
       setSubmitMessage('Cererea a fost trimisă spre analiză!');
 
       setTimeout(() => {
-        navigate('/organizer/dashboard');
+        navigate('/organizer/events');
       }, 1500);
     } catch (error) {
       setSubmitError(error.response?.data?.message || 'Eroare la trimiterea cererii.');
@@ -97,138 +94,92 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
   }
 
   return (
-    <div className="organizer-shell">
-      <aside className="organizer-sidebar">
-        <div className="organizer-sidebar-header">
-          <Link to="/organizer/dashboard" className="organizer-logo">
-            <span className="organizer-logo-event">Event</span>
-            <span className="organizer-logo-hub">Hub</span>
-            <span className="organizer-logo-badge">ORGANIZER</span>
-          </Link>
+    <OrganizerShell user={user} handleLogout={handleLogout} title="Setări" subtitle={`Status curent: ${statusLabels[organizerStatus]}`}>
+      <div className="settings-container">
+        <div className="settings-header">
+          <h1>Verificare Identitate Business</h1>
+          <p className="settings-subtitle">
+            Completează datele oficiale ale firmei tale pentru a putea publica evenimente pe platformă.
+          </p>
         </div>
 
-        <nav className="organizer-nav">
-          <NavLink to="/organizer/dashboard" className="organizer-nav-item">
-            <FiGrid /> Dashboard
-          </NavLink>
-          <button className="organizer-nav-item muted" disabled><FiCalendar /> Evenimentele mele</button>
-          <button className="organizer-nav-item muted" disabled><FiUsers /> Participanți</button>
-          <NavLink to="/organizer/settings" className="organizer-nav-item active">
-            <FiSettings /> Setări
-          </NavLink>
-        </nav>
-      </aside>
+        <div className="status-box">
+          Status curent: <strong>{statusLabels[organizerStatus]}</strong>
+        </div>
 
-      <main className="organizer-main">
-        <header className="organizer-topbar">
-          <div className="organizer-search">
-             <FiClock style={{marginRight: '8px', opacity: 0.5}} />
-             <span>Status: {statusLabels[organizerStatus]}</span>
+        <form className="verification-form" onSubmit={handleSubmitVerification}>
+          <div className="form-group">
+            <label>Nume Firmă / Brand</label>
+            <input
+              type="text"
+              value={verificationForm.companyName}
+              onChange={(e) => setVerificationForm({ ...verificationForm, companyName: e.target.value })}
+              disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+            />
           </div>
-          <div className="organizer-topbar-right">
-            <button 
-                className="organizer-new-event-btn" 
-                onClick={() => navigate('/create-event')}
-                disabled={organizerStatus !== 'verified'}
-            >
-              + Eveniment nou
+
+          <div className="form-group">
+            <label>CUI / CIF</label>
+            <input
+              type="text"
+              placeholder="ex: RO12345678"
+              value={verificationForm.companyCui}
+              onChange={(e) => setVerificationForm({ ...verificationForm, companyCui: e.target.value })}
+              disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Adresă Sediu Social</label>
+            <input
+              type="text"
+              placeholder="Oraș, Strada, Număr"
+              value={verificationForm.registeredAddress}
+              onChange={(e) => setVerificationForm({ ...verificationForm, registeredAddress: e.target.value })}
+              disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Telefon Oficial</label>
+            <input
+              type="tel"
+              placeholder="07xx xxx xxx"
+              value={verificationForm.officialPhone}
+              onChange={(e) => setVerificationForm({ ...verificationForm, officialPhone: e.target.value })}
+              disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              required
+            />
+          </div>
+
+          {submitError && (
+            <div className="error-msg">
+              <FiAlertCircle style={{ marginRight: '8px' }} /> {submitError}
+            </div>
+          )}
+
+          {submitMessage && (
+            <div className="success-msg">
+              <FiCheckCircle style={{ marginRight: '8px' }} /> {submitMessage}
+            </div>
+          )}
+
+          {organizerStatus !== 'verified' && organizerStatus !== 'pending' && (
+            <button type="submit" className="submit-button" disabled={isSubmitting}>
+              {isSubmitting ? 'Se trimite...' : 'Trimite spre verificare'}
             </button>
-            <div className="organizer-user-profile">
-              <div className="user-avatar">OR</div>
-              <span className="user-name">{verificationForm.companyName || 'Organizator'}</span>
-            </div>
-            <button className="organizer-logout-btn" onClick={handleLogout}>Logout</button>
-          </div>
-        </header>
+          )}
 
-        <div className="organizer-content-scroll">
-          <div className="settings-container">
-            <div className="settings-header">
-              <h1>Verificare Identitate Business</h1>
-              <p className="settings-subtitle">
-                Completează datele oficiale ale firmei tale pentru a putea publica evenimente pe platformă.
-              </p>
-            </div>
-
-            <div className={`status-box`}>
-              Status curent: <strong>{statusLabels[organizerStatus]}</strong>
-            </div>
-
-            <form className="verification-form" onSubmit={handleSubmitVerification}>
-              <div className="form-group">
-                <label>Nume Firmă / Brand</label>
-                <input
-                  type="text"
-                  value={verificationForm.companyName}
-                  onChange={(e) => setVerificationForm({ ...verificationForm, companyName: e.target.value })}
-                  disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>CUI / CIF</label>
-                <input
-                  type="text"
-                  placeholder="ex: RO12345678"
-                  value={verificationForm.companyCui}
-                  onChange={(e) => setVerificationForm({ ...verificationForm, companyCui: e.target.value })}
-                  disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Adresă Sediu Social</label>
-                <input
-                  type="text"
-                  placeholder="Oraș, Strada, Număr"
-                  value={verificationForm.registeredAddress}
-                  onChange={(e) => setVerificationForm({ ...verificationForm, registeredAddress: e.target.value })}
-                  disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Telefon Oficial</label>
-                <input
-                  type="tel"
-                  placeholder="07xx xxx xxx"
-                  value={verificationForm.officialPhone}
-                  onChange={(e) => setVerificationForm({ ...verificationForm, officialPhone: e.target.value })}
-                  disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
-                  required
-                />
-              </div>
-
-              {submitError && (
-                <div className="error-msg">
-                  <FiAlertCircle style={{marginRight: '8px'}} /> {submitError}
-                </div>
-              )}
-
-              {submitMessage && (
-                <div className="success-msg">
-                  <FiCheckCircle style={{marginRight: '8px'}} /> {submitMessage}
-                </div>
-              )}
-
-              {organizerStatus !== 'verified' && organizerStatus !== 'pending' && (
-                <button type="submit" className="submit-button" disabled={isSubmitting}>
-                  {isSubmitting ? 'Se trimite...' : 'Trimite spre verificare'}
-                </button>
-              )}
-              
-              {organizerStatus === 'pending' && (
-                <p style={{marginTop: '20px', color: '#64748b', fontSize: '13px', textAlign: 'center'}}>
-                  Datele tale sunt în curs de verificare de către un administrator.
-                </p>
-              )}
-            </form>
-          </div>
-        </div>
-      </main>
-    </div>
+          {organizerStatus === 'pending' && (
+            <p style={{ marginTop: '20px', color: '#64748b', fontSize: '13px', textAlign: 'center' }}>
+              Datele tale sunt în curs de verificare de către un administrator.
+            </p>
+          )}
+        </form>
+      </div>
+    </OrganizerShell>
   );
 };
 

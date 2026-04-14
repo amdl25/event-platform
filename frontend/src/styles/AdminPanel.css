@@ -94,6 +94,7 @@
 .admin-sidebar-footer {
   margin-top: auto;
   padding-top: 18px;
+  border-top: 1px solid var(--admin-border);
 }
 
 .admin-sidebar-logout {
