@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { ro } from 'date-fns/locale/ro';
@@ -42,7 +42,6 @@ const initialFilters = {
 
 const CategoryPage = ({ user }) => {
     const { categoryName } = useParams();
-    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState(initialFilters);
@@ -65,9 +64,10 @@ const CategoryPage = ({ user }) => {
     };
 
     useEffect(() => {
-        setLoading(true);
-        API.get('/events')
-            .then((res) => {
+        const loadEvents = async () => {
+            try {
+                setLoading(true);
+                const res = await API.get('/events');
                 const allVisibleEvents = res.data.filter(event => {
                     const isPublic = !!event.org_id;
                     const isMine = event.creator_id === user?.id;
@@ -96,9 +96,14 @@ const CategoryPage = ({ user }) => {
                     setFilters(initialFilters);
                     setEvents(filteredByCategory);
                 }
-            })
-            .catch(err => console.error(err))
-            .finally(() => setLoading(false));
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadEvents();
     }, [categoryName, user?.id]);
 
     const availableCities = pickPreferredCityLabel(events.map(event => {

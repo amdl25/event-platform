@@ -12,8 +12,6 @@ const SearchResults = () => {
   const query = new URLSearchParams(location.search).get("q");
 
  useEffect(() => {
-  setLoading(true);
-
   const normalizeForSearch = (str) => {
     if (!str) return "";
     return str
@@ -24,36 +22,41 @@ const SearchResults = () => {
       .trim();
   };
 
-  const searchTarget = normalizeForSearch(query);
-
-  API.get('/events')
-    .then(res => {
+  const loadResults = async () => {
+    try {
+      setLoading(true);
+      const res = await API.get('/events');
       const allEvents = res.data;
+      const searchTarget = normalizeForSearch(query);
 
       const filtered = allEvents.filter(event => {
         const isPublic = event.org_id !== null && event.org_id !== undefined;
 
-        const categoryNames = event.categories 
-        ? event.categories.map(cat => normalizeForSearch(cat.name)).join(" ") 
-        : "";
+        const categoryNames = event.categories
+          ? event.categories.map(cat => normalizeForSearch(cat.name)).join(" ")
+          : "";
 
         const eventTitle = normalizeForSearch(event.title);
         const eventLocation = normalizeForSearch(event.location);
-        const eventCategory = normalizeForSearch(event.category);
         const eventDesc = normalizeForSearch(event.description);
-        
-        const matches = eventTitle.includes(searchTarget) || 
-                        eventLocation.includes(searchTarget) || 
-                        categoryNames.includes(searchTarget) || 
+
+        const matches = eventTitle.includes(searchTarget) ||
+                        eventLocation.includes(searchTarget) ||
+                        categoryNames.includes(searchTarget) ||
                         eventDesc.includes(searchTarget);
 
         return isPublic && matches;
       });
 
       setResults(filtered);
-    })
-    .catch(err => console.error("Eroare la căutare:", err))
-    .finally(() => setLoading(false));
+    } catch (err) {
+      console.error("Eroare la căutare:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadResults();
 }, [query]);
 
   return (

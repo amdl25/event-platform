@@ -12,7 +12,6 @@ const initialDiscoveryFilters = {
 const DiscoveryFeed = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [dbCategories, setDbCategories] = useState([]);
     const [filters, setFilters] = useState(initialDiscoveryFilters);
 
@@ -36,7 +35,6 @@ const DiscoveryFeed = () => {
             })
             .catch((err) => {
                 console.error("Eroare la încărcarea evenimentelor:", err);
-                setError('Nu am putut încărca evenimentele.');
             })
             .finally(() => setLoading(false));
     }, []);

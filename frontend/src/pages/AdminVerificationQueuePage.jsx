@@ -53,7 +53,7 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
         item.id === id ? { ...item, verificationStatus: 'verified', requestedAt: new Date().toISOString() } : item
       )));
       setStats(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1), verifiedCount: prev.verifiedCount + 1 }));
-    } catch (err) { setError('Eroare la aprobare.'); } 
+    } catch { setError('Eroare la aprobare.'); } 
     finally { setProcessingId(''); }
   };
 
@@ -72,7 +72,7 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
         item.id === id ? { ...item, verificationStatus: 'rejected', requestedAt: new Date().toISOString() } : item
       )));
       setStats(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1), rejectedCount: prev.rejectedCount + 1 }));
-    } catch (err) { setError('Eroare la respingere.'); } 
+    } catch { setError('Eroare la respingere.'); } 
     finally { setProcessingId(''); }
   };
 

@@ -53,7 +53,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
     };
 
     loadStatus();
-  }, [user]);
+  }, [navigate, user]);
 
   const handleSubmitVerification = async (event) => {
     event.preventDefault();

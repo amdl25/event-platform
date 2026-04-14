@@ -85,12 +85,13 @@ function App() {
 
   const isOrganizerLayout = location.pathname.startsWith('/organizer');
   const isAdminLayout = location.pathname.startsWith('/admin');
+  const isPurchaseConfirmationLayout = location.pathname.startsWith('/purchase-confirmation');
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="App">
         <ScrollToTop />
-        {!isOrganizerLayout && !isAdminLayout ? <Navbar user={user} handleLogout={handleLogout} /> : null}
+        {!isOrganizerLayout && !isAdminLayout && !isPurchaseConfirmationLayout ? <Navbar user={user} handleLogout={handleLogout} /> : null}
         
         <main className="app-main">
           <Routes>
@@ -116,7 +117,7 @@ function App() {
             <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
             <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
             <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
-            <Route path="/tickets-download" element={<TicketsDownloadPage />} />
+            <Route path="/purchase-confirmation" element={<TicketsDownloadPage />} />
             <Route path="/invite/:eventId" element={<InviteEventPage user={user} />} />
             <Route path="/organizer" element={<Navigate to="/organizer/events" replace />} />
             <Route path="/organizer/dashboard" element={<Navigate to="/organizer/events" replace />} />

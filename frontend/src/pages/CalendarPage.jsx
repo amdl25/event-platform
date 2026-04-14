@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -11,7 +11,6 @@ import '../styles/CalendarPage.css';
 const CalendarPage = ({ user }) => {
   const navigate = useNavigate();
   const [value, onChange] = useState(new Date());
-  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
   const [activeEvent, setActiveEvent] = useState(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
@@ -27,31 +26,23 @@ const CalendarPage = ({ user }) => {
     }
   }, [user?.id, navigate]);
 
-  useEffect(() => {
-    filterEventsByDate(value, events);
-  }, [events, value]);
+  const selectedDateEvents = useMemo(() => {
+    if (!value || !events) return [];
 
-  const filterEventsByDate = (date, allEvents) => {
-    if (!date || !allEvents) return;
-
-    const searchDate = getEventDateKey(date);
-
-    const filtered = allEvents.filter(e => {
-      const eventStart = getEventStartValue(e);
+    const searchDate = getEventDateKey(value);
+    return events.filter((eventItem) => {
+      const eventStart = getEventStartValue(eventItem);
       if (!eventStart) return false;
 
       const eventDate = getEventDateKey(eventStart);
       return eventDate === searchDate;
     });
-
-    setSelectedDateEvents(filtered);
-  };
+  }, [events, value]);
 
   const getEventColor = (event) => (event.org_id ? '#22c55e' : '#3b82f6');
 
   const handleDateChange = (newDate) => {
     onChange(newDate);
-    filterEventsByDate(newDate, events);
   };
 
   const getEventCity = (location) => {

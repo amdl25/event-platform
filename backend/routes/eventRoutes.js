@@ -11,9 +11,14 @@ import {
 	updateEvent
 } from '../controllers/EventController.js';
 import { getMyTickets, joinEvent } from '../controllers/ParticipationController.js';
-import { purchaseAsGuest, purchaseAsUser, sendTicketsByEmail } from '../controllers/BookingController.js';
+import {
+	confirmCheckoutSession,
+	createCheckoutSession,
+	getPurchaseQuote,
+	sendTicketsByEmail
+} from '../controllers/BookingController.js';
 import { confirmInviteParticipation, getInvitePreview } from '../controllers/InviteController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, optionalAuthenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -26,8 +31,9 @@ router.delete('/private/:eventId', authenticateToken, deletePrivateEvent);
 router.get('/invite/:eventId', getInvitePreview);
 router.post('/invite/:eventId/confirm', authenticateToken, confirmInviteParticipation);
 router.post('/join', authenticateToken, joinEvent);
-router.post('/purchase/user', authenticateToken, purchaseAsUser);
-router.post('/purchase/guest', purchaseAsGuest);
+router.get('/purchase/quote', optionalAuthenticateToken, getPurchaseQuote);
+router.post('/purchase/checkout-session', optionalAuthenticateToken, createCheckoutSession);
+router.post('/purchase/confirm-session', confirmCheckoutSession);
 router.post('/tickets/send-email', sendTicketsByEmail);
 router.post('/', authenticateToken, createEvent);
 router.delete('/:id', authenticateToken, deleteEvent);

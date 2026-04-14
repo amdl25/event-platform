@@ -105,13 +105,6 @@ const hasCitySuffix = (locationValue) => {
 };
 
 const OrganizerDashboard = ({ user, handleLogout }) => {
-  const statusLabels = {
-    unverified: 'Neverificat',
-    pending: 'În așteptare',
-    verified: 'Verificat',
-    rejected: 'Respins'
-  };
-
   const navigate = useNavigate();
   const location = useLocation();
   const [events, setEvents] = useState([]);
@@ -134,9 +127,6 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     activeEvents: 0
   });
   const [eventForm, setEventForm] = useState(() => {
-    const now = new Date();
-    const inTwoHours = new Date(now.getTime() + (2 * 60 * 60 * 1000));
-
     return {
       title: '',
       description: '',

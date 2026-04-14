@@ -1,4 +1,4 @@
-import { Participation, Event, LoyaltyWallet } from '../models/relationships.js';
+import { Participation, Event } from '../models/relationships.js';
 
 export const getMyTickets = async (req, res) => {
   const accountId = req.user?.id;

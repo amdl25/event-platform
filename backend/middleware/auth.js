@@ -40,3 +40,31 @@ export const requireRole = (...roles) => (req, res, next) => {
 
   return next();
 };
+
+export const optionalAuthenticateToken = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token) {
+      return next();
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await Account.findByPk(decoded.sub, {
+      attributes: ['id', 'email', 'role']
+    });
+
+    if (user) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      };
+    }
+
+    return next();
+  } catch (_error) {
+    return next();
+  }
+};

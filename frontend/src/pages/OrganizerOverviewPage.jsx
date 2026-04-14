@@ -34,9 +34,9 @@ const OrganizerOverviewPage = ({ user, handleLogout }) => {
     }
   }, [user]);
 
-  const stats = summary?.stats || {};
-  const events = summary?.events || [];
-  const transactions = summary?.transactions || [];
+  const stats = useMemo(() => summary?.stats || {}, [summary]);
+  const events = useMemo(() => summary?.events || [], [summary]);
+  const transactions = useMemo(() => summary?.transactions || [], [summary]);
 
   const formatMoney = (value) => `${Number(value || 0).toFixed(0)} RON`;
 

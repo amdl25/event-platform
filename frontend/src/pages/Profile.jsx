@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import QRCode from "react-qr-code";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar } from 'react-icons/fi';
 import API from '../api';
+import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import '../styles/Profile.css';
 
 const Profile = ({ user }) => {
@@ -25,19 +25,11 @@ const Profile = ({ user }) => {
     const [pdfDownloading, setPdfDownloading] = useState(false);
     const [pdfPayload, setPdfPayload] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loyaltySummary, setLoyaltySummary] = useState({ totalPoints: 0, companies: [], transactions: [] });
     const ticketPdfRef = useRef(null);
     const rewardsCompanies = useMemo(() => {
-        const pointsByCompany = new Map();
-
-        tickets.forEach((ticket) => {
-            const companyName = ticket.event?.organizationName || 'Organizator';
-            const current = pointsByCompany.get(companyName) || 0;
-            pointsByCompany.set(companyName, current + Number(ticket.event?.pointsValue || 0));
-        });
-
         const accents = ['blue', 'purple', 'green', 'red'];
-        return Array.from(pointsByCompany.entries())
-            .map(([name, points]) => ({ name, points }))
+        return [...(loyaltySummary.companies || [])]
             .sort((a, b) => b.points - a.points)
             .map((item, index) => {
                 const initials = item.name
@@ -56,14 +48,13 @@ const Profile = ({ user }) => {
                     accent: accents[index % accents.length]
                 };
             });
-    }, [tickets]);
+    }, [loyaltySummary.companies]);
 
     const rewardsHistory = useMemo(() => {
-        return [...tickets]
-            .sort((a, b) => new Date(b.purchasedAt || b.event?.startDate || 0) - new Date(a.purchasedAt || a.event?.startDate || 0))
+        return (loyaltySummary.transactions || [])
             .slice(0, 8)
-            .map((ticket) => {
-                const dateValue = ticket.purchasedAt || ticket.event?.startDate;
+            .map((transaction) => {
+                const dateValue = transaction.createdAt;
                 const date = dateValue
                     ? new Date(dateValue).toLocaleDateString('ro-RO', {
                         day: 'numeric',
@@ -71,18 +62,20 @@ const Profile = ({ user }) => {
                         year: 'numeric'
                     })
                     : 'Data necunoscută';
-
-                const points = Number(ticket.event?.pointsValue || 0);
+                const points = Number(transaction.points || 0);
+                const isEarn = transaction.type === 'earn';
                 return {
-                    type: 'earn',
-                    title: `Bilet cumpărat — ${ticket.event?.title || 'Eveniment'}`,
+                    type: isEarn ? 'earn' : 'redeem',
+                    title: isEarn
+                        ? `Puncte câștigate — ${transaction.eventTitle || 'Eveniment'}`
+                        : `Puncte folosite — ${transaction.eventTitle || 'Eveniment'}`,
                     date,
-                    points: `+${points}`
+                    points: `${isEarn ? '+' : '-'}${points}`
                 };
             });
-    }, [tickets]);
+    }, [loyaltySummary.transactions]);
 
-    const totalPoints = rewardsCompanies.reduce((sum, company) => sum + company.points, 0);
+    const totalPoints = Number(loyaltySummary.totalPoints || 0);
     const memberSince = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
         : 'Ianuarie 2024';
@@ -138,8 +131,12 @@ const Profile = ({ user }) => {
         const fetchProfileData = async () => {
             if (!user?.id) return;
             try {
-                const ticketsResponse = await API.get('/events/tickets/mine');
+                const [ticketsResponse, loyaltyResponse] = await Promise.all([
+                    API.get('/events/tickets/mine'),
+                    API.get('/users/me/loyalty')
+                ]);
                 setTickets(ticketsResponse.data || []);
+                setLoyaltySummary(loyaltyResponse.data || { totalPoints: 0, companies: [], transactions: [] });
 
                 if (user?.role === 'organizer') {
                     const statusRes = await API.get(`/auth/organizer/status/${user.id}`);
@@ -553,36 +550,7 @@ const Profile = ({ user }) => {
                 </main>
             </div>
 
-            {pdfPayload ? (
-                <div className="ticket-pdf-render-shell" aria-hidden="true">
-                    <div className="ticket-pdf-render" ref={ticketPdfRef}>
-                        <div className="ticket-pdf-header">
-                            <h2>EventHub - Biletele Tale</h2>
-                            <p>{pdfPayload.eventTitle}</p>
-                        </div>
-
-                        {pdfPayload.tickets.map((ticket) => (
-                            <article key={ticket.code} className="ticket-pdf-card">
-                                <div className="ticket-pdf-top">
-                                    <strong>{ticket.code}</strong>
-                                    <span>{ticket.organizationName}</span>
-                                </div>
-
-                                <div className="ticket-pdf-meta">
-                                    <span>Data: {formatDateLabel(ticket.date)}</span>
-                                    <span>Ora: {formatTimeLabel(ticket.date)}</span>
-                                    <span>Locație: {ticket.location}</span>
-                                    <span>Puncte: +{ticket.points}</span>
-                                </div>
-
-                                <div className="ticket-pdf-qr">
-                                    <QRCode value={ticket.qrValue || ticket.code} size={110} />
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                </div>
-            ) : null}
+            {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}
         </div>
     );
 };

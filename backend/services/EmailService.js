@@ -291,7 +291,9 @@ export const sendTicketEmail = async (emailData) => {
     return {
       success: true,
       message: 'Email sent successfully',
-      messageId: result.messageId
+      messageId: result.messageId,
+      accepted: result.accepted || [],
+      rejected: result.rejected || []
     };
   } catch (error) {
     console.error('❌ Error sending email:', error);

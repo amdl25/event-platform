@@ -1,0 +1,67 @@
+.ticket-pdf-render-shell {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 900px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ticket-pdf-render {
+  background: #ffffff;
+  padding: 24px;
+  color: #111827;
+}
+
+.ticket-pdf-header {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.ticket-pdf-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.ticket-pdf-header p {
+  margin: 6px 0 0;
+  color: #475569;
+}
+
+.ticket-pdf-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.ticket-pdf-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ticket-pdf-top strong {
+  font-size: 14px;
+}
+
+.ticket-pdf-top span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ticket-pdf-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.ticket-pdf-qr {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}

@@ -5,21 +5,6 @@ import AdminShell from '../components/AdminShell';
 
 const colors = ['#3b82f6', '#2fb46f', '#f59e0b', '#8b5cf6', '#ea5a36', '#14b8a6'];
 
-const buildLinePath = (items) => {
-  if (!items.length) return '';
-  const width = 760;
-  const height = 210;
-  const padding = 18;
-  const maxValue = Math.max(1, ...items.map((item) => Number(item.value || 0)));
-  const points = items.map((item, index) => {
-    const x = padding + (index * (width - padding * 2)) / Math.max(1, items.length - 1);
-    const y = height - padding - ((Number(item.value || 0) / maxValue) * (height - padding * 2));
-    return { x, y };
-  });
-
-  return points.reduce((path, point, index) => `${path}${index === 0 ? 'M' : 'L'}${point.x} ${point.y} `, '').trim();
-};
-
 const getSeriesPoints = (items) => {
   if (!items.length) return [];
   const width = 760;
@@ -35,19 +20,6 @@ const getSeriesPoints = (items) => {
 
 const buildSvgPathFromPoints = (points) => points.reduce((path, point, index) => `${path}${index === 0 ? 'M' : 'L'}${point.x} ${point.y} `, '').trim();
 
-const buildAreaPathFromPoints = (points) => {
-  if (!points.length) return '';
-  const width = 760;
-  const height = 210;
-  const padding = 18;
-
-  return [
-    `M ${points[0].x} ${height - padding}`,
-    ...points.map((point) => `L ${point.x} ${point.y}`),
-    `L ${points[points.length - 1].x} ${height - padding}`,
-    'Z'
-  ].join(' ');
-};
 
 const donutSegments = (items) => {
   const total = items.reduce((sum, item) => sum + Number(item.value || 0), 0);
@@ -111,15 +83,14 @@ const AdminDashboardPage = ({ user, handleLogout }) => {
     setHoveredIndex(null);
   };
 
-  const chartData = summary?.charts?.registrations || [];
-  const eventChartData = summary?.charts?.eventsCreated || [];
+  const chartData = useMemo(() => summary?.charts?.registrations || [], [summary]);
+  const eventChartData = useMemo(() => summary?.charts?.eventsCreated || [], [summary]);
   const registrationPoints = useMemo(() => getSeriesPoints(chartData), [chartData]);
   const eventPoints = useMemo(() => getSeriesPoints(eventChartData), [eventChartData]);
   const linePath = useMemo(() => buildSvgPathFromPoints(registrationPoints), [registrationPoints]);
   const secondaryLinePath = useMemo(() => buildSvgPathFromPoints(eventPoints), [eventPoints]);
-  const areaPath = useMemo(() => buildAreaPathFromPoints(registrationPoints), [registrationPoints]);
-  const categories = summary?.charts?.categories || [];
-  const topEvents = summary?.topEvents || [];
+  const categories = useMemo(() => summary?.charts?.categories || [], [summary]);
+  const topEvents = useMemo(() => summary?.topEvents || [], [summary]);
   const donutSegmentsList = useMemo(() => donutSegments(categories.slice(0, 5)), [categories]);
   const donutStops = useMemo(() => {
     if (!donutSegmentsList.length) {

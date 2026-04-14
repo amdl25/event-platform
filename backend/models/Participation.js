@@ -31,6 +31,10 @@ const Participation = sequelize.define('Participation', {
     allowNull: false,
     defaultValue: 'accepted'
   },
+  payment_session_id: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   ticket_qr: { type: DataTypes.TEXT, unique: true }
 }, { tableName: 'participation' });
 

@@ -1,4 +1,4 @@
-import { Account, Category } from '../models/relationships.js';
+import { Account, Category, Event, LoyaltyTransaction, LoyaltyWallet, Organization } from '../models/relationships.js';
 
 export const getUserProfile = async (req, res) => {
   try {
@@ -48,5 +48,54 @@ export const setInterests = async (req, res) => {
     res.status(200).json({ message: "Interese salvate!" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyLoyaltySummary = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Neautorizat' });
+    }
+
+    const [wallets, transactions] = await Promise.all([
+      LoyaltyWallet.findAll({
+        where: { account_id: userId },
+        include: [{ model: Organization, attributes: ['id', 'name'] }]
+      }),
+      LoyaltyTransaction.findAll({
+        where: { account_id: userId },
+        order: [['createdAt', 'DESC']],
+        limit: 20,
+        include: [
+          { model: Organization, attributes: ['id', 'name'] },
+          { model: Event, attributes: ['id', 'title'] }
+        ]
+      })
+    ]);
+
+    const companies = wallets.map((wallet) => ({
+      orgId: wallet.org_id,
+      name: wallet.Organization?.name || 'Organizator',
+      points: Number(wallet.points_balance || 0)
+    }));
+
+    const totalPoints = companies.reduce((sum, item) => sum + Number(item.points || 0), 0);
+
+    return res.json({
+      totalPoints,
+      companies,
+      transactions: transactions.map((transaction) => ({
+        id: transaction.id,
+        type: transaction.type,
+        points: Number(transaction.points_amount || 0),
+        orgName: transaction.Organization?.name || 'Organizator',
+        eventTitle: transaction.Event?.title || 'Eveniment',
+        createdAt: transaction.createdAt
+      }))
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
