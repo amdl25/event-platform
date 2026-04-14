@@ -23,6 +23,31 @@ import '../styles/ExplorePage.css';
 
 registerLocale('ro', ro);
 
+const normalizeText = (value) => (
+  value
+    ?.toLowerCase()
+    ?.trim()
+    ?.normalize('NFD')
+    ?.replace(/[\u0300-\u036f]/g, '')
+);
+
+const hasDiacritics = (value) => /[ăâîșțĂÂÎȘȚ]/.test(value || '');
+
+const pickPreferredCityLabel = (cities) => {
+  const cityMap = new Map();
+
+  cities.filter(Boolean).forEach((city) => {
+    const key = normalizeText(city);
+    const current = cityMap.get(key);
+
+    if (!current || (hasDiacritics(city) && !hasDiacritics(current))) {
+      cityMap.set(key, city);
+    }
+  });
+
+  return [...cityMap.values()];
+};
+
 const initialFilters = {
   category: 'Toate categoriile',
   city: 'Toate orașele',
@@ -70,26 +95,25 @@ const ExplorePage = () => {
   };
 
   const cities = useMemo(() => {
-    return [...new Set(publicEvents.map(event => {
+    const rawCities = publicEvents.map(event => {
       const parts = event.location?.split(',');
       return parts?.[parts.length - 1]?.trim();
-    }))].filter(Boolean);
+    });
+
+    return pickPreferredCityLabel(rawCities);
   }, [publicEvents]);
 
-  const normalizedSearch = citySearch.trim().toLowerCase();
-  const filteredCities = cities.filter((city) => city.toLowerCase().includes(normalizedSearch));
-  const availableCities = [...new Set(publicEvents.map((event) => {
-    const parts = event.location?.split(',') || [];
-    return parts[parts.length - 1]?.trim();
-  }))].filter(Boolean);
+  const normalizedSearch = normalizeText(citySearch);
+  const filteredCities = cities.filter((city) => normalizeText(city).includes(normalizedSearch));
+  const availableCities = cities;
 
   const filteredEvents = publicEvents.filter((event) => {
     const matchCategory =
       filters.category === 'Toate categoriile' ||
-      event.categories?.some((cat) => cat.name === filters.category);
+      event.categories?.some((cat) => normalizeText(cat.name) === normalizeText(filters.category));
 
     const eventCity = event.location?.split(',')?.pop()?.trim();
-    const matchCity = filters.city === 'Toate orașele' || eventCity === filters.city;
+    const matchCity = filters.city === 'Toate orașele' || normalizeText(eventCity) === normalizeText(filters.city);
 
     let matchDate = true;
     if (filters.selectedDate) {

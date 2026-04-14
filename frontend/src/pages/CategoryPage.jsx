@@ -9,6 +9,31 @@ import '../styles/CategoryPage.css';
 
 registerLocale('ro', ro);
 
+const normalizeText = (value) => (
+    value
+        ?.toLowerCase()
+        ?.trim()
+        ?.normalize('NFD')
+        ?.replace(/[\u0300-\u036f]/g, '')
+);
+
+const hasDiacritics = (value) => /[ăâîșțĂÂÎȘȚ]/.test(value || '');
+
+const pickPreferredCityLabel = (cities) => {
+    const cityMap = new Map();
+
+    cities.filter(Boolean).forEach((city) => {
+        const key = normalizeText(city);
+        const current = cityMap.get(key);
+
+        if (!current || (hasDiacritics(city) && !hasDiacritics(current))) {
+            cityMap.set(key, city);
+        }
+    });
+
+    return [...cityMap.values()];
+};
+
 const initialFilters = {
     city: 'Toate orașele',
     selectedDate: null,
@@ -51,15 +76,22 @@ const CategoryPage = ({ user }) => {
 
                 const isCity = allVisibleEvents.some(event => {
                     const eventCity = event.location.split(',').pop().trim();
-                    return eventCity.toLowerCase() === categoryName.toLowerCase();
+                    return normalizeText(eventCity) === normalizeText(categoryName);
                 });
 
                 if (isCity) {
-                    setFilters({ ...initialFilters, city: categoryName });
+                    const preferredCity = pickPreferredCityLabel(
+                        allVisibleEvents.map(event => {
+                            const eventCity = event.location.split(',').pop().trim();
+                            return eventCity;
+                        })
+                    ).find((city) => normalizeText(city) === normalizeText(categoryName)) || categoryName;
+
+                    setFilters({ ...initialFilters, city: preferredCity });
                     setEvents(allVisibleEvents);
                 } else {
                     const filteredByCategory = allVisibleEvents.filter(event => 
-                        event.categories?.some(cat => cat.name === categoryName)
+                        event.categories?.some(cat => normalizeText(cat.name) === normalizeText(categoryName))
                     );
                     setFilters(initialFilters);
                     setEvents(filteredByCategory);
@@ -69,14 +101,14 @@ const CategoryPage = ({ user }) => {
             .finally(() => setLoading(false));
     }, [categoryName, user?.id]);
 
-    const availableCities = [...new Set(events.map(event => {
+    const availableCities = pickPreferredCityLabel(events.map(event => {
         const parts = event.location.split(',');
         return parts[parts.length - 1]?.trim(); 
-    }))].filter(Boolean);
+    }));
 
     const filteredResults = events.filter(event => {
         const eventCity = event.location.split(',').pop().trim();
-        const matchCity = filters.city === 'Toate orașele' || eventCity === filters.city;
+        const matchCity = filters.city === 'Toate orașele' || normalizeText(eventCity) === normalizeText(filters.city);
 
         let matchPeriod = true;
         if (filters.selectedDate) {
@@ -99,7 +131,7 @@ const CategoryPage = ({ user }) => {
                 <header className="category-header">
                     <div className="category-top-row">
                         <h1>
-                            {filters.city !== 'Toate orașele' && filters.city.toLowerCase() === categoryName.toLowerCase()
+                            {filters.city !== 'Toate orașele' && normalizeText(filters.city) === normalizeText(categoryName)
                                 ? `Evenimente în ${categoryName}`
                                 : categoryName}
                         </h1>

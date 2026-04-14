@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FiClock, FiDollarSign, FiEdit2, FiEye, FiImage, FiMapPin, FiPlus, FiStar, FiTicket, FiTrash2 } from 'react-icons/fi';
+import { FiClock, FiDollarSign, FiEdit2, FiEye, FiImage, FiMapPin, FiPlus, FiShoppingBag, FiTrash2, FiTrendingUp } from 'react-icons/fi';
 import API from '../api';
 import OrganizerShell from '../components/OrganizerShell';
 import '../styles/OrganizerDashboard.css';
@@ -50,7 +50,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [overviewStats, setOverviewStats] = useState({
     totalRevenue: 0,
     soldTickets: 0,
-    pointsAwarded: 0
+    activeEvents: 0
   });
   const [eventForm, setEventForm] = useState(() => {
     const now = new Date();
@@ -94,7 +94,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         setOverviewStats({
           totalRevenue: Number(dashboardRes.data?.stats?.totalRevenue || 0),
           soldTickets: Number(dashboardRes.data?.stats?.soldTickets || 0),
-          pointsAwarded: Number(dashboardRes.data?.stats?.pointsAwarded || 0)
+          activeEvents: Number(dashboardRes.data?.stats?.activeEvents || 0)
         });
         const categoryList = categoriesRes.data || [];
         setCategories(categoryList);
@@ -301,6 +301,13 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     return events;
   }, [activeTab, events]);
 
+  const emptyStateMessage = useMemo(() => {
+    if (activeTab === 'published') return 'Nu ai evenimente publicate în acest moment.';
+    if (activeTab === 'draft') return 'Nu ai drafturi salvate momentan.';
+    if (activeTab === 'ended') return 'Nu ai evenimente încheiate.';
+    return 'Nu ai evenimente încă. Creează primul eveniment nou.';
+  }, [activeTab]);
+
   const actions = (
     <button
       className="organizer-primary-button organizer-primary-button-large"
@@ -333,14 +340,14 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
             <label>BILETE VÂNDUTE</label>
             <h3 className="text-blue">{overviewStats.soldTickets}</h3>
           </div>
-          <div className="organizer-stat-icon icon-blue"><FiTicket /></div>
+          <div className="organizer-stat-icon icon-blue"><FiShoppingBag /></div>
         </div>
         <div className="organizer-stat-card compact">
           <div className="organizer-stat-info">
-            <label>PUNCTE DATE</label>
-            <h3 className="text-green">{overviewStats.pointsAwarded}</h3>
+            <label>EVENIMENTE ACTIVE</label>
+            <h3 className="text-green">{overviewStats.activeEvents}</h3>
           </div>
-          <div className="organizer-stat-icon icon-green"><FiStar /></div>
+          <div className="organizer-stat-icon icon-green"><FiTrendingUp /></div>
         </div>
       </section>
 
@@ -356,7 +363,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       <section className="organizer-events-panel">
         <div className="events-table-wrapper">
           {filteredEvents.length === 0 ? (
-            <div className="organizer-empty">Nu ai evenimente încă. Creează primul eveniment nou.</div>
+            <div className="organizer-empty">{emptyStateMessage}</div>
           ) : (
             filteredEvents.map((event) => {
               const progress = Number(event.max_capacity || 0) > 0

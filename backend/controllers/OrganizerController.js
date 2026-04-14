@@ -166,7 +166,7 @@ export const getOrganizerParticipants = async (req, res) => {
       ? await Participation.findAll({
           where: { event_id: eventIds },
           include: [
-            { model: Event, attributes: ['id', 'title', 'start_date', 'points_value'] },
+            { model: Event, attributes: ['id', 'title', 'start_date', 'points_value', 'price'] },
             { model: Account, attributes: ['id', 'first_name', 'last_name', 'email'] }
           ],
           order: [['createdAt', 'DESC']]
@@ -188,19 +188,38 @@ export const getOrganizerParticipants = async (req, res) => {
         registeredAt: participation.createdAt,
         checkIn: isCheckedIn,
         status: participation.status,
-        points
+        points,
+        ticketPrice: Number(event?.price || 0)
       };
     });
 
-    const totalParticipants = participants.length;
+    const uniqueParticipants = new Set(
+      participants.map((item) => item.participantId || item.email || item.id)
+    );
+    const totalParticipants = uniqueParticipants.size;
     const checkIns = participants.filter((item) => item.checkIn).length;
     const pointsAwarded = participants.reduce((sum, item) => sum + Number(item.points || 0), 0);
+    const generatedRevenue = participants.reduce((sum, item) => {
+      if (['canceled', 'rejected'].includes(item.status)) return sum;
+      return sum + Number(item.ticketPrice || 0);
+    }, 0);
+
+    const eventCounts = participants.reduce((acc, item) => {
+      const key = item.eventTitle || 'Eveniment';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topEventTitle = Object.entries(eventCounts)
+      .sort((left, right) => right[1] - left[1])[0]?.[0] || '-';
 
     return res.json({
       stats: {
         totalParticipants,
         checkIns,
-        pointsAwarded
+        pointsAwarded,
+        generatedRevenue,
+        topEventTitle
       },
       participants
     });
