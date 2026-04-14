@@ -1256,6 +1256,61 @@
   box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
 }
 
+.organizer-location-autocomplete {
+  position: relative;
+}
+
+.organizer-location-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.organizer-location-suggestion {
+  width: 100%;
+  display: block;
+  text-align: left;
+  padding: 11px 12px;
+  border: 0;
+  background: #fff;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.organizer-location-suggestion:hover {
+  background: #fff7f3;
+  color: #ea5a36;
+}
+
+.organizer-location-suggestion + .organizer-location-suggestion {
+  border-top: 1px solid #f1f5f9;
+}
+
+.organizer-location-suggestion-empty {
+  margin: 0;
+  padding: 11px 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.organizer-location-hint {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .organizer-create-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

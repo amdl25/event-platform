@@ -26,6 +26,84 @@ const statusLabel = (event) => {
   return { text: 'Publicat', className: 'published' };
 };
 
+const normalizeText = (value) => (
+  value
+    ?.toLowerCase()
+    ?.trim()
+    ?.normalize('NFD')
+    ?.replace(/[\u0300-\u036f]/g, '')
+);
+
+const hasDiacritics = (value) => /[ăâîșțĂÂÎȘȚ]/.test(value || '');
+
+const pickPreferredLabels = (values) => {
+  const valueMap = new Map();
+
+  values.filter(Boolean).forEach((value) => {
+    const key = normalizeText(value);
+    const current = valueMap.get(key);
+
+    if (!current || (hasDiacritics(value) && !hasDiacritics(current))) {
+      valueMap.set(key, value);
+    }
+  });
+
+  return [...valueMap.values()];
+};
+
+const normalizeAddressLabel = (rawLocation) => {
+  const value = rawLocation?.trim();
+  if (!value) return '';
+
+  const parts = value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length <= 1) return value;
+
+  const city = parts[parts.length - 1];
+  const beforeCity = parts.slice(0, -1).join(', ');
+  return beforeCity ? `${beforeCity}, ${city}` : city;
+};
+
+const formatNominatimSuggestion = (item) => {
+  const address = item?.address || {};
+  const city = address.city || address.town || address.village || address.municipality || address.county || '';
+  const street = address.road || address.pedestrian || address.footway || address.path || address.amenity || '';
+  const houseNumber = address.house_number || '';
+  const placeName = item?.name && normalizeText(item.name) !== normalizeText(street) ? item.name : '';
+
+  const mainParts = [];
+  if (placeName) mainParts.push(placeName);
+  if (street) mainParts.push(houseNumber ? `${street} ${houseNumber}` : street);
+
+  if (mainParts.length > 0) {
+    return city ? `${mainParts.join(', ')}, ${city}` : mainParts.join(', ');
+  }
+
+  const fallback = String(item?.display_name || '').split(',').map((part) => part.trim()).filter(Boolean);
+  if (fallback.length === 0) return '';
+
+  const compact = fallback.slice(0, 3).join(', ');
+  if (city && !normalizeText(compact).includes(normalizeText(city))) {
+    return `${compact}, ${city}`;
+  }
+  return compact;
+};
+
+const hasCitySuffix = (locationValue) => {
+  const parts = String(locationValue || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length < 2) return false;
+
+  const city = parts[parts.length - 1];
+  return city.length >= 2;
+};
+
 const OrganizerDashboard = ({ user, handleLogout }) => {
   const statusLabels = {
     unverified: 'Neverificat',
@@ -47,6 +125,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [eventImageName, setEventImageName] = useState('');
   const [editingEventId, setEditingEventId] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [remoteLocationSuggestions, setRemoteLocationSuggestions] = useState([]);
+  const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] = useState(false);
   const [overviewStats, setOverviewStats] = useState({
     totalRevenue: 0,
     soldTickets: 0,
@@ -90,6 +171,11 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         });
 
         setEvents(organizerEvents);
+        setLocationSuggestions(
+          pickPreferredLabels(
+            (eventsRes.data || []).map((event) => event.location?.trim()).filter(Boolean)
+          )
+        );
         setOrganizerStatus(statusRes.data?.verificationStatus || user?.organizerVerificationStatus || 'unverified');
         setOverviewStats({
           totalRevenue: Number(dashboardRes.data?.stats?.totalRevenue || 0),
@@ -157,6 +243,85 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     setEventForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const filteredLocationSuggestions = useMemo(() => {
+    const query = normalizeText(eventForm.location);
+    if (!query) return locationSuggestions.slice(0, 8);
+    return locationSuggestions
+      .filter((location) => normalizeText(location).includes(query))
+      .slice(0, 8);
+  }, [eventForm.location, locationSuggestions]);
+
+  const mergedLocationSuggestions = useMemo(() => {
+    const combined = [...remoteLocationSuggestions, ...filteredLocationSuggestions]
+      .map((value) => normalizeAddressLabel(value))
+      .filter(Boolean);
+
+    return pickPreferredLabels(combined).slice(0, 8);
+  }, [filteredLocationSuggestions, remoteLocationSuggestions]);
+
+  useEffect(() => {
+    if (!showCreateModal) return;
+
+    const query = eventForm.location.trim();
+    if (query.length < 3) {
+      setRemoteLocationSuggestions([]);
+      setIsLoadingLocationSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setIsLoadingLocationSuggestions(true);
+        const searchParams = new URLSearchParams({
+          q: query,
+          format: 'jsonv2',
+          addressdetails: '1',
+          'accept-language': 'ro',
+          countrycodes: 'ro',
+          limit: '8',
+          dedupe: '1'
+        });
+
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?${searchParams.toString()}`, {
+          signal: controller.signal,
+          headers: {
+            Accept: 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Nu am putut încărca sugestiile de locație.');
+        }
+
+        const data = await response.json();
+        const externalSuggestions = pickPreferredLabels(
+          (Array.isArray(data) ? data : [])
+            .map((item) => formatNominatimSuggestion(item))
+            .filter(Boolean)
+        );
+
+        setRemoteLocationSuggestions(externalSuggestions);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setRemoteLocationSuggestions([]);
+        }
+      } finally {
+        setIsLoadingLocationSuggestions(false);
+      }
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [eventForm.location, showCreateModal]);
+
+  const handleLocationSelect = (locationValue) => {
+    setEventForm((prev) => ({ ...prev, location: normalizeAddressLabel(locationValue) }));
+    setRemoteLocationSuggestions([]);
+  };
+
   const handleOpenCreateModal = () => {
     if (organizerStatus !== 'verified') {
       return;
@@ -218,9 +383,15 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const handleCreateEvent = async (event, targetStatus = 'published') => {
     event.preventDefault();
     setEventFormError('');
+    const normalizedLocation = normalizeAddressLabel(eventForm.location);
 
-    if (!eventForm.title.trim() || !eventForm.location.trim()) {
+    if (!eventForm.title.trim() || !normalizedLocation) {
       setEventFormError('Titlul și locația sunt obligatorii.');
+      return;
+    }
+
+    if (!hasCitySuffix(normalizedLocation)) {
+      setEventFormError('Locația trebuie completată în formatul „Stradă, Oraș” (orașul după virgulă).');
       return;
     }
 
@@ -242,7 +413,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       const payload = {
         title: eventForm.title.trim(),
         description: eventForm.description.trim() || null,
-        location: eventForm.location.trim(),
+        location: normalizedLocation,
         start_date: startDateTime.toISOString(),
         end_date: endDateTime.toISOString(),
         max_capacity: Number(eventForm.maxCapacity || 0),
@@ -462,7 +633,38 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
                 <div className="organizer-create-field">
                   <label>Locație</label>
-                  <input type="text" value={eventForm.location} onChange={(event) => handleCreateFormChange('location', event.target.value)} placeholder="ex: Hub-ul Digital, Str. Lipscani 45" required />
+                  <div className="organizer-location-autocomplete">
+                    <input
+                      type="text"
+                      value={eventForm.location}
+                      onChange={(event) => handleCreateFormChange('location', event.target.value)}
+                      placeholder="ex: Hub-ul Digital, Str. Lipscani 45, București"
+                      autoComplete="off"
+                      required
+                    />
+                    {eventForm.location.trim() ? (
+                      <div className="organizer-location-suggestions" role="listbox" aria-label="Sugestii locație">
+                        {isLoadingLocationSuggestions ? (
+                          <p className="organizer-location-suggestion-empty">Căutăm adrese reale în România...</p>
+                        ) : mergedLocationSuggestions.length > 0 ? (
+                          mergedLocationSuggestions.map((locationValue) => (
+                            <button
+                              key={locationValue}
+                              type="button"
+                              className="organizer-location-suggestion"
+                              onMouseDown={(mouseEvent) => mouseEvent.preventDefault()}
+                              onClick={() => handleLocationSelect(locationValue)}
+                            >
+                              {locationValue}
+                            </button>
+                          ))
+                        ) : (
+                          <p className="organizer-location-suggestion-empty">Nu am găsit sugestii pentru strada/orașul introdus.</p>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                  <small className="organizer-location-hint">Format recomandat: Stradă, număr, Oraș</small>
                 </div>
 
                 <div className="organizer-create-datetime-block">
