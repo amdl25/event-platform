@@ -16,7 +16,7 @@ import MyEventsPage from './pages/MyEventsPage';
 import CreatePersonalEvent from './pages/CreatePersonalEvent';
 import CalendarPage from './pages/CalendarPage';
 import TicketPurchasePage from './pages/TicketPurchasePage';
-import TicketsDownloadPage from './pages/TicketsDownloadPage';
+import PurchaseConfirmationPage from './pages/PurchaseConfirmationPage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
 import OrganizerOverviewPage from './pages/OrganizerOverviewPage';
@@ -117,7 +117,7 @@ function App() {
             <Route path="/create-event" element={<CreatePersonalEvent user={user} />} />
             <Route path="/calendar" element={<CalendarPage user={user} userEvents={user?.events || []} />} />
             <Route path="/purchase/:id" element={<TicketPurchasePage user={user} />} />
-            <Route path="/purchase-confirmation" element={<TicketsDownloadPage />} />
+            <Route path="/purchase-confirmation" element={<PurchaseConfirmationPage />} />
             <Route path="/invite/:eventId" element={<InviteEventPage user={user} />} />
             <Route path="/organizer" element={<Navigate to="/organizer/events" replace />} />
             <Route path="/organizer/dashboard" element={<Navigate to="/organizer/events" replace />} />

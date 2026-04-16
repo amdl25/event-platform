@@ -7,7 +7,7 @@ import API from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import '../styles/TicketsDownloadPage.css';
 
-const TicketsDownloadPage = () => {
+const PurchaseConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const ticketPdfRef = useRef(null);
@@ -317,4 +317,4 @@ const TicketsDownloadPage = () => {
   );
 };
 
-export default TicketsDownloadPage;
+export default PurchaseConfirmationPage;
