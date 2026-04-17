@@ -1,7 +1,34 @@
-import { Event, Organization, Category, Account, Participation } from '../models/relationships.js';
+import { Event, Organization, Category, Account, Participation, TicketType } from '../models/relationships.js';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
+
+const parseTicketTypesInput = (value) => {
+  if (!value) return [];
+
+  let parsed = value;
+  if (typeof value === 'string') {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) return [];
+
+  return parsed
+    .map((ticketType, index) => ({
+      name: String(ticketType?.name || '').trim(),
+      description: ticketType?.description ? String(ticketType.description).trim() : null,
+      price: Number(ticketType?.price || 0),
+      quantity: Number(ticketType?.quantity || 0),
+      points_reward: Number(ticketType?.points_reward || 0),
+      display_order: Number.isFinite(Number(ticketType?.display_order)) ? Number(ticketType.display_order) : index,
+      is_active: ticketType?.is_active !== false
+    }))
+    .filter((ticketType) => ticketType.name.length > 0);
+};
 
 export const getUserCalendarEvents = async (req, res) => {
   try {
@@ -104,7 +131,12 @@ export const getAllEvents = async (req, res) => {
     const events = await Event.findAll({
       include: [
         { model: Organization, as: 'organization', attributes: ['name', 'verification_status'] },
-        { model: Category, as: 'categories', through: { attributes: [] } }
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { 
+          model: TicketType, 
+          as: 'ticketTypes',
+          attributes: ['id', 'name', 'description', 'price', 'quantity', 'sold_quantity', 'points_reward', 'display_order', 'is_active']
+        }
       ],
       order: [['start_date', 'ASC']]
     });
@@ -129,6 +161,32 @@ export const getAllEvents = async (req, res) => {
 
     res.json(eventData);
   } catch (error) {
+
+            const ticketTypesToCreate = submittedTicketTypes.length > 0
+              ? submittedTicketTypes
+              : [{
+                  name: 'General Access',
+                  description: null,
+                  price: Number(payload.price) || 0,
+                  quantity: Number(payload.max_capacity) || 100,
+                  points_reward: Number(payload.points_value) || 0,
+                  display_order: 0,
+                  is_active: true
+                }];
+
+            await TicketType.bulkCreate(
+              ticketTypesToCreate.map((ticketType) => ({
+                event_id: newEvent.id,
+                name: ticketType.name,
+                description: ticketType.description,
+                price: Number(ticketType.price) || 0,
+                quantity: Number(ticketType.quantity) || 0,
+                sold_quantity: 0,
+                points_reward: Number(ticketType.points_reward) || 0,
+                display_order: Number(ticketType.display_order) || 0,
+                is_active: ticketType.is_active !== false
+              }))
+            );
     res.status(500).json({ message: error.message });
   }
 };
@@ -163,6 +221,11 @@ export const getEventById = async (req, res) => {
           model: Category,
           as: 'categories',
           through: { attributes: [] }
+        },
+        {
+          model: TicketType,
+          as: 'ticketTypes',
+          attributes: ['id', 'name', 'description', 'price', 'quantity', 'sold_quantity', 'points_reward', 'display_order', 'is_active']
         }
       ]
     });
@@ -225,6 +288,7 @@ export const updateEvent = async (req, res) => {
     const { category_ids = [], category_id = null } = req.body;
     const requestedStatus = req.body.moderation_status;
     const allowedOrganizerStatuses = ['published', 'hidden'];
+    const submittedTicketTypes = parseTicketTypesInput(req.body.ticket_types);
 
     if (requestedStatus && !allowedOrganizerStatuses.includes(requestedStatus)) {
       return res.status(400).json({ message: 'Status invalid pentru eveniment.' });
@@ -249,6 +313,23 @@ export const updateEvent = async (req, res) => {
       moderation_status: requestedStatus || event.moderation_status
     });
 
+    if (submittedTicketTypes.length > 0) {
+      await TicketType.destroy({ where: { event_id: id } });
+      await TicketType.bulkCreate(
+        submittedTicketTypes.map((ticketType) => ({
+          event_id: id,
+          name: ticketType.name,
+          description: ticketType.description,
+          price: Number(ticketType.price) || 0,
+          quantity: Number(ticketType.quantity) || 0,
+          sold_quantity: 0,
+          points_reward: Number(ticketType.points_reward) || 0,
+          display_order: Number(ticketType.display_order) || 0,
+          is_active: ticketType.is_active !== false
+        }))
+      );
+    }
+
     if (normalizedCategoryIds.length > 0) {
       const categories = await Category.findAll({ where: { id: normalizedCategoryIds } });
       await event.setCategories(categories.map((category) => category.id));
@@ -257,7 +338,8 @@ export const updateEvent = async (req, res) => {
     const updatedEvent = await Event.findByPk(id, {
       include: [
         { model: Organization, as: 'organization', attributes: ['name', 'description'] },
-        { model: Category, as: 'categories', through: { attributes: [] } }
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { model: TicketType, as: 'ticketTypes' }
       ]
     });
 
@@ -334,6 +416,8 @@ export const createEvent = async (req, res) => {
       return res.status(404).json({ message: 'Contul creatorului nu a fost găsit.' });
     }
 
+    const submittedTicketTypes = parseTicketTypesInput(req.body.ticket_types);
+
     if (creator.role === 'organizer') {
       if (!org_id) {
         return res.status(403).json({
@@ -388,6 +472,32 @@ export const createEvent = async (req, res) => {
 
     const newEvent = await Event.create(payload);
 
+    const ticketTypesToCreate = submittedTicketTypes.length > 0
+      ? submittedTicketTypes
+      : [{
+          name: 'General Access',
+          description: null,
+          price: Number(payload.price) || 0,
+          quantity: Number(payload.max_capacity) || 100,
+          points_reward: Number(payload.points_value) || 0,
+          display_order: 0,
+          is_active: true
+        }];
+
+    await TicketType.bulkCreate(
+      ticketTypesToCreate.map((ticketType) => ({
+        event_id: newEvent.id,
+        name: ticketType.name,
+        description: ticketType.description,
+        price: Number(ticketType.price) || 0,
+        quantity: Number(ticketType.quantity) || 0,
+        sold_quantity: 0,
+        points_reward: Number(ticketType.points_reward) || 0,
+        display_order: Number(ticketType.display_order) || 0,
+        is_active: ticketType.is_active !== false
+      }))
+    );
+
     if (normalizedCategoryIds.length > 0) {
       const categories = await Category.findAll({ where: { id: normalizedCategoryIds } });
       if (categories.length > 0) {
@@ -396,7 +506,10 @@ export const createEvent = async (req, res) => {
     }
 
     const createdEvent = await Event.findByPk(newEvent.id, {
-      include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+      include: [
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { model: TicketType, as: 'ticketTypes' }
+      ]
     });
 
     res.status(201).json(createdEvent || newEvent);

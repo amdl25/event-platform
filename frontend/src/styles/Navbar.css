@@ -2,17 +2,20 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: #ffffff;
+  background: #FFF5F0;
   height: 80px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #e5e7eb;
   transition: all 0.3s ease;
 }
 
 .navbar--scrolled {
   height: 70px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 245, 240, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #d1d5db;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-container {
@@ -59,8 +62,8 @@
 }
 
 .navbar-link:hover {
-  background: #f3f4f6;
-  color: #1a1a1a;
+  background: transparent;
+  color: #F97316;
 }
 
 .navbar-link-create {
@@ -68,7 +71,11 @@
 }
 
 .navbar-link-create:hover {
-  background: #fde9e1;
+  color: #F97316;
+}
+
+.navbar-link:hover svg,
+.navbar-link-create:hover svg {
   color: #F97316;
 }
 
@@ -83,7 +90,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #f3f4f6;
+  background: #FFF5F0;
   border-radius: 14px;
   padding: 0 14px;
   height: 40px;
@@ -113,6 +120,11 @@
   font-weight: 700;
   padding: 10px 12px;
   white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.navbar-btn-secondary:hover {
+  color: #F97316;
 }
 
 .navbar-btn-profile:hover {

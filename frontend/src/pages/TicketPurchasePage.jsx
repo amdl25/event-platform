@@ -26,6 +26,7 @@ const TicketPurchasePage = ({ user }) => {
   const [usePoints, setUsePoints] = useState(false);
   const [pointsToUse, setPointsToUse] = useState(0);
   const [pricing, setPricing] = useState(null);
+  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState(null);
   const canUsePoints = Boolean(mode === 'user' && user?.id);
   const confirmedSessionRef = useRef('');
   const redirectTimeoutRef = useRef(null);
@@ -66,6 +67,10 @@ const TicketPurchasePage = ({ user }) => {
       try {
         const response = await API.get(`/events/${id}`);
         setEvent(response.data);
+        const ticketTypes = Array.isArray(response.data?.ticketTypes) ? response.data.ticketTypes : [];
+        if (ticketTypes.length > 0 && !selectedTicketTypeId) {
+          setSelectedTicketTypeId(ticketTypes[0].id);
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Nu am putut încărca evenimentul.');
       } finally {
@@ -79,7 +84,7 @@ const TicketPurchasePage = ({ user }) => {
   useEffect(() => {
     const loadQuote = async () => {
       const qty = Number(quantity);
-      if (!id || !Number.isInteger(qty) || qty < 1 || qty > 20) {
+      if (!id || !selectedTicketTypeId || !Number.isInteger(qty) || qty < 1 || qty > 20) {
         return;
       }
 
@@ -88,6 +93,7 @@ const TicketPurchasePage = ({ user }) => {
         const response = await API.get('/events/purchase/quote', {
           params: {
             event_id: id,
+            ticket_type_id: selectedTicketTypeId,
             quantity: qty,
             points_to_use: usePoints ? pointsToUse : 0
           }
@@ -110,7 +116,7 @@ const TicketPurchasePage = ({ user }) => {
     };
 
     loadQuote();
-  }, [id, pointsToUse, quantity, usePoints]);
+  }, [id, pointsToUse, quantity, usePoints, selectedTicketTypeId]);
 
   useEffect(() => {
     const confirmStripePayment = async () => {
@@ -197,6 +203,7 @@ const TicketPurchasePage = ({ user }) => {
 
       const payload = {
         event_id: id,
+        ticket_type_id: selectedTicketTypeId,
         buyer_name: nameToSend,
         buyer_email: emailToSend,
         quantity: qty,

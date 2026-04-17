@@ -2,125 +2,192 @@ import React, { useState } from 'react';
 import { API_BASE } from '../api';
 import BookingModal from './BookingModal';
 import { useNavigate } from 'react-router-dom';
+import { FiCalendar, FiClock, FiHeart, FiMapPin, FiShield, FiStar, FiUsers } from 'react-icons/fi';
 import { getEventStartValue, getEventEndValue, getEventTimeRangeLabel, getEventDateLabel } from '../utils/eventDateTime';
 import '../styles/EventDetails.css';
 
 const EventDetails = ({ event, user }) => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
   const isSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
   const eventStart = getEventStartValue(event);
   const eventEnd = getEventEndValue(event);
   const eventTimeRange = getEventTimeRangeLabel(eventStart, eventEnd);
+  const occupied = Number(event.current_occupancy || 0);
+  const capacity = Number(event.max_capacity || 0);
+  const remainingTickets = capacity > 0 ? Math.max(0, capacity - occupied) : null;
+
+  const ticketTypes = Array.isArray(event.ticketTypes) ? event.ticketTypes : [];
+  
+  React.useEffect(() => {
+    if (ticketTypes.length > 0 && !selectedTicketTypeId) {
+      setSelectedTicketTypeId(ticketTypes[0].id);
+    }
+  }, [ticketTypes, selectedTicketTypeId]);
+  
+  const selectedTicketType = ticketTypes.find(tt => tt.id === selectedTicketTypeId);
+  const unitPrice = selectedTicketType ? Number(selectedTicketType.price || 0) : 0;
+  const totalPrice = Number((unitPrice * quantity).toFixed(2));
+  
+  const pointsPerTicket = selectedTicketType ? Number(selectedTicketType.points_reward || 0) : 0;
+  const earnedPoints = pointsPerTicket * quantity;
+
+  const descriptionParagraphs = String(event.description || '')
+    .split(/\n+/)
+    .map((text) => text.trim())
+    .filter(Boolean);
+  const mapQuery = encodeURIComponent(event.location || event.city || 'Bucuresti');
+  const mapEmbedSrc = `https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`;
+
+  const onReserve = () => {
+    if (isSoldOut) return;
+    if (user?.id) {
+      navigate(`/purchase/${event.id}?mode=user`);
+      return;
+    }
+    setIsBookingOpen(true);
+  };
 
   return (
     <>
-    <div className="event-details-wrapper">
-      <header className="event-hero-header">
-        <div className="hero-inner-container">
-          <img 
-            src={event.image_url?.startsWith('https') 
-              ? event.image_url 
-              : `${API_BASE}${event.image_url}`} 
-            alt={event.title} 
-            className="hero-image"
-          />
-          <div className="hero-overlay-info">
-            <h1 className="event-display-title">{event.title}</h1>
-          </div>
-        </div>
-      </header>
+      <div className="event-details-wrapper">
+        <div className="event-details-shell">
+          <main className="event-content-column">
+            <span className="event-stage-pill">EXCLUSIVE CENTER STAGE</span>
+            <h1 className="event-main-title">{event.title}</h1>
 
-      <div className="event-main-layout">
-        <div className="event-columns-grid">
-          
-          <main className="event-info-column">
-            <div className="brand-identity-header">
-               <div className="brand-info">
-                  <span className="brand-prefix">Organizat de</span>
-                  <h2 className="brand-name-text">
-                    {event.organization ? event.organization.name : 'Organizator Partener'}
-                  </h2>
-               </div>
-               <button className="contact-brand-btn">Contact</button>
+            <div className="event-image-frame">
+              <img
+                src={event.image_url?.startsWith('https')
+                  ? event.image_url
+                  : `${API_BASE}${event.image_url}`}
+                alt={event.title}
+              />
             </div>
 
-            <div className="event-logistics-bar">
-              <div className="logistic-block">
-                <span className="logistic-label">Când</span>
-                <div className="logistic-value">
-                  {eventStart ? getEventDateLabel(eventStart, 'ro-RO') : '-'}
-                </div>
-                <div className="logistic-sub">{eventTimeRange ? `Ora ${eventTimeRange}` : 'Ora nespecificată'}</div>
+            <section className="event-meta-grid">
+              <article className="event-meta-card">
+                <span>DATA SI ORA</span>
+                <p><FiCalendar /> {eventStart ? getEventDateLabel(eventStart, 'ro-RO') : '-'}</p>
+                <small><FiClock /> {eventTimeRange ? eventTimeRange : 'Ora nespecificata'}</small>
+              </article>
+              <article className="event-meta-card">
+                <span>LOCATIE</span>
+                <p><FiMapPin /> {event.location || 'Locatie nespecificata'}</p>
+                <small>{event.city || 'Bucuresti'}</small>
+              </article>
+              <article className="event-meta-card">
+                <span>ORGANIZATOR</span>
+                <p><FiUsers /> {event.organization ? event.organization.name : 'Vibe Archive'}</p>
+                <small>Comunitate de Arta Urbana</small>
+              </article>
+            </section>
+
+            <section className="event-about-section">
+              <h2>Despre Eveniment</h2>
+              {descriptionParagraphs.length > 0 ? (
+                descriptionParagraphs.slice(0, 2).map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))
+              ) : (
+                <p>Evenimentul aduce o experienta urbana imersiva, cu muzica live si o productie vizuala atent curatoriata.</p>
+              )}
+            </section>
+
+            <section className="event-map-section">
+              <div className="event-map-header">
+                <h3>Locatie</h3>
+                <p>{event.location || 'Locatie nespecificata'}</p>
               </div>
-
-              <div className="logistic-block">
-                <span className="logistic-label">Unde</span>
-                <div className="logistic-value">{event.location}</div>
+              <div className="event-map-frame">
+                <iframe
+                  title={`Harta locatie pentru ${event.title}`}
+                  src={mapEmbedSrc}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
               </div>
-            </div>
+            </section>
 
-            <section className="event-description-section">
-              <h3 className="section-title">Despre acest eveniment</h3>
-              <p className="event-body-text">{event.description}</p>
-
-              <section className="event-map-section">
-                <h3 className="section-title">Locație</h3>
-                <div className="map-container-frame">
-                  <iframe
-                    title="event-location"
-                    width="100%"
-                    height="350"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    allowFullScreen
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(event.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                  ></iframe>
-                </div>
-              </section>
+            <section className="event-trust-row">
+              <div><FiStar /> <span>4,9 Rating</span></div>
+              <div><FiUsers /> <span>200+ Participanti</span></div>
+              <div><FiHeart /> <span>95% Recomanda</span></div>
+              <div><FiShield /> <span>Plata Securizata</span></div>
             </section>
           </main>
 
-          <aside className="event-booking-sidebar">
-            <div className="booking-sticky-card">
-              <div className="booking-card-header">
-                <span className="price-label">Preț Bilet</span>
-                <div className="price-display-bold">
-                  {Number(event.price) > 0 ? `${Number(event.price).toFixed(2)} lei` : 'Gratuit'}
+          <aside className="event-booking-column">
+            <div className="event-booking-card">
+              <h3>Selecteaza Bilete</h3>
+
+              {ticketTypes.length > 0 ? (
+                <>
+                  {ticketTypes.map((ticketType) => (
+                    <button
+                      key={ticketType.id}
+                      type="button"
+                      className={`ticket-option ${selectedTicketTypeId === ticketType.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedTicketTypeId(ticketType.id)}
+                    >
+                      <div>
+                        <strong>{ticketType.name}</strong>
+                        {ticketType.description && <small>{ticketType.description}</small>}
+                        <small>{Number(ticketType.price || 0).toFixed(2)} RON</small>
+                      </div>
+                      <span className="ticket-radio" />
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <p>Nu sunt tipuri de bilete disponibile.</p>
+              )}
+
+              <div className="qty-wrap">
+                <span>Cantitate</span>
+                <div className="qty-controls">
+                  <button type="button" onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}>-</button>
+                  <strong>{quantity}</strong>
+                  <button type="button" onClick={() => setQuantity((prev) => Math.min(10, prev + 1))}>+</button>
                 </div>
               </div>
 
-              <button
-                className="btn-book-primary"
-                disabled={isSoldOut}
-                onClick={() => {
-                  if (isSoldOut) return;
-                  if (user?.id) {
-                    navigate(`/purchase/${event.id}?mode=user`);
-                    return;
-                  }
-                  setIsBookingOpen(true);
-                }}
-              >
-                {isSoldOut ? 'Sold out' : 'Cumpără bilete'}
-              </button>
-              
-              <div className="reward-points-footer">
-                +100 puncte de fidelitate
+              <div className="loyalty-banner">
+                <span>BENEFICIU LOIALITATE</span>
+                <p>Castigi +{earnedPoints} puncte cu aceasta achizitie pentru reduceri viitoare.</p>
               </div>
+
+              <div className="booking-total">
+                <span>Total de plata</span>
+                <strong>{totalPrice.toFixed(2)} RON</strong>
+              </div>
+
+              <button className="reserve-btn" disabled={isSoldOut} onClick={onReserve}>
+                {isSoldOut ? 'SOLD OUT' : 'REZERVA LOCUL ACUM'}
+              </button>
+
+              <p className="booking-safe-note">PLATA SECURIZATA · CONFIRMARE INSTANTA</p>
             </div>
+
+            {remainingTickets !== null && remainingTickets > 0 ? (
+              <div className="scarcity-card">
+                <span>!</span>
+                <p>Doar {remainingTickets} bilete ramase la acest pret. Asigura-ti prezenta in centrul actiunii.</p>
+              </div>
+            ) : null}
           </aside>
-          
         </div>
       </div>
-    </div>
-    <BookingModal
-      isOpen={isBookingOpen}
-      onClose={() => setIsBookingOpen(false)}
-      event={event}
-      user={user}
-    />
+
+      <BookingModal
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        event={event}
+        user={user}
+      />
     </>
   );
 };

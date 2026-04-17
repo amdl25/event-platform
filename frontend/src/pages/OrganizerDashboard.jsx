@@ -15,6 +15,18 @@ const toLocalTimeInput = (date) => {
   return local.toISOString().slice(11, 16);
 };
 
+const createTicketTypeDraft = (overrides = {}) => ({
+  id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  name: 'General Access',
+  description: '',
+  price: 0,
+  quantity: 50,
+  points_reward: 0,
+  display_order: 0,
+  is_active: true,
+  ...overrides
+});
+
 const statusLabel = (event) => {
   const now = new Date();
   const end = event.end_date ? new Date(event.end_date) : null;
@@ -118,6 +130,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [eventImageName, setEventImageName] = useState('');
   const [editingEventId, setEditingEventId] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [ticketTypes, setTicketTypes] = useState(() => [createTicketTypeDraft()]);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [remoteLocationSuggestions, setRemoteLocationSuggestions] = useState([]);
   const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] = useState(false);
@@ -217,6 +230,25 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
           pointsValue: Number(eventToEdit.points_value || 0),
           categoryId: eventToEdit.categories?.[0]?.id || categories[0]?.id || ''
         });
+        setTicketTypes(
+          eventToEdit.ticketTypes?.length > 0
+            ? eventToEdit.ticketTypes.map((ticketType, index) => createTicketTypeDraft({
+                id: ticketType.id,
+                name: ticketType.name || '',
+                description: ticketType.description || '',
+                price: Number(ticketType.price || 0),
+                quantity: Number(ticketType.quantity || 0),
+                points_reward: Number(ticketType.points_reward || 0),
+                display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
+                is_active: ticketType.is_active !== false
+              }))
+            : [createTicketTypeDraft({
+                name: eventToEdit.title ? `${eventToEdit.title} - General Access` : 'General Access',
+                price: Number(eventToEdit.price || 0),
+                quantity: Number(eventToEdit.max_capacity || 50),
+                points_reward: Number(eventToEdit.points_value || 0)
+              })]
+        );
         setEventImagePreview(eventToEdit.image_url || '');
         setEventImageName('');
         setEventFormError('');
@@ -231,6 +263,26 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
   const handleCreateFormChange = (field, value) => {
     setEventForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleTicketTypeChange = (ticketTypeId, field, value) => {
+    setTicketTypes((prev) => prev.map((ticketType) => (
+      ticketType.id === ticketTypeId ? { ...ticketType, [field]: value } : ticketType
+    )));
+  };
+
+  const handleAddTicketType = () => {
+    setTicketTypes((prev) => [...prev, createTicketTypeDraft({
+      name: `Ticket ${prev.length + 1}`,
+      display_order: prev.length
+    })]);
+  };
+
+  const handleRemoveTicketType = (ticketTypeId) => {
+    setTicketTypes((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((ticketType) => ticketType.id !== ticketTypeId);
+    });
   };
 
   const filteredLocationSuggestions = useMemo(() => {
@@ -248,6 +300,28 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
     return pickPreferredLabels(combined).slice(0, 8);
   }, [filteredLocationSuggestions, remoteLocationSuggestions]);
+
+  const ticketTypeSummary = useMemo(() => {
+    const normalizedTicketTypes = ticketTypes
+      .map((ticketType) => ({
+        name: String(ticketType.name || '').trim(),
+        price: Number(ticketType.price || 0),
+        quantity: Number(ticketType.quantity || 0),
+        points_reward: Number(ticketType.points_reward || 0)
+      }))
+      .filter((ticketType) => ticketType.name.length > 0);
+
+    const totalCapacity = normalizedTicketTypes.reduce((sum, ticketType) => sum + ticketType.quantity, 0);
+    const lowestPrice = normalizedTicketTypes.length > 0
+      ? normalizedTicketTypes.reduce((min, ticketType) => Math.min(min, ticketType.price), normalizedTicketTypes[0].price)
+      : 0;
+
+    return {
+      totalCapacity,
+      lowestPrice: Number.isFinite(lowestPrice) ? lowestPrice : 0,
+      basePoints: Number(normalizedTicketTypes[0]?.points_reward || 0)
+    };
+  }, [ticketTypes]);
 
   useEffect(() => {
     if (!showCreateModal) return;
@@ -318,6 +392,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     }
     setEventFormError('');
     setEditingEventId('');
+    setTicketTypes([createTicketTypeDraft()]);
     setEventForm((prev) => ({
       ...prev,
       title: '',
@@ -398,6 +473,33 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       return;
     }
 
+    const normalizedTicketTypes = ticketTypes
+      .map((ticketType, index) => ({
+        name: String(ticketType.name || '').trim(),
+        description: String(ticketType.description || '').trim(),
+        price: Number(ticketType.price || 0),
+        quantity: Number(ticketType.quantity || 0),
+        points_reward: Number(ticketType.points_reward || 0),
+        display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
+        is_active: ticketType.is_active !== false
+      }))
+      .filter((ticketType) => ticketType.name.length > 0);
+
+    if (normalizedTicketTypes.length === 0) {
+      setEventFormError('Adaugă cel puțin un tip de bilet.');
+      return;
+    }
+
+    if (normalizedTicketTypes.some((ticketType) => ticketType.quantity <= 0)) {
+      setEventFormError('Cantitatea pentru fiecare tip de bilet trebuie să fie mai mare decât 0.');
+      return;
+    }
+
+    const totalCapacity = normalizedTicketTypes.reduce((sum, ticketType) => sum + Number(ticketType.quantity || 0), 0);
+    const lowestPrice = normalizedTicketTypes.reduce((min, ticketType) => Math.min(min, Number(ticketType.price || 0)), Number.POSITIVE_INFINITY);
+    const basePrice = Number.isFinite(lowestPrice) ? lowestPrice : 0;
+    const basePoints = Number(normalizedTicketTypes[0]?.points_reward || 0);
+
     try {
       setIsSubmittingEvent(true);
       const payload = {
@@ -406,12 +508,13 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         location: normalizedLocation,
         start_date: startDateTime.toISOString(),
         end_date: endDateTime.toISOString(),
-        max_capacity: Number(eventForm.maxCapacity || 0),
-        price: Number(eventForm.price || 0),
-        points_value: Number(eventForm.pointsValue || 0),
+        max_capacity: totalCapacity,
+        price: basePrice,
+        points_value: basePoints,
         moderation_status: targetStatus,
         org_id: user?.organizationId,
-        category_id: eventForm.categoryId || null
+        category_id: eventForm.categoryId || null,
+        ticket_types: JSON.stringify(normalizedTicketTypes)
       };
 
       const response = editingEventId
@@ -440,8 +543,10 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         endDate: '',
         endTime: '',
         price: 0,
-        pointsValue: 0
+        pointsValue: 0,
+        maxCapacity: 50
       }));
+      setTicketTypes([createTicketTypeDraft()]);
       setEventImagePreview('');
       setEventImageName('');
     } catch (error) {
@@ -676,18 +781,106 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
                 <div className="organizer-create-grid-3">
                   <div className="organizer-create-field">
-                    <label>Capacitate</label>
-                    <input type="number" min="1" value={eventForm.maxCapacity} onChange={(event) => handleCreateFormChange('maxCapacity', event.target.value)} required />
+                    <label>Capacitate total</label>
+                    <input type="number" min="1" value={ticketTypeSummary.totalCapacity} readOnly />
                   </div>
 
                   <div className="organizer-create-field">
-                    <label>Preț (RON)</label>
-                    <input type="number" min="0" step="0.01" value={eventForm.price} onChange={(event) => handleCreateFormChange('price', event.target.value)} required />
+                    <label>Preț de pornire (RON)</label>
+                    <input type="number" min="0" step="0.01" value={ticketTypeSummary.lowestPrice} readOnly />
                   </div>
 
                   <div className="organizer-create-field">
                     <label>Puncte</label>
-                    <input type="number" min="0" value={eventForm.pointsValue} onChange={(event) => handleCreateFormChange('pointsValue', event.target.value)} />
+                    <input type="number" min="0" value={ticketTypeSummary.basePoints} readOnly />
+                  </div>
+                </div>
+
+                <div className="organizer-ticket-types-section">
+                  <div className="organizer-ticket-types-header">
+                    <div>
+                      <label className="organizer-ticket-types-title">Tipuri de bilete</label>
+                      <p className="organizer-ticket-types-subtitle">Adaugă unul sau mai multe tipuri. Userii le vor vedea exact așa în pagina eventului.</p>
+                    </div>
+                    <button type="button" className="organizer-ticket-add" onClick={handleAddTicketType}>
+                      <FiPlus />
+                      <span>Adaugă tip</span>
+                    </button>
+                  </div>
+
+                  <div className="organizer-ticket-types-list">
+                    {ticketTypes.map((ticketType, index) => (
+                      <article key={ticketType.id} className="organizer-ticket-type-card">
+                        <div className="organizer-ticket-type-card-header">
+                          <strong>Tip #{index + 1}</strong>
+                          <button
+                            type="button"
+                            className="organizer-ticket-remove"
+                            onClick={() => handleRemoveTicketType(ticketType.id)}
+                            disabled={ticketTypes.length === 1}
+                          >
+                            <FiTrash2 />
+                            <span>Șterge</span>
+                          </button>
+                        </div>
+
+                        <div className="organizer-ticket-type-grid">
+                          <div className="organizer-create-field">
+                            <label>Nume bilet</label>
+                            <input
+                              type="text"
+                              value={ticketType.name}
+                              onChange={(event) => handleTicketTypeChange(ticketType.id, 'name', event.target.value)}
+                              placeholder="ex: Acces General"
+                              required
+                            />
+                          </div>
+
+                          <div className="organizer-create-field">
+                            <label>Preț (RON)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={ticketType.price}
+                              onChange={(event) => handleTicketTypeChange(ticketType.id, 'price', event.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="organizer-create-field">
+                            <label>Cantitate</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={ticketType.quantity}
+                              onChange={(event) => handleTicketTypeChange(ticketType.id, 'quantity', event.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="organizer-create-field">
+                            <label>Puncte</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={ticketType.points_reward}
+                              onChange={(event) => handleTicketTypeChange(ticketType.id, 'points_reward', event.target.value)}
+                            />
+                          </div>
+
+                          <div className="organizer-create-field organizer-ticket-type-description">
+                            <label>Descriere</label>
+                            <textarea
+                              rows={2}
+                              value={ticketType.description}
+                              onChange={(event) => handleTicketTypeChange(ticketType.id, 'description', event.target.value)}
+                              placeholder="Ce include acest tip de bilet?"
+                            />
+                          </div>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 </div>
 

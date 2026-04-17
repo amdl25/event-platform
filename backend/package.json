@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "backfill:loyalty": "node scripts/backfillLoyaltyFromParticipations.js"
+    "backfill:loyalty": "node scripts/backfillLoyaltyFromParticipations.js",
+    "db:migrate:ticket-types": "node scripts/migrateTicketTypes.js"
   },
   "keywords": [],
   "author": "",

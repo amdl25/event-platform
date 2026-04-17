@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import Stripe from 'stripe';
 import sequelize from '../config/database.js';
-import { Event, LoyaltyTransaction, LoyaltyWallet, Participation } from '../models/relationships.js';
+import { Event, LoyaltyTransaction, LoyaltyWallet, Participation, TicketType } from '../models/relationships.js';
 import { sendTicketEmail } from '../services/EmailService.js';
 
 const generateTicketCode = () => `TKT-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
@@ -295,6 +295,7 @@ const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 export const getPurchaseQuote = async (req, res) => {
 	const eventId = req.query.event_id;
+	const ticketTypeId = req.query.ticket_type_id;
 	const quantity = clamp(toPositiveInteger(req.query.quantity, 1), 1, 20);
 	const requestedPoints = toPositiveInteger(req.query.points_to_use, 0);
 	const accountId = req.user?.id || null;
@@ -309,9 +310,18 @@ export const getPurchaseQuote = async (req, res) => {
 			return res.status(404).json({ message: 'Evenimentul nu a fost găsit' });
 		}
 
+		let unitPrice = Number(event.price) || 0;
+		if (ticketTypeId) {
+			const ticketType = await TicketType.findByPk(ticketTypeId);
+			if (!ticketType) {
+				return res.status(404).json({ message: 'Tipul de bilet nu a fost găsit' });
+			}
+			unitPrice = Number(ticketType.price) || 0;
+		}
+
 		const availablePoints = await getWalletPoints(accountId);
 		const pricing = computePricing({
-			unitPrice: event.price,
+			unitPrice,
 			quantity,
 			availablePoints,
 			requestedPoints
@@ -321,7 +331,7 @@ export const getPurchaseQuote = async (req, res) => {
 			event: {
 				id: event.id,
 				title: event.title,
-				price: Number(event.price) || 0,
+				price: unitPrice,
 				orgId: event.org_id || null
 			},
 			pricing,
@@ -338,6 +348,7 @@ export const getPurchaseQuote = async (req, res) => {
 export const createCheckoutSession = async (req, res) => {
 	const {
 		event_id,
+		ticket_type_id,
 		buyer_name,
 		buyer_email,
 		quantity = 1,
@@ -362,13 +373,24 @@ export const createCheckoutSession = async (req, res) => {
 			return res.status(404).json({ message: 'Evenimentul nu a fost găsit' });
 		}
 
+		let unitPrice = Number(event.price) || 0;
+		let selectedTicketType = null;
+
+		if (ticket_type_id) {
+			selectedTicketType = await TicketType.findByPk(ticket_type_id);
+			if (!selectedTicketType) {
+				return res.status(404).json({ message: 'Tipul de bilet nu a fost găsit' });
+			}
+			unitPrice = Number(selectedTicketType.price) || 0;
+		}
+
 		if (event.current_occupancy + parsedQuantity > event.max_capacity) {
 			return res.status(400).json({ message: 'Eveniment sold out' });
 		}
 
 		const availablePoints = await getWalletPoints(accountId);
 		const pricing = computePricing({
-			unitPrice: event.price,
+			unitPrice,
 			quantity: parsedQuantity,
 			availablePoints,
 			requestedPoints: accountId && use_points ? points_to_use : 0
