@@ -66,7 +66,12 @@ function App() {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
     }
     
-    if (userPayload.isNewUser && userPayload.role === 'user') {
+    const pendingInvitation = sessionStorage.getItem('pendingInvitation');
+    if (pendingInvitation) {
+      const { eventId, token: inviteToken } = JSON.parse(pendingInvitation);
+      const redirectPath = inviteToken ? `/invite/${eventId}?token=${encodeURIComponent(inviteToken)}` : `/invite/${eventId}`;
+      navigate(redirectPath);
+    } else if (userPayload.isNewUser && userPayload.role === 'user') {
       setShowOnboarding(true);
     }
   };

@@ -261,7 +261,7 @@ const MyEventsPage = ({ user }) => {
                       <div className="private-meta-row">
                         <span><FiCalendar /> {formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
                         <span><FiMapPin /> {eventItem.location || 'Locație nespecificată'}</span>
-                        <span><FiUsers /> {eventItem.confirmedCount || 0}/{eventItem.totalInvited || 0} confirmați</span>
+                        <span><FiUsers /> {eventItem.confirmedCount || 0} participanți</span>
                       </div>
                       <div className="private-link-row">
                         <span className="private-link-pill"><FiLink /> {eventItem.inviteLink}</span>
@@ -271,7 +271,7 @@ const MyEventsPage = ({ user }) => {
                         <span className={`private-guest-list-status ${eventItem.showGuestList ? 'on' : 'off'}`}>
                           Lista invitați: {eventItem.showGuestList ? 'Vizibilă' : 'Ascunsă'}
                         </span>
-                        <button type="button" className="private-link-copy" onClick={() => copyInviteLink(eventItem.inviteLink)}>
+                        <button type="button" className="private-link-copy" onClick={(event) => { event.stopPropagation(); copyInviteLink(eventItem.inviteLink); }}>
                           <FiCopy />
                         </button>
                       </div>

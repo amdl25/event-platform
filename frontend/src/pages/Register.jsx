@@ -28,10 +28,18 @@ const Register = ({ onLogin }) => {
     try {
       const res = await API.post('/auth/register', formData);
       onLogin(res.data);
-      const params = new URLSearchParams(location.search);
-      const redirect = params.get('redirect');
-      const fallback = res.data?.role === 'organizer' ? '/organizer/events' : '/';
-      navigate(redirect || fallback);
+      
+      const pendingInvitation = sessionStorage.getItem('pendingInvitation');
+      if (pendingInvitation) {
+        const { eventId, token: inviteToken } = JSON.parse(pendingInvitation);
+        const redirectPath = inviteToken ? `/invite/${eventId}?token=${encodeURIComponent(inviteToken)}` : `/invite/${eventId}`;
+        navigate(redirectPath);
+      } else {
+        const params = new URLSearchParams(location.search);
+        const redirect = params.get('redirect');
+        const fallback = res.data?.role === 'organizer' ? '/organizer/events' : '/';
+        navigate(redirect || fallback);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la înregistrare');
     }

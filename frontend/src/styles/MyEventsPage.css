@@ -103,7 +103,6 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 14px;
-  position: relative;
 }
 
 .private-event-card-clickable {
@@ -252,6 +251,7 @@
 
 .private-event-actions {
   position: relative;
+  z-index: 10;
 }
 
 .private-menu-trigger {
@@ -271,7 +271,7 @@
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
   min-width: 170px;
-  z-index: 10;
+  z-index: 1000;
   overflow: hidden;
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FiClock, FiDollarSign, FiEdit2, FiEye, FiImage, FiMapPin, FiPlus, FiShoppingBag, FiTrash2, FiTrendingUp } from 'react-icons/fi';
 import API from '../api';
@@ -13,6 +13,35 @@ const toLocalDateInput = (date) => {
 const toLocalTimeInput = (date) => {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(11, 16);
+};
+
+const timeOptions = Array.from({ length: 48 }, (_, index) => {
+  const hours = String(Math.floor(index / 2)).padStart(2, '0');
+  const minutes = index % 2 === 0 ? '00' : '30';
+  return `${hours}:${minutes}`;
+});
+
+const toMinutes = (timeValue) => {
+  const [hours, minutes] = timeValue.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
+const formatDuration = (durationMinutes) => {
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
+};
+
+const formatTimeLabel = (timeValue) => {
+  if (!timeValue) return '--:-- --';
+  const [rawHours, rawMinutes] = timeValue.split(':');
+  const hours = Number(rawHours);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${String(displayHour).padStart(2, '0')}:${rawMinutes} ${period}`;
 };
 
 const createTicketTypeDraft = (overrides = {}) => ({
@@ -139,6 +168,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     soldTickets: 0,
     activeEvents: 0
   });
+  const [activeTimeMenu, setActiveTimeMenu] = useState(null);
+  const startMenuRef = useRef(null);
+  const endMenuRef = useRef(null);
   const [eventForm, setEventForm] = useState(() => {
     return {
       title: '',
@@ -322,6 +354,52 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       basePoints: Number(normalizedTicketTypes[0]?.points_reward || 0)
     };
   }, [ticketTypes]);
+
+  const endTimeOptions = useMemo(() => {
+    if (!eventForm.startTime) return [];
+
+    const startMinutes = toMinutes(eventForm.startTime);
+    return Array.from({ length: 24 }, (_, index) => {
+      const durationMinutes = (index + 1) * 30;
+      const totalMinutes = (startMinutes + durationMinutes) % (24 * 60);
+      const hours = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+      const minutes = String(totalMinutes % 60).padStart(2, '0');
+      return {
+        value: `${hours}:${minutes}`,
+        durationLabel: formatDuration(durationMinutes)
+      };
+    });
+  }, [eventForm.startTime]);
+
+  useEffect(() => {
+    if (!eventForm.startTime) return;
+
+    if (!eventForm.endTime || !endTimeOptions.some((option) => option.value === eventForm.endTime)) {
+      const fallbackEndTime = endTimeOptions[0]?.value || '';
+      if (fallbackEndTime) {
+        setEventForm((prev) => ({ ...prev, endTime: fallbackEndTime }));
+      }
+    }
+  }, [endTimeOptions, eventForm.endTime, eventForm.startTime]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const clickedOutsideStart = startMenuRef.current && !startMenuRef.current.contains(event.target);
+      const clickedOutsideEnd = endMenuRef.current && !endMenuRef.current.contains(event.target);
+
+      if (activeTimeMenu === 'start' && clickedOutsideStart) setActiveTimeMenu(null);
+      if (activeTimeMenu === 'end' && clickedOutsideEnd) setActiveTimeMenu(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeTimeMenu]);
+
+  useEffect(() => {
+    if (!showCreateModal) {
+      setActiveTimeMenu(null);
+    }
+  }, [showCreateModal]);
 
   useEffect(() => {
     if (!showCreateModal) return;
@@ -768,13 +846,65 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
                     <div className="organizer-create-datetime-col">
                       <span className="organizer-create-datetime-label">Început</span>
                       <input type="date" value={eventForm.startDate} onChange={(event) => handleCreateFormChange('startDate', event.target.value)} required />
-                      <input type="time" value={eventForm.startTime} onChange={(event) => handleCreateFormChange('startTime', event.target.value)} required />
+                      <div className="organizer-time-select-wrap" ref={startMenuRef}>
+                        <button
+                          type="button"
+                          className="organizer-time-select-trigger"
+                          onClick={() => setActiveTimeMenu(activeTimeMenu === 'start' ? null : 'start')}
+                        >
+                          {formatTimeLabel(eventForm.startTime)}
+                        </button>
+                        {activeTimeMenu === 'start' ? (
+                          <div className="organizer-time-dropdown-menu">
+                            {timeOptions.map((time) => (
+                              <button
+                                key={`org-start-${time}`}
+                                type="button"
+                                className={`organizer-time-dropdown-item ${eventForm.startTime === time ? 'selected' : ''}`}
+                                onClick={() => {
+                                  handleCreateFormChange('startTime', time);
+                                  setActiveTimeMenu(null);
+                                }}
+                              >
+                                <span className="organizer-time-dropdown-main">{formatTimeLabel(time)}</span>
+                                <span className="organizer-time-dropdown-duration placeholder">00h</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="organizer-create-datetime-col">
                       <span className="organizer-create-datetime-label">Sfârșit</span>
                       <input type="date" value={eventForm.endDate} onChange={(event) => handleCreateFormChange('endDate', event.target.value)} required />
-                      <input type="time" value={eventForm.endTime} onChange={(event) => handleCreateFormChange('endTime', event.target.value)} required />
+                      <div className="organizer-time-select-wrap" ref={endMenuRef}>
+                        <button
+                          type="button"
+                          className="organizer-time-select-trigger"
+                          onClick={() => setActiveTimeMenu(activeTimeMenu === 'end' ? null : 'end')}
+                        >
+                          {formatTimeLabel(eventForm.endTime)}
+                        </button>
+                        {activeTimeMenu === 'end' ? (
+                          <div className="organizer-time-dropdown-menu">
+                            {endTimeOptions.map((option) => (
+                              <button
+                                key={`org-end-${option.value}`}
+                                type="button"
+                                className={`organizer-time-dropdown-item ${eventForm.endTime === option.value ? 'selected' : ''}`}
+                                onClick={() => {
+                                  handleCreateFormChange('endTime', option.value);
+                                  setActiveTimeMenu(null);
+                                }}
+                              >
+                                <span className="organizer-time-dropdown-main">{formatTimeLabel(option.value)}</span>
+                                <span className="organizer-time-dropdown-duration">{option.durationLabel}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -38,6 +38,19 @@ const InviteEventPage = ({ user }) => {
           params: inviteToken ? { token: inviteToken } : undefined
         });
         setEventData(response.data);
+
+        if (user?.id) {
+          const pending = sessionStorage.getItem('pendingInvitation');
+          if (pending) {
+            const { autoConfirm } = JSON.parse(pending);
+            if (autoConfirm) {
+              sessionStorage.removeItem('pendingInvitation');
+              setTimeout(() => {
+                confirmParticipationDirectly(user.id, inviteToken);
+              }, 100);
+            }
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Nu am putut încărca invitația.');
       } finally {
@@ -46,7 +59,7 @@ const InviteEventPage = ({ user }) => {
     };
 
     if (eventId) loadInvite();
-  }, [eventId, inviteToken]);
+  }, [eventId, inviteToken, user?.id]);
 
   useEffect(() => {
     const loadGuestList = async () => {
@@ -74,6 +87,23 @@ const InviteEventPage = ({ user }) => {
     }
   };
 
+  const confirmParticipationDirectly = async (userId, token) => {
+    setJoining(true);
+    setJoinMessage('');
+
+    try {
+      const response = await API.post(`/events/invite/${eventId}/confirm`, {
+        account_id: userId,
+        inviteToken: token,
+      });
+      setJoinMessage(response.data?.message || 'Participare confirmată.');
+    } catch (err) {
+      setJoinMessage(err.response?.data?.message || 'Nu am putut confirma participarea.');
+    } finally {
+      setJoining(false);
+    }
+  };
+
   const handleOpenEventModalView = () => {
     setModalInitialMode('view');
     setIsEventModalOpen(true);
@@ -86,25 +116,16 @@ const InviteEventPage = ({ user }) => {
 
   const handleConfirmParticipation = async () => {
     if (!user?.id) {
-      const redirectPath = inviteToken ? `/invite/${eventId}?token=${encodeURIComponent(inviteToken)}` : `/invite/${eventId}`;
-      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+      sessionStorage.setItem('pendingInvitation', JSON.stringify({
+        eventId,
+        token: inviteToken,
+        autoConfirm: true
+      }));
+      navigate(`/login`);
       return;
     }
 
-    setJoining(true);
-    setJoinMessage('');
-
-    try {
-      const response = await API.post(`/events/invite/${eventId}/confirm`, {
-        account_id: user.id,
-        inviteToken,
-      });
-      setJoinMessage(response.data?.message || 'Participare confirmată.');
-    } catch (err) {
-      setJoinMessage(err.response?.data?.message || 'Nu am putut confirma participarea.');
-    } finally {
-      setJoining(false);
-    }
+    confirmParticipationDirectly(user.id, inviteToken);
   };
 
   if (loading) return <div className="invite-page"><div className="invite-card">Se încarcă invitația...</div></div>;
