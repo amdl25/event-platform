@@ -3,6 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import '../styles/RecommendationWizard.css';
 
+const normalizeCityKey = (value = '') => String(value)
+  .trim()
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '');
+
+const hasDiacritics = (value = '') => {
+  const normalized = normalizeCityKey(value);
+  const lowered = String(value).trim().toLowerCase();
+  return normalized !== lowered;
+};
+
+const extractCityFromLocation = (locationValue) => {
+  const parts = String(locationValue || '').split(',');
+  return parts[parts.length - 1]?.trim() || '';
+};
+
 const RecommendationWizard = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [screen, setScreen] = useState(0);
@@ -68,10 +85,28 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
         const publicEvents = eventsRes.data.filter(e => e.org_id);
         setAllEvents(publicEvents);
         setCategories(categoriesRes.data);
-        const uniqueCities = [...new Set(publicEvents.map(event => {
-          const parts = event.location?.split(',') || [];
-          return parts[parts.length - 1]?.trim();
-        }))].filter(Boolean).sort();
+        const cityMap = new Map();
+        publicEvents.forEach((event) => {
+          const city = extractCityFromLocation(event.location);
+          if (!city) return;
+
+          const cityKey = normalizeCityKey(city);
+          const existingCity = cityMap.get(cityKey);
+
+          if (!existingCity) {
+            cityMap.set(cityKey, city);
+            return;
+          }
+
+          const currentHasDiacritics = hasDiacritics(city);
+          const existingHasDiacritics = hasDiacritics(existingCity);
+
+          if (currentHasDiacritics && !existingHasDiacritics) {
+            cityMap.set(cityKey, city);
+          }
+        });
+
+        const uniqueCities = Array.from(cityMap.values()).sort((a, b) => a.localeCompare(b, 'ro', { sensitivity: 'base' }));
         setCities(uniqueCities);
       } catch (error) { console.error(error); }
       finally { setLoading(false); }
@@ -115,63 +150,140 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
     return true;
   };
 
-  const handleRecommend = (whenOverride) => {
-    const activeWhen = whenOverride || selectedWhen;
-    const now = new Date();
-    const ranked = allEvents
-      .map(event => {
-        let score = 0;
-        let matchedCriteria = 0;
+  const scoreAndSortEvents = (eventList, activeWhen) => eventList
+    .map((event) => {
+      let score = 0;
+      let matchedCriteria = 0;
 
-        const eventDate = new Date(event.start_date);
-        if (Number.isNaN(eventDate.getTime())) return { event, score: -1, matchedCriteria: 0 };
+      const eventDate = new Date(event.start_date);
+      if (Number.isNaN(eventDate.getTime())) return { event, score: -1, matchedCriteria: 0 };
 
-        if (event.max_capacity > 0 && event.current_occupancy >= event.max_capacity) {
-          return { event, score: -1, matchedCriteria: 0 };
-        }
+      if (event.max_capacity > 0 && event.current_occupancy >= event.max_capacity) {
+        return { event, score: -1, matchedCriteria: 0 };
+      }
 
-        if (!event.org_id) {
-          return { event, score: -1, matchedCriteria: 0 };
-        }
+      if (!event.org_id) {
+        return { event, score: -1, matchedCriteria: 0 };
+      }
 
-        const eventCity = event.location?.split(',').pop()?.trim()?.toLowerCase() || '';
-        const eventPrice = Number(event.price || 0);
-        const eventCategoryIds = (event.categories || []).map(cat => cat.id);
+      const eventCity = extractCityFromLocation(event.location);
+      const eventCityKey = normalizeCityKey(eventCity);
+      const selectedCityKey = normalizeCityKey(selectedCity);
+      const eventPrice = Number(event.price || 0);
+      const eventCategoryIds = (event.categories || []).map((cat) => cat.id);
 
-        const cityMatch = selectedCity === 'Oriunde' || eventCity === selectedCity.toLowerCase();
-        const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.some(id => eventCategoryIds.includes(id));
-        const budgetMatch = isBudgetMatched(eventPrice);
-        const whenMatch = isWhenMatched(event.start_date, activeWhen);
+      const cityMatch = selectedCity === 'Oriunde' || eventCityKey === selectedCityKey;
+      const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.some((id) => eventCategoryIds.includes(id));
+      const budgetMatch = isBudgetMatched(eventPrice);
+      const whenMatch = isWhenMatched(event.start_date, activeWhen);
 
-        if (cityMatch) { matchedCriteria += 1; score += 10; }
-        if (categoryMatch) { matchedCriteria += 1; score += 10; }
-        if (budgetMatch) { matchedCriteria += 1; score += 10; }
-        if (whenMatch) { matchedCriteria += 1; score += 10; }
+      if (cityMatch) { matchedCriteria += 1; score += 10; }
+      if (categoryMatch) { matchedCriteria += 1; score += 10; }
+      if (budgetMatch) { matchedCriteria += 1; score += 10; }
+      if (whenMatch) { matchedCriteria += 1; score += 10; }
 
-        if (eventDate >= now) {
-          score += 6;
-        }
+      if (eventDate >= new Date()) {
+        score += 6;
+      }
 
-        return { event, score, matchedCriteria };
-      })
-      .filter(item => item.score >= 0)
-      .sort((a, b) => {
-        if (b.matchedCriteria !== a.matchedCriteria) {
-          return b.matchedCriteria - a.matchedCriteria;
-        }
+      return { event, score, matchedCriteria, cityMatch, categoryMatch, budgetMatch, whenMatch };
+    })
+    .filter((item) => item.score >= 0)
+    .sort((a, b) => {
+      if (b.matchedCriteria !== a.matchedCriteria) {
+        return b.matchedCriteria - a.matchedCriteria;
+      }
 
-        const dateA = new Date(a.event.start_date).getTime();
-        const dateB = new Date(b.event.start_date).getTime();
-        return dateA - dateB;
-      });
+      const dateA = new Date(a.event.start_date).getTime();
+      const dateB = new Date(b.event.start_date).getTime();
+      return dateA - dateB;
+    });
 
-    const bestMatches = ranked.filter(item => item.matchedCriteria > 0);
-    const finalItems = (bestMatches.length > 0 ? bestMatches : ranked).slice(0, 12);
-
-    const results = finalItems.map(item => ({
+  const buildResults = (items, fallbackType) => {
+    const results = items.slice(0, 12).map((item) => ({
       ...item.event,
       matchedCriteria: item.matchedCriteria
     }));
+
+    const cityLabel = selectedCity === 'Oriunde' ? 'orașul tău' : selectedCity;
+    const categoryLabel = selectedCategoryIds.length > 0 && categories.length > 0
+      ? categories.filter((category) => selectedCategoryIds.includes(category.id)).map((category) => category.name).join(', ')
+      : 'această categorie';
+    const budgetLabel = selectedBudget === 'free' ? 'gratuite' : 'care se încadrează în bugetul tău';
+
+    return {
+      results,
+      fallbackType,
+      fallbackMessage: fallbackType === 'strict'
+        ? ''
+        : fallbackType === 'budget'
+          ? `Nu am găsit evenimente ${selectedBudget === 'free' ? 'gratuite' : 'în buget'} în ${cityLabel}, dar aceste experiențe de ${categoryLabel} s-ar putea să te convingă să faci o excepție:`
+          : fallbackType === 'city'
+            ? `E liniște în ${cityLabel} pe partea de ${categoryLabel}. Am găsit însă aceste evenimente tari în alte orașe, dacă plănuiești o ieșire:`
+            : 'Pauză de idei! 🕵️‍♂️ Nu am găsit nimic pe profilul tău acum. Ce-ar fi să încerci o altă categorie sau să cauți într-o perioadă mai aglomerată?'
+    };
+  };
+
+  const handleRecommend = (whenOverride) => {
+    const activeWhen = whenOverride || selectedWhen;
+    const ranked = scoreAndSortEvents(allEvents, activeWhen);
+    const cityKey = normalizeCityKey(selectedCity);
+    const hasCityFilter = selectedCity !== 'Oriunde';
+    const hasCategoryFilter = selectedCategoryIds.length > 0;
+    const hasBudgetFilter = selectedBudget !== 'any';
+    const hasWhenFilter = activeWhen !== 'any';
+
+    const strictMatches = ranked.filter((item) => {
+      const eventCityKey = normalizeCityKey(extractCityFromLocation(item.event.location));
+      const eventCategoryIds = (item.event.categories || []).map((cat) => cat.id);
+
+      const cityPass = !hasCityFilter || eventCityKey === cityKey;
+      const categoryPass = !hasCategoryFilter || selectedCategoryIds.some((id) => eventCategoryIds.includes(id));
+      const budgetPass = !hasBudgetFilter || isBudgetMatched(item.event.price);
+      const whenPass = !hasWhenFilter || isWhenMatched(item.event.start_date, activeWhen);
+
+      return cityPass && categoryPass && budgetPass && whenPass;
+    });
+
+    let payload;
+
+    if (strictMatches.length > 0) {
+      payload = buildResults(strictMatches, 'strict');
+    } else {
+      const budgetFallback = ranked.filter((item) => {
+        const eventCityKey = normalizeCityKey(extractCityFromLocation(item.event.location));
+        const eventCategoryIds = (item.event.categories || []).map((cat) => cat.id);
+
+        const cityPass = !hasCityFilter || eventCityKey === cityKey;
+        const categoryPass = !hasCategoryFilter || selectedCategoryIds.some((id) => eventCategoryIds.includes(id));
+        const whenPass = !hasWhenFilter || isWhenMatched(item.event.start_date, activeWhen);
+
+        return cityPass && categoryPass && whenPass;
+      });
+
+      if (budgetFallback.length > 0) {
+        payload = buildResults(budgetFallback, 'budget');
+      } else {
+        const cityFallback = ranked.filter((item) => {
+          const eventCategoryIds = (item.event.categories || []).map((cat) => cat.id);
+
+          const categoryPass = !hasCategoryFilter || selectedCategoryIds.some((id) => eventCategoryIds.includes(id));
+          const whenPass = !hasWhenFilter || isWhenMatched(item.event.start_date, activeWhen);
+
+          return categoryPass && whenPass;
+        });
+
+        payload = cityFallback.length > 0
+          ? buildResults(cityFallback, 'city')
+          : {
+              results: [],
+              fallbackType: 'none',
+              fallbackMessage: 'Am căutat peste tot, dar se pare că e o perioadă neobișnuit de calmă. Încearcă să schimbi categoria sau să alegi o altă perioadă?'
+            };
+      }
+    }
+
+    const { results, fallbackType, fallbackMessage } = payload;
 
     sessionStorage.setItem('recommendationResults', JSON.stringify(results));
     sessionStorage.setItem('recommendationFilters', JSON.stringify({
@@ -180,11 +292,17 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
       budget: selectedBudget,
       when: activeWhen
     }));
+    sessionStorage.setItem('recommendationFallback', JSON.stringify({
+      type: fallbackType,
+      message: fallbackMessage
+    }));
 
     onClose();
     navigate('/recommendations', {
       state: {
-        results
+        results,
+        fallbackType,
+        fallbackMessage
       }
     });
   };
