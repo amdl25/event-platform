@@ -28,6 +28,7 @@ import {
 	getTicketTypeById
 } from '../controllers/TicketTypeController.js';
 import { authenticateToken, optionalAuthenticateToken } from '../middleware/auth.js';
+import upload from '../config/multer.js';
 
 const router = express.Router();
 
@@ -54,9 +55,9 @@ router.get('/ticket-types/:ticketTypeId', getTicketTypeById);
 router.patch('/:eventId/ticket-types/:ticketTypeId', authenticateToken, updateTicketType);
 router.delete('/:eventId/ticket-types/:ticketTypeId', authenticateToken, deleteTicketType);
 
-router.post('/', authenticateToken, createEvent);
+router.post('/', authenticateToken, upload, createEvent);
 router.delete('/:id', authenticateToken, deleteEvent);
-router.patch('/:id', authenticateToken, updateEvent);
+router.patch('/:id', authenticateToken, upload, updateEvent);
 router.get('/:id', getEventById);
 
 export default router;

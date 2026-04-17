@@ -157,6 +157,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [eventFormError, setEventFormError] = useState('');
   const [eventImagePreview, setEventImagePreview] = useState('');
   const [eventImageName, setEventImageName] = useState('');
+  const [eventImageFile, setEventImageFile] = useState(null);
+  const [imageInputMode, setImageInputMode] = useState('upload');
+  const [eventImageUrl, setEventImageUrl] = useState('');
   const [editingEventId, setEditingEventId] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [ticketTypes, setTicketTypes] = useState(() => [createTicketTypeDraft()]);
@@ -283,6 +286,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         );
         setEventImagePreview(eventToEdit.image_url || '');
         setEventImageName('');
+        setEventImageFile(null);
+        setEventImageUrl(eventToEdit.image_url || '');
+        setImageInputMode(eventToEdit.image_url ? 'url' : 'upload');
         setEventFormError('');
         setShowCreateModal(true);
       } catch (error) {
@@ -487,6 +493,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     }));
     setEventImagePreview('');
     setEventImageName('');
+    setEventImageFile(null);
+    setEventImageUrl('');
+    setImageInputMode('upload');
     setShowCreateModal(true);
   };
 
@@ -514,6 +523,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setImageInputMode('upload');
+    setEventImageFile(file);
+    setEventImageUrl('');
     setEventImageName(file.name);
 
     const reader = new FileReader();
@@ -521,6 +533,15 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       setEventImagePreview(typeof reader.result === 'string' ? reader.result : '');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageUrlChange = (value) => {
+    const trimmedValue = value.trim();
+    setImageInputMode('url');
+    setEventImageUrl(value);
+    setEventImageFile(null);
+    setEventImageName('');
+    setEventImagePreview(trimmedValue);
   };
 
   const handleCreateEvent = async (event, targetStatus = 'published') => {
@@ -573,6 +594,18 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       return;
     }
 
+    if (imageInputMode === 'url' && eventImageUrl.trim()) {
+      try {
+        const parsedUrl = new URL(eventImageUrl.trim());
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          throw new Error('invalid');
+        }
+      } catch {
+        setEventFormError('Link-ul imaginii trebuie să fie un URL valid (http/https).');
+        return;
+      }
+    }
+
     const totalCapacity = normalizedTicketTypes.reduce((sum, ticketType) => sum + Number(ticketType.quantity || 0), 0);
     const lowestPrice = normalizedTicketTypes.reduce((min, ticketType) => Math.min(min, Number(ticketType.price || 0)), Number.POSITIVE_INFINITY);
     const basePrice = Number.isFinite(lowestPrice) ? lowestPrice : 0;
@@ -592,12 +625,27 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         moderation_status: targetStatus,
         org_id: user?.organizationId,
         category_id: eventForm.categoryId || null,
-        ticket_types: JSON.stringify(normalizedTicketTypes)
+        ticket_types: JSON.stringify(normalizedTicketTypes),
+        image_url: imageInputMode === 'url' ? (eventImageUrl.trim() || null) : null
       };
 
-      const response = editingEventId
-        ? await API.patch(`/events/${editingEventId}`, payload)
-        : await API.post('/events', payload);
+      let response;
+      if (!editingEventId && imageInputMode === 'upload' && eventImageFile) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
+        });
+        formData.append('image', eventImageFile);
+        response = await API.post('/events', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        response = editingEventId
+          ? await API.patch(`/events/${editingEventId}`, payload)
+          : await API.post('/events', payload);
+      }
 
       const createdEvent = response.data;
       if (createdEvent?.id) {
@@ -627,6 +675,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       setTicketTypes([createTicketTypeDraft()]);
       setEventImagePreview('');
       setEventImageName('');
+      setEventImageFile(null);
+      setEventImageUrl('');
+      setImageInputMode('upload');
     } catch (error) {
       setEventFormError(error.response?.data?.message || 'Nu am putut crea evenimentul.');
     } finally {
@@ -779,8 +830,32 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
 
                 <div className="organizer-create-field">
                   <label>Imagine eveniment</label>
+                  <div className="organizer-image-mode-toggle" role="group" aria-label="Sursă imagine">
+                    <button
+                      type="button"
+                      className={`organizer-image-mode-btn ${imageInputMode === 'upload' ? 'active' : ''}`}
+                      onClick={() => setImageInputMode('upload')}
+                    >
+                      Încarcă fișier
+                    </button>
+                    <button
+                      type="button"
+                      className={`organizer-image-mode-btn ${imageInputMode === 'url' ? 'active' : ''}`}
+                      onClick={() => setImageInputMode('url')}
+                    >
+                      Link imagine
+                    </button>
+                  </div>
+                  {imageInputMode === 'url' ? (
+                    <input
+                      type="url"
+                      value={eventImageUrl}
+                      onChange={(event) => handleImageUrlChange(event.target.value)}
+                      placeholder="https://exemplu.com/imagine.jpg"
+                    />
+                  ) : null}
                   <label className="organizer-image-upload-box">
-                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageSelect} hidden />
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageSelect} hidden disabled={imageInputMode === 'url'} />
                     {eventImagePreview ? (
                       <img src={eventImagePreview} alt="Preview eveniment" className="organizer-image-preview" />
                     ) : (
@@ -791,7 +866,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
                       </div>
                     )}
                   </label>
-                  {eventImageName ? <small className="organizer-image-name">{eventImageName}</small> : null}
+                  {imageInputMode === 'upload' && eventImageName ? <small className="organizer-image-name">{eventImageName}</small> : null}
                 </div>
 
                 <div className="organizer-create-field">

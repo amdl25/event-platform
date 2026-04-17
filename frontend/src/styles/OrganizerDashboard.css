@@ -1174,6 +1174,29 @@
   overflow: hidden;
 }
 
+.organizer-image-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.organizer-image-mode-btn {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.organizer-image-mode-btn.active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
 .organizer-image-placeholder {
   text-align: center;
   color: #94a3b8;

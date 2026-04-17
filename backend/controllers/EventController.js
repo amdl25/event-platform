@@ -318,6 +318,11 @@ export const updateEvent = async (req, res) => {
       normalizedCategoryIds.push(category_id);
     }
 
+    const uploadedImageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
+    const hasImageUrlField = Object.prototype.hasOwnProperty.call(req.body, 'image_url');
+    const normalizedBodyImageUrl = typeof req.body.image_url === 'string' ? req.body.image_url.trim() : '';
+    const nextImageUrl = uploadedImageUrl || (hasImageUrlField ? (normalizedBodyImageUrl || null) : event.image_url);
+
     await event.update({
       title: req.body.title,
       description: req.body.description,
@@ -327,6 +332,7 @@ export const updateEvent = async (req, res) => {
       max_capacity: req.body.max_capacity,
       price: req.body.price,
       points_value: req.body.points_value,
+      image_url: nextImageUrl,
       show_guest_list: typeof req.body.show_guest_list === 'boolean' ? req.body.show_guest_list : event.show_guest_list,
       guest_notes: req.body.guest_notes !== undefined ? req.body.guest_notes : event.guest_notes,
       moderation_status: requestedStatus || event.moderation_status
@@ -416,7 +422,10 @@ export const deleteEvent = async (req, res) => {
 
 export const createEvent = async (req, res) => {
   try {
-    const imageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
+    const bodyImageUrl = typeof req.body.image_url === 'string' ? req.body.image_url.trim() : '';
+    const imageUrl = req.file
+      ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`)
+      : (bodyImageUrl || null);
     const creator_id = req.user?.id;
     const { org_id, category_ids = [], category_id = null } = req.body;
     const requestedStatus = req.body.moderation_status;
