@@ -176,3 +176,21 @@
   font-size: 0.78rem;
   font-weight: 600;
 }
+
+.invite-guests-toggle {
+  margin-top: 10px;
+  border: 1px solid #0f766e;
+  background: transparent;
+  color: #0f766e;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.invite-guests-toggle:hover {
+  background: #0f766e;
+  color: #ffffff;
+}

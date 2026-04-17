@@ -21,6 +21,9 @@ const InviteEventPage = ({ user }) => {
   const [guestListError, setGuestListError] = useState('');
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [modalInitialMode, setModalInitialMode] = useState('view');
+  const [showAllGuests, setShowAllGuests] = useState(false);
+
+  const GUESTS_LIMIT = 3;
 
   const inviteLink = useMemo(() => {
     if (eventData?.inviteLink) return eventData.inviteLink;
@@ -194,14 +197,25 @@ const InviteEventPage = ({ user }) => {
             {guestListError ? <p className="invite-guest-error">{guestListError}</p> : null}
             {!guestListError && guests.length === 0 ? <p className="invite-guest-empty">Niciun invitat confirmat momentan.</p> : null}
             {!guestListError && guests.length > 0 ? (
-              <ul className="invite-guests-list">
-                {guests.map((guest) => (
-                  <li key={guest.id}>
-                    <span>{guest.displayName}</span>
-                    <small>{guest.inviteStatus === 'accepted' ? 'Acceptat' : guest.inviteStatus}</small>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="invite-guests-list">
+                  {guests.slice(0, showAllGuests ? guests.length : GUESTS_LIMIT).map((guest) => (
+                    <li key={guest.id}>
+                      <span>{guest.displayName}</span>
+                      <small>{guest.inviteStatus === 'accepted' ? 'Acceptat' : guest.inviteStatus}</small>
+                    </li>
+                  ))}
+                </ul>
+                {guests.length > GUESTS_LIMIT ? (
+                  <button
+                    type="button"
+                    className="invite-guests-toggle"
+                    onClick={() => setShowAllGuests(!showAllGuests)}
+                  >
+                    {showAllGuests ? 'Ascunde' : `Arată mai mult (+${guests.length - GUESTS_LIMIT})`}
+                  </button>
+                ) : null}
+              </>
             ) : null}
           </div>
         ) : null}
