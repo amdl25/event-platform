@@ -1,6 +1,7 @@
 .explore-page {
   min-height: 100vh;
   padding-bottom: 80px;
+  background: var(--light-bg);
 }
 
 .explore-header {
@@ -29,17 +30,17 @@
 }
 
 .explore-title {
-  font-family: 'Poppins', sans-serif !important;
-  font-size: 2rem;
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
   font-weight: 700;
   color: #1A1A1A;
   margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: var(--type-leading-tight);
 }
 
 .explore-subtitle {
-  font-size: 1.1rem;
+  font-size: var(--type-body-l);
   color: #666;
   margin: 0;
   font-weight: 500;
@@ -85,8 +86,9 @@
 
 .section-label {
   display: block;
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--type-h2);
+  font-weight: 600;
   color: #1A1A1A;
   margin-bottom: 20px;
 }
@@ -182,8 +184,8 @@
 }
 
 .no-events {
-  font-family: 'Poppins', sans-serif !important;
-  font-size: 1.1rem;
+  font-family: var(--font-body);
+  font-size: var(--type-body-l);
   font-weight: 500;
   color: #666;
   margin: 0 0 25px 0;

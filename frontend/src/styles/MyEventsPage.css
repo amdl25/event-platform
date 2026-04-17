@@ -106,6 +106,23 @@
   position: relative;
 }
 
+.private-event-card-clickable {
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.private-event-card-clickable:hover,
+.private-event-card-clickable:focus-visible {
+  border-color: #ef632f;
+  box-shadow: 0 12px 26px rgba(239, 99, 47, 0.12);
+  transform: translateY(-1px);
+}
+
+.private-event-card-clickable:focus-visible {
+  outline: 2px solid rgba(239, 99, 47, 0.25);
+  outline-offset: 2px;
+}
+
 .private-event-left {
   display: flex;
   gap: 12px;
@@ -198,6 +215,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.private-link-expiry {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.private-guest-list-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.private-guest-list-status.on {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.private-guest-list-status.off {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .private-link-copy {

@@ -1,7 +1,10 @@
 import { Event, Organization, Category, Account, Participation, TicketType } from '../models/relationships.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
+
+const createInviteToken = () => crypto.randomBytes(18).toString('hex');
 
 const parseTicketTypesInput = (value) => {
   if (!value) return [];
@@ -49,7 +52,11 @@ export const getUserCalendarEvents = async (req, res) => {
         {
           model: Event,
           as: 'createdEvents',
-          include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+          include: [
+            { model: Category, as: 'categories', through: { attributes: [] } },
+            { model: Account, as: 'creator', attributes: ['first_name', 'last_name'] },
+            { model: Organization, as: 'organization', attributes: ['name'] }
+          ]
         }
       ]
     });
@@ -63,7 +70,11 @@ export const getUserCalendarEvents = async (req, res) => {
       include: [
         {
           model: Event,
-          include: [{ model: Category, as: 'categories', through: { attributes: [] } }]
+          include: [
+            { model: Category, as: 'categories', through: { attributes: [] } },
+            { model: Account, as: 'creator', attributes: ['first_name', 'last_name'] },
+            { model: Organization, as: 'organization', attributes: ['name'] }
+          ]
         }
       ]
     });
@@ -79,28 +90,34 @@ export const getUserCalendarEvents = async (req, res) => {
 
     const calendarEvents = uniqueEvents
       .filter(evt => evt.start_date && evt.end_date)
-      .map(evt => ({
-        id: evt.id,
-        title: evt.title,
-        creator_id: evt.creator_id,
-        start_date: evt.start_date,
-        end_date: evt.end_date,
-        start: evt.start_date,
-        end: evt.end_date,
-        org_id: evt.org_id,
-        type: evt.type,
-        description: evt.description,
-        location: evt.location,
-        image_url: evt.image_url,
-        max_capacity: evt.max_capacity,
-        current_occupancy: evt.current_occupancy,
-        price: evt.price,
-        points_value: evt.points_value,
-        categories: evt.categories || [],
-        backgroundColor: evt.type === 'private' ? '#9c87ff' : '#00a884',
-        textColor: '#ffffff',
-        borderColor: 'transparent'
-      }))
+      .map(evt => {
+        const creatorName = `${evt.creator?.first_name || ''} ${evt.creator?.last_name || ''}`.trim();
+        const organizerName = evt.organization?.name || creatorName || 'Organizator';
+
+        return {
+          id: evt.id,
+          title: evt.title,
+          creator_id: evt.creator_id,
+          organizer_name: organizerName,
+          start_date: evt.start_date,
+          end_date: evt.end_date,
+          start: evt.start_date,
+          end: evt.end_date,
+          org_id: evt.org_id,
+          type: evt.type,
+          description: evt.description,
+          location: evt.location,
+          image_url: evt.image_url,
+          max_capacity: evt.max_capacity,
+          current_occupancy: evt.current_occupancy,
+          price: evt.price,
+          points_value: evt.points_value,
+          categories: evt.categories || [],
+          backgroundColor: evt.type === 'private' ? '#9c87ff' : '#00a884',
+          textColor: '#ffffff',
+          borderColor: 'transparent'
+        };
+      })
       .sort((a, b) => new Date(a.start) - new Date(b.start));
 
     res.json(calendarEvents);
@@ -310,6 +327,8 @@ export const updateEvent = async (req, res) => {
       max_capacity: req.body.max_capacity,
       price: req.body.price,
       points_value: req.body.points_value,
+      show_guest_list: typeof req.body.show_guest_list === 'boolean' ? req.body.show_guest_list : event.show_guest_list,
+      guest_notes: req.body.guest_notes !== undefined ? req.body.guest_notes : event.guest_notes,
       moderation_status: requestedStatus || event.moderation_status
     });
 
@@ -464,11 +483,20 @@ export const createEvent = async (req, res) => {
       max_capacity: req.body.max_capacity,
       price: req.body.price,
       points_value: req.body.points_value,
+      show_guest_list: Boolean(req.body.show_guest_list),
+      guest_notes: req.body.guest_notes || null,
       moderation_status: requestedStatus || 'published',
       creator_id,
       org_id: creator.role === 'user' ? null : org_id,
       image_url: imageUrl
     };
+
+    if (!payload.org_id) {
+      payload.private_invite_token = createInviteToken();
+      const expiration = new Date();
+      expiration.setDate(expiration.getDate() + 60);
+      payload.private_invite_token_expires_at = expiration;
+    }
 
     const newEvent = await Event.create(payload);
 
@@ -547,10 +575,24 @@ export const getMyPrivateEvents = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    const created = createdEvents.map((event) => {
-      const data = event.toJSON();
+    const created = await Promise.all(createdEvents.map(async (event) => {
+      let data = event.toJSON();
+
+      if (!data.private_invite_token) {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 60);
+        const generatedToken = createInviteToken();
+
+        await event.update({
+          private_invite_token: generatedToken,
+          private_invite_token_expires_at: expiresAt
+        });
+
+        data = event.toJSON();
+      }
+
       const totalInvited = (data.Participations || []).length;
-      const confirmedCount = (data.Participations || []).filter((item) => item.invite_status !== 'rejected').length;
+      const confirmedCount = (data.Participations || []).filter((item) => item.invite_status === 'accepted').length;
 
       return {
         id: data.id,
@@ -558,12 +600,14 @@ export const getMyPrivateEvents = async (req, res) => {
         location: data.location,
         start_date: data.start_date,
         end_date: data.end_date,
-        inviteLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invite/${data.id}`,
+        showGuestList: Boolean(data.show_guest_list),
+        inviteLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invite/${data.id}?token=${data.private_invite_token}`,
+        inviteExpiresAt: data.private_invite_token_expires_at,
         confirmedCount,
         totalInvited: data.max_capacity > 0 ? data.max_capacity : totalInvited,
         image_url: data.image_url
       };
-    });
+    }));
 
     const invited = invitedParticipations
       .map((participation) => {
@@ -572,7 +616,7 @@ export const getMyPrivateEvents = async (req, res) => {
           return null;
         }
 
-        const hostName = `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Gazdă';
+        const hostName = `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Organizator';
 
         return {
           participationId: participation.id,
@@ -661,6 +705,85 @@ export const deletePrivateEvent = async (req, res) => {
     await event.destroy();
 
     return res.status(200).json({ message: 'Evenimentul privat a fost șters.' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const regeneratePrivateInviteLink = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    const { eventId } = req.params;
+
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const event = await Event.findByPk(eventId);
+    if (!event || event.org_id !== null) {
+      return res.status(404).json({ message: 'Eveniment privat negăsit.' });
+    }
+
+    if (event.creator_id !== accountId) {
+      return res.status(403).json({ message: 'Nu poți regenera linkul acestui eveniment.' });
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 60);
+
+    await event.update({
+      private_invite_token: createInviteToken(),
+      private_invite_token_expires_at: expiresAt
+    });
+
+    return res.status(200).json({
+      message: 'Linkul de invitație a fost regenerat.',
+      inviteLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invite/${event.id}?token=${event.private_invite_token}`,
+      expiresAt: event.private_invite_token_expires_at
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const updatePrivateEventSettings = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    const { eventId } = req.params;
+    const { show_guest_list, guest_notes } = req.body;
+
+    if (!accountId) {
+      return res.status(401).json({ message: 'Neautorizat.' });
+    }
+
+    const event = await Event.findByPk(eventId);
+    if (!event || event.org_id !== null) {
+      return res.status(404).json({ message: 'Eveniment privat negăsit.' });
+    }
+
+    if (event.creator_id !== accountId) {
+      return res.status(403).json({ message: 'Nu poți modifica setările acestui eveniment.' });
+    }
+
+    const updates = {};
+    if (typeof show_guest_list === 'boolean') {
+      updates.show_guest_list = show_guest_list;
+    }
+    if (guest_notes !== undefined) {
+      updates.guest_notes = guest_notes;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'Nicio setare validă de actualizat.' });
+    }
+
+    await event.update(updates);
+
+    return res.status(200).json({
+      message: 'Setările evenimentului au fost actualizate.',
+      showGuestList: Boolean(event.show_guest_list),
+      guestNotes: event.guest_notes || null
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

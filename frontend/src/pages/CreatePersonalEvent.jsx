@@ -19,7 +19,7 @@ const CreatePersonalEvent = ({ user }) => {
   const [eventImagePreview, setEventImagePreview] = useState('');
   const [eventImageName, setEventImageName] = useState('');
   const [startTime, setStartTime] = useState('14:30');
-  const [endTime, setEndTime] = useState('15:30');
+  const [endTime, setEndTime] = useState('');
   const [activeTimeMenu, setActiveTimeMenu] = useState(null);
   const startMenuRef = useRef(null);
   const endMenuRef = useRef(null);
@@ -63,12 +63,13 @@ const CreatePersonalEvent = ({ user }) => {
   }, [startTime]);
 
   useEffect(() => {
-    if (!endTimeOptions.some((option) => option.value === endTime)) {
-      setEndTime(endTimeOptions[0].value);
+    if (endTime && !endTimeOptions.some((option) => option.value === endTime)) {
+      setEndTime('');
     }
   }, [endTime, endTimeOptions]);
 
   const formatTimeLabel = (timeValue) => {
+    if (!timeValue) return '-';
     const [rawHours, rawMinutes] = timeValue.split(':');
     const hours = Number(rawHours);
     const period = hours >= 12 ? 'PM' : 'AM';
@@ -116,9 +117,9 @@ const CreatePersonalEvent = ({ user }) => {
     }
 
     const startDateTime = combineDateAndTime(startDate, startTime);
-    const endDateTime = combineDateAndTime(endDate, endTime);
+    const endDateTime = endTime ? combineDateAndTime(endDate, endTime) : startDateTime;
 
-    if (endDateTime <= startDateTime) {
+    if (endTime && endDateTime <= startDateTime) {
       setSubmitError('Ora de final trebuie să fie după ora de start.');
       return;
     }
@@ -265,6 +266,17 @@ const CreatePersonalEvent = ({ user }) => {
                     </button>
                     {activeTimeMenu === 'end' && (
                       <div className="time-dropdown-menu">
+                        <button
+                          type="button"
+                          className={`time-dropdown-item ${endTime === '' ? 'selected' : ''}`}
+                          onClick={() => {
+                            setEndTime('');
+                            setActiveTimeMenu(null);
+                          }}
+                        >
+                          <span className="time-dropdown-main">- Fără oră de final</span>
+                          <span className="time-dropdown-duration placeholder">optional</span>
+                        </button>
                         {endTimeOptions.map((option) => (
                           <button
                             key={`end-${option.value}`}

@@ -1,5 +1,5 @@
 .calendar-dashboard-bg {
-  background-color: #FFF5F0;
+  background-color: var(--light-bg);
   min-height: 100vh;
   padding: 40px 20px;
 }

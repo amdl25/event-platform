@@ -2,7 +2,8 @@
     min-height: 100vh;
     padding-top: 24px;
     padding-bottom: 56px;
-    background: transparent;
+    background: var(--light-bg);
+    font-family: var(--font-body);
 }
 
 .container-max {
@@ -46,19 +47,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 1.45rem;
     flex-shrink: 0;
 }
 
 .user-meta h1 {
-    font-family: 'Poppins', sans-serif !important;
-    font-size: 1.45rem;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 600;
     color: #111827;
     margin: 0;
-    letter-spacing: -0.6px;
-    line-height: 1.1;
+    letter-spacing: -0.02em;
+    line-height: var(--type-leading-tight);
 }
 
 .user-meta p {
@@ -124,7 +125,7 @@
     align-items: center;
     gap: 10px;
     color: #64748b;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.03em;
 }
 
@@ -134,9 +135,9 @@
 
 .profile-points-total {
     margin-top: 8px;
-    font-size: 2.4rem;
-    line-height: 0.95;
-    font-weight: 800;
+    font-size: var(--type-display-l);
+    line-height: var(--type-leading-none);
+    font-weight: 700;
     color: #ff5b1f;
 }
 
@@ -170,7 +171,7 @@
 .profile-points-stat strong {
     color: #111827;
     font-size: 0.88rem;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .organizer-verification-banner {
@@ -243,7 +244,7 @@
     border: none;
     padding: 9px 14px;
     font-size: 0.92rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #64748b;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
@@ -263,12 +264,12 @@
 }
 
 .section-title {
-    font-family: 'Poppins', sans-serif !important;
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 600;
     margin: 0 0 14px 0;
     color: #1A1A1A;
-    letter-spacing: -0.4px;
+    letter-spacing: -0.02em;
 }
 
 .tickets-list {
@@ -345,7 +346,7 @@
     margin: 0;
     font-size: 18px;
     color: #111827;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .ticket-state-pill {
@@ -396,7 +397,7 @@
 .ticket-score-wrap strong {
     color: #ff5b1f;
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .ticket-score-wrap span {
@@ -456,7 +457,7 @@
     margin: 0;
     font-size: 18px;
     color: #111827;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .ticket-count-pill {
@@ -560,7 +561,7 @@
     padding: 10px;
     border-radius: 10px;
     text-align: center;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 0.9rem;
     min-width: 56px;
     line-height: 1.1;
@@ -691,7 +692,7 @@
 
 .rewards-column-title {
     font-size: 0.95rem;
-    font-weight: 800;
+    font-weight: 700;
     color: #64748b;
     letter-spacing: 0.04em;
     margin: 0 0 10px 0;
@@ -728,7 +729,7 @@
     display: grid;
     place-items: center;
     color: #fff;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 0.9rem;
     flex-shrink: 0;
 }
@@ -761,7 +762,7 @@
     align-items: center;
     gap: 8px;
     color: var(--primary);
-    font-weight: 800;
+    font-weight: 700;
     font-size: 0.96rem;
 }
 
@@ -831,7 +832,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 0.9rem;
 }
 
@@ -887,7 +888,7 @@
 
 .ticket-id-display {
     font-family: monospace;
-    font-weight: 800;
+    font-weight: 700;
     background: #f8fafc;
     padding: 8px 16px;
     border-radius: 8px;

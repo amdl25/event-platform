@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: #FFF5F0;
+  background: var(--light-bg);
   height: 66px;
   display: flex;
   align-items: center;
@@ -12,7 +12,7 @@
 
 .navbar--scrolled {
   height: 60px;
-  background: rgba(255, 245, 240, 0.9);
+  background: rgba(242, 239, 236, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #d1d5db;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -90,7 +90,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #FFF5F0;
+  background: var(--light-bg);
   border-radius: 14px;
   padding: 0 14px;
   height: 40px;

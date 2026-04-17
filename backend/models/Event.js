@@ -57,6 +57,15 @@ const Event = sequelize.define('Event', {
   guest_notes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  private_invite_token: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
+  private_invite_token_expires_at: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, { tableName: 'event' });
 

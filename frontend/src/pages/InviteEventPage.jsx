@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FiCalendar, FiClock, FiMapPin, FiCheckCircle, FiCopy, FiEdit2 } from 'react-icons/fi';
 import API from '../api';
 import { getEventDateLabel, getEventTimeRangeLabel } from '../utils/eventDateTime';
@@ -9,16 +9,24 @@ import '../styles/InviteEventPage.css';
 const InviteEventPage = ({ user }) => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('token') || '';
 
   const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinMessage, setJoinMessage] = useState('');
+  const [guests, setGuests] = useState([]);
+  const [guestListError, setGuestListError] = useState('');
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [modalInitialMode, setModalInitialMode] = useState('view');
 
-  const inviteLink = useMemo(() => `${window.location.origin}/invite/${eventId}`, [eventId]);
+  const inviteLink = useMemo(() => {
+    if (eventData?.inviteLink) return eventData.inviteLink;
+    if (inviteToken) return `${window.location.origin}/invite/${eventId}?token=${inviteToken}`;
+    return `${window.location.origin}/invite/${eventId}`;
+  }, [eventData?.inviteLink, eventId, inviteToken]);
   const isOrganizerView = !!(user?.id && eventData?.creator_id && user.id === eventData.creator_id);
 
   useEffect(() => {
@@ -26,7 +34,9 @@ const InviteEventPage = ({ user }) => {
       setLoading(true);
       setError('');
       try {
-        const response = await API.get(`/events/invite/${eventId}`);
+        const response = await API.get(`/events/invite/${eventId}`, {
+          params: inviteToken ? { token: inviteToken } : undefined
+        });
         setEventData(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Nu am putut încărca invitația.');
@@ -36,7 +46,24 @@ const InviteEventPage = ({ user }) => {
     };
 
     if (eventId) loadInvite();
-  }, [eventId]);
+  }, [eventId, inviteToken]);
+
+  useEffect(() => {
+    const loadGuestList = async () => {
+      if (!user?.id || !eventId) return;
+
+      try {
+        const response = await API.get(`/events/private/${eventId}/guests`);
+        setGuests(Array.isArray(response.data?.guests) ? response.data.guests : []);
+        setGuestListError('');
+      } catch (err) {
+        setGuests([]);
+        setGuestListError(err.response?.data?.message || 'Lista invitaților nu este disponibilă.');
+      }
+    };
+
+    loadGuestList();
+  }, [eventId, user?.id, joinMessage]);
 
   const handleCopyLink = async () => {
     try {
@@ -47,14 +74,20 @@ const InviteEventPage = ({ user }) => {
     }
   };
 
-  const handleOpenEventModal = () => {
-    setModalInitialMode(isOrganizerView ? 'edit' : 'view');
+  const handleOpenEventModalView = () => {
+    setModalInitialMode('view');
+    setIsEventModalOpen(true);
+  };
+
+  const handleOpenEventModalEdit = () => {
+    setModalInitialMode('edit');
     setIsEventModalOpen(true);
   };
 
   const handleConfirmParticipation = async () => {
     if (!user?.id) {
-      navigate(`/login?redirect=${encodeURIComponent(`/invite/${eventId}`)}`);
+      const redirectPath = inviteToken ? `/invite/${eventId}?token=${encodeURIComponent(inviteToken)}` : `/invite/${eventId}`;
+      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
       return;
     }
 
@@ -64,6 +97,7 @@ const InviteEventPage = ({ user }) => {
     try {
       const response = await API.post(`/events/invite/${eventId}/confirm`, {
         account_id: user.id,
+        inviteToken,
       });
       setJoinMessage(response.data?.message || 'Participare confirmată.');
     } catch (err) {
@@ -81,7 +115,21 @@ const InviteEventPage = ({ user }) => {
     <div className="invite-page">
       <div className="invite-card">
         <div className="invite-badge">Invitație privată</div>
-        <h1>{eventData.title}</h1>
+        <h1
+          className="invite-title-clickable"
+          onClick={handleOpenEventModalView}
+          onKeyDown={(eventKey) => {
+            if (eventKey.key === 'Enter' || eventKey.key === ' ') {
+              eventKey.preventDefault();
+              handleOpenEventModalView();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Vezi detalii eveniment"
+        >
+          {eventData.title}
+        </h1>
         <p className="invite-description">{eventData.description || 'Eveniment privat cu acces pe bază de invitație.'}</p>
 
         <div className="invite-meta-grid">
@@ -105,8 +153,8 @@ const InviteEventPage = ({ user }) => {
               <button className="invite-btn primary" type="button" onClick={handleCopyLink}>
                 <FiCopy /> Copiază Link Invitație
               </button>
-              <button className="invite-btn secondary" type="button" onClick={handleOpenEventModal}>
-                <FiEdit2 /> Vezi / Editează Eveniment
+              <button className="invite-btn secondary" type="button" onClick={handleOpenEventModalEdit}>
+                <FiEdit2 /> Editează Eveniment
               </button>
             </>
           ) : (
@@ -118,6 +166,24 @@ const InviteEventPage = ({ user }) => {
 
         {isOrganizerView ? <p className="invite-hint">Ești organizatorul. Distribuie link-ul invitaților tăi.</p> : null}
         {joinMessage ? <p className="invite-message">{joinMessage}</p> : null}
+
+        {user?.id ? (
+          <div className="invite-guests-block">
+            <h3>Lista invitaților</h3>
+            {guestListError ? <p className="invite-guest-error">{guestListError}</p> : null}
+            {!guestListError && guests.length === 0 ? <p className="invite-guest-empty">Niciun invitat confirmat momentan.</p> : null}
+            {!guestListError && guests.length > 0 ? (
+              <ul className="invite-guests-list">
+                {guests.map((guest) => (
+                  <li key={guest.id}>
+                    <span>{guest.displayName}</span>
+                    <small>{guest.inviteStatus === 'accepted' ? 'Acceptat' : guest.inviteStatus}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <EventDetailsModal

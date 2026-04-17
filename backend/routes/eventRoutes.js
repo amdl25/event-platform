@@ -7,7 +7,9 @@ import {
 	getEventById,
 	getMyPrivateEvents,
 	getUserCalendarEvents,
+	regeneratePrivateInviteLink,
 	respondToPrivateInvitation,
+	updatePrivateEventSettings,
 	updateEvent
 } from '../controllers/EventController.js';
 import { getMyTickets, joinEvent } from '../controllers/ParticipationController.js';
@@ -17,7 +19,7 @@ import {
 	getPurchaseQuote,
 	sendTicketsByEmail
 } from '../controllers/BookingController.js';
-import { confirmInviteParticipation, getInvitePreview } from '../controllers/InviteController.js';
+import { confirmInviteParticipation, getInvitePreview, getPrivateGuestList } from '../controllers/InviteController.js';
 import {
 	getTicketTypesForEvent,
 	createTicketType,
@@ -35,8 +37,11 @@ router.get('/tickets/mine', authenticateToken, getMyTickets);
 router.get('/private/mine', authenticateToken, getMyPrivateEvents);
 router.patch('/private/invitations/:participationId', authenticateToken, respondToPrivateInvitation);
 router.delete('/private/:eventId', authenticateToken, deletePrivateEvent);
-router.get('/invite/:eventId', getInvitePreview);
+router.post('/private/:eventId/regenerate-link', authenticateToken, regeneratePrivateInviteLink);
+router.patch('/private/:eventId/settings', authenticateToken, updatePrivateEventSettings);
+router.get('/invite/:eventId', optionalAuthenticateToken, getInvitePreview);
 router.post('/invite/:eventId/confirm', authenticateToken, confirmInviteParticipation);
+router.get('/private/:eventId/guests', authenticateToken, getPrivateGuestList);
 router.post('/join', authenticateToken, joinEvent);
 router.get('/purchase/quote', optionalAuthenticateToken, getPurchaseQuote);
 router.post('/purchase/checkout-session', optionalAuthenticateToken, createCheckoutSession);

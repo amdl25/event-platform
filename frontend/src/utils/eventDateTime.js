@@ -61,6 +61,7 @@ export const getEventTimeLabel = (dateValue) => {
 export const getEventTimeRangeLabel = (startValue, endValue) => {
   const startTime = getEventTimeLabel(startValue);
   const endTime = getEventTimeLabel(endValue);
+  if (startTime && endTime && startTime === endTime) return startTime;
   if (startTime && endTime) return `${startTime} - ${endTime}`;
   return startTime || endTime || '';
 };

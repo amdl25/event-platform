@@ -5,7 +5,7 @@
   --primary-light: #FFDAB9;
   --primary-soft: rgba(255, 127, 80, 0.08);
   
-  --light-bg: #FFF5F0;
+  --light-bg: #fffefd;
   --neutral-100: #ffffff;
   --neutral-200: #f0e8e4;
   
@@ -24,6 +24,7 @@
 body {
   margin: 0;
   padding: 0;
+  background: var(--light-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -31,6 +32,7 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+  background: var(--light-bg);
 }
 
 .App {
@@ -44,6 +46,7 @@ body {
 .app-main {
   flex: 1;
   width: 100%;
+  background: var(--light-bg);
 }
 
 .container-max {

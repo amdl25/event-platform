@@ -1,18 +1,51 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiCalendar, FiCopy, FiLink, FiLock, FiMapPin, FiMoreHorizontal, FiTrash2, FiUsers, FiEdit2 } from 'react-icons/fi';
+import { FiCalendar, FiCopy, FiLink, FiLock, FiMapPin, FiMoreHorizontal, FiTrash2, FiUsers, FiEdit2, FiRefreshCw } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import EventDetailsModal from '../components/EventDetailsModal';
 import '../styles/MyEventsPage.css';
 
-const formatDateLabel = (dateValue) => {
-  const date = new Date(dateValue);
-  return date.toLocaleDateString('ro-RO', {
+const formatDateLabel = (startValue, endValue) => {
+  const startDate = new Date(startValue);
+  if (Number.isNaN(startDate.getTime())) return '';
+
+  const dateLabel = startDate.toLocaleDateString('ro-RO', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+  });
+
+  const startTimeLabel = startDate.toLocaleTimeString('ro-RO', {
     hour: '2-digit',
     minute: '2-digit'
+  });
+
+  if (!endValue) {
+    return `${dateLabel}, ${startTimeLabel}`;
+  }
+
+  const endDate = new Date(endValue);
+  if (Number.isNaN(endDate.getTime()) || endDate.getTime() === startDate.getTime()) {
+    return `${dateLabel}, ${startTimeLabel}`;
+  }
+
+  const endTimeLabel = endDate.toLocaleTimeString('ro-RO', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  return `${dateLabel}, ${startTimeLabel} - ${endTimeLabel}`;
+};
+
+const formatExpiryLabel = (dateValue) => {
+  if (!dateValue) return '';
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleDateString('ro-RO', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
   });
 };
 
@@ -26,7 +59,10 @@ const MyEventsPage = ({ user }) => {
   const [openMenuEventId, setOpenMenuEventId] = useState('');
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [modalInitialMode, setModalInitialMode] = useState('edit');
   const [loadingEventId, setLoadingEventId] = useState('');
+  const [regeneratingEventId, setRegeneratingEventId] = useState('');
+  const [togglingGuestListEventId, setTogglingGuestListEventId] = useState('');
 
   const loadEvents = async () => {
     try {
@@ -74,17 +110,62 @@ const MyEventsPage = ({ user }) => {
     }
   };
 
-  const handleOpenEditModal = async (eventId) => {
+  const loadEventForModal = async (eventId, mode = 'view') => {
     try {
       setLoadingEventId(eventId);
       setOpenMenuEventId('');
       const response = await API.get(`/events/${eventId}`);
       setEditingEvent(response.data);
+      setModalInitialMode(mode);
       setIsEventModalOpen(true);
     } catch {
       setError('Nu am putut încărca evenimentul pentru editare.');
     } finally {
       setLoadingEventId('');
+    }
+  };
+
+  const handleOpenViewModal = (eventId) => loadEventForModal(eventId, 'view');
+
+  const handleOpenEditModal = (eventId) => loadEventForModal(eventId, 'edit');
+
+  const handleRegenerateInviteLink = async (eventId) => {
+    try {
+      setRegeneratingEventId(eventId);
+      setOpenMenuEventId('');
+      const response = await API.post(`/events/private/${eventId}/regenerate-link`);
+      const newInviteLink = response.data?.inviteLink;
+      const newInviteExpiresAt = response.data?.expiresAt || null;
+
+      if (newInviteLink) {
+        setCreatedEvents((prev) => prev.map((item) => (
+          item.id === eventId ? { ...item, inviteLink: newInviteLink, inviteExpiresAt: newInviteExpiresAt } : item
+        )));
+      }
+    } catch {
+      setError('Nu am putut regenera linkul de invitație.');
+    } finally {
+      setRegeneratingEventId('');
+    }
+  };
+
+  const handleToggleGuestListVisibility = async (eventId, currentValue) => {
+    try {
+      setTogglingGuestListEventId(eventId);
+      setOpenMenuEventId('');
+
+      const response = await API.patch(`/events/private/${eventId}/settings`, {
+        show_guest_list: !currentValue
+      });
+
+      const updatedValue = Boolean(response.data?.showGuestList);
+      setCreatedEvents((prev) => prev.map((item) => (
+        item.id === eventId ? { ...item, showGuestList: updatedValue } : item
+      )));
+    } catch {
+      setError('Nu am putut actualiza vizibilitatea listei de invitați.');
+    } finally {
+      setTogglingGuestListEventId('');
     }
   };
 
@@ -113,6 +194,14 @@ const MyEventsPage = ({ user }) => {
     } catch {
       setError('Nu am putut actualiza invitația.');
     }
+  };
+
+  const openEventFromCard = (eventId) => {
+    loadEventForModal(eventId, 'view');
+  };
+
+  const stopCardClick = (event) => {
+    event.stopPropagation();
   };
 
   if (loading) {
@@ -149,7 +238,19 @@ const MyEventsPage = ({ user }) => {
             {createdEvents.map((eventItem) => {
               const isFuture = new Date(eventItem.start_date) > new Date();
               return (
-                <article key={eventItem.id} className="private-event-card">
+                <article
+                  key={eventItem.id}
+                  className="private-event-card private-event-card-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openEventFromCard(eventItem.id)}
+                  onKeyDown={(keyboardEvent) => {
+                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+                      keyboardEvent.preventDefault();
+                      openEventFromCard(eventItem.id);
+                    }
+                  }}
+                >
                   <div className="private-event-left">
                     <div className="private-icon"><FiLock /></div>
                     <div className="private-event-main">
@@ -158,12 +259,18 @@ const MyEventsPage = ({ user }) => {
                         <span className={`private-status ${isFuture ? 'future' : 'past'}`}>{isFuture ? 'Viitor' : 'Trecut'}</span>
                       </div>
                       <div className="private-meta-row">
-                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date)}</span>
+                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
                         <span><FiMapPin /> {eventItem.location || 'Locație nespecificată'}</span>
                         <span><FiUsers /> {eventItem.confirmedCount || 0}/{eventItem.totalInvited || 0} confirmați</span>
                       </div>
                       <div className="private-link-row">
                         <span className="private-link-pill"><FiLink /> {eventItem.inviteLink}</span>
+                        {eventItem.inviteExpiresAt ? (
+                          <span className="private-link-expiry">Expiră la {formatExpiryLabel(eventItem.inviteExpiresAt)}</span>
+                        ) : null}
+                        <span className={`private-guest-list-status ${eventItem.showGuestList ? 'on' : 'off'}`}>
+                          Lista invitați: {eventItem.showGuestList ? 'Vizibilă' : 'Ascunsă'}
+                        </span>
                         <button type="button" className="private-link-copy" onClick={() => copyInviteLink(eventItem.inviteLink)}>
                           <FiCopy />
                         </button>
@@ -172,16 +279,31 @@ const MyEventsPage = ({ user }) => {
                   </div>
 
                   <div className="private-event-actions">
-                    <button type="button" className="private-menu-trigger" onClick={() => setOpenMenuEventId(openMenuEventId === eventItem.id ? '' : eventItem.id)}>
+                    <button type="button" className="private-menu-trigger" onClick={(event) => { event.stopPropagation(); setOpenMenuEventId(openMenuEventId === eventItem.id ? '' : eventItem.id); }}>
                       <FiMoreHorizontal />
                     </button>
                     {openMenuEventId === eventItem.id ? (
                       <div className="private-menu-dropdown">
-                        <button type="button" onClick={() => handleOpenEditModal(eventItem.id)} disabled={loadingEventId === eventItem.id}>
+                        <button type="button" onClick={(event) => { event.stopPropagation(); handleOpenEditModal(eventItem.id); }} disabled={loadingEventId === eventItem.id}>
                           <FiEdit2 /> {loadingEventId === eventItem.id ? 'Se încarcă...' : 'Editează'}
                         </button>
-                        <button type="button" onClick={() => copyInviteLink(eventItem.inviteLink)}><FiLink /> Copiază linkul</button>
-                        <button type="button" className="danger" onClick={() => handleDeleteEvent(eventItem.id)}><FiTrash2 /> Șterge</button>
+                        <button type="button" onClick={(event) => { event.stopPropagation(); handleRegenerateInviteLink(eventItem.id); }} disabled={regeneratingEventId === eventItem.id}>
+                          <FiRefreshCw /> {regeneratingEventId === eventItem.id ? 'Se regenerează...' : 'Regenerare link'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => { event.stopPropagation(); handleToggleGuestListVisibility(eventItem.id, eventItem.showGuestList); }}
+                          disabled={togglingGuestListEventId === eventItem.id}
+                        >
+                          <FiUsers />
+                          {togglingGuestListEventId === eventItem.id
+                            ? 'Se actualizează...'
+                            : eventItem.showGuestList
+                              ? 'Ascunde lista invitaților'
+                              : 'Arată lista invitaților'}
+                        </button>
+                        <button type="button" onClick={(event) => { event.stopPropagation(); copyInviteLink(eventItem.inviteLink); }}><FiLink /> Copiază linkul</button>
+                        <button type="button" className="danger" onClick={(event) => { event.stopPropagation(); handleDeleteEvent(eventItem.id); }}><FiTrash2 /> Șterge</button>
                       </div>
                     ) : null}
                   </div>
@@ -195,7 +317,19 @@ const MyEventsPage = ({ user }) => {
             {invitedEvents.map((inviteItem) => {
               const eventItem = inviteItem.event;
               return (
-                <article key={inviteItem.participationId} className="private-event-card invite-card">
+                <article
+                  key={inviteItem.participationId}
+                  className="private-event-card invite-card private-event-card-clickable"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openEventFromCard(eventItem.id)}
+                  onKeyDown={(keyboardEvent) => {
+                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+                      keyboardEvent.preventDefault();
+                      openEventFromCard(eventItem.id);
+                    }
+                  }}
+                >
                   <div className="private-event-left">
                     <div className="private-icon"><FiUsers /></div>
                     <div className="private-event-main">
@@ -205,9 +339,9 @@ const MyEventsPage = ({ user }) => {
                           {inviteItem.inviteStatus === 'pending' ? 'În așteptare' : inviteItem.inviteStatus === 'accepted' ? 'Acceptat' : 'Refuzat'}
                         </span>
                       </div>
-                      <p className="private-host-line">Gazdă: {eventItem.hostName}</p>
+                      <p className="private-host-line">Organizator: {eventItem.hostName}</p>
                       <div className="private-meta-row">
-                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date)}</span>
+                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
                         <span><FiMapPin /> {eventItem.location || 'Locație nespecificată'}</span>
                       </div>
                     </div>
@@ -215,8 +349,8 @@ const MyEventsPage = ({ user }) => {
 
                   {inviteItem.inviteStatus === 'pending' ? (
                     <div className="invite-actions">
-                      <button type="button" className="accept" onClick={() => handleInviteAction(inviteItem.participationId, 'accept')}>Accept</button>
-                      <button type="button" className="decline" onClick={() => handleInviteAction(inviteItem.participationId, 'reject')}>Refuză</button>
+                      <button type="button" className="accept" onClick={(event) => { event.stopPropagation(); handleInviteAction(inviteItem.participationId, 'accept'); }}>Accept</button>
+                      <button type="button" className="decline" onClick={(event) => { event.stopPropagation(); handleInviteAction(inviteItem.participationId, 'reject'); }}>Refuză</button>
                     </div>
                   ) : null}
                 </article>
@@ -230,8 +364,8 @@ const MyEventsPage = ({ user }) => {
         isOpen={isEventModalOpen}
         event={editingEvent}
         onClose={handleModalClose}
-        canEdit={Boolean(editingEvent)}
-        initialMode="edit"
+        canEdit={Boolean(user?.id && editingEvent?.creator_id && user.id === editingEvent.creator_id)}
+        initialMode={modalInitialMode}
         onSaved={handleEventSaved}
       />
     </div>

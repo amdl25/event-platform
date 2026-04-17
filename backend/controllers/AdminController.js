@@ -189,7 +189,7 @@ export const getDashboardSummary = async (req, res) => {
         rank: index + 1,
         id: event.id,
         title: event.title,
-        host: event.organization?.name || `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Gazdă',
+        host: event.organization?.name || `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Organizator',
         occupancy: Number(event.current_occupancy || 0),
         capacity: Number(event.max_capacity || 0),
         status: event.moderation_status,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import API from '../api';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import '../styles/AuthPages.css';
 
 const Register = ({ onLogin }) => {
@@ -14,6 +14,7 @@ const Register = ({ onLogin }) => {
     companyName: ''
   });
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +28,10 @@ const Register = ({ onLogin }) => {
     try {
       const res = await API.post('/auth/register', formData);
       onLogin(res.data);
-      navigate(res.data?.role === 'organizer' ? '/organizer/events' : '/');
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      const fallback = res.data?.role === 'organizer' ? '/organizer/events' : '/';
+      navigate(redirect || fallback);
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la înregistrare');
     }

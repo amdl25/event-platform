@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { FiCalendar, FiClock, FiMapPin, FiZap } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiMapPin, FiUsers, FiZap } from 'react-icons/fi';
 import { useEvents } from '../hooks/useEvents';
-import { getEventDateKey, getEventStartValue, getEventTimeLabel, getEventDayNumber, getEventMonthShort } from '../utils/eventDateTime';
+import { getEventDateKey, getEventStartValue, getEventEndValue, getEventTimeRangeLabel, getEventDayNumber, getEventMonthShort } from '../utils/eventDateTime';
 import EventDetailsModal from '../components/EventDetailsModal';
 import '../styles/CalendarPage.css';
 
@@ -124,8 +124,9 @@ const CalendarPage = ({ user }) => {
                       </h4>
                       <p className="event-description-line">{e.description || 'Eveniment fără descriere.'}</p>
                       <div className="day-event-meta-row">
-                        <span className="day-event-meta-line"><FiClock /> {getEventStartValue(e) ? getEventTimeLabel(getEventStartValue(e)) : '--:--'}</span>
+                        <span className="day-event-meta-line"><FiClock /> {getEventStartValue(e) ? getEventTimeRangeLabel(getEventStartValue(e), getEventEndValue(e)) : '--:--'}</span>
                         <span className="day-event-meta-line"><FiMapPin /> {getEventCity(e.location)}</span>
+                        {!e.org_id && e.organizer_name ? <span className="day-event-meta-line"><FiUsers /> Organizator: {e.organizer_name}</span> : null}
                       </div>
                     </div>
                   </div>
@@ -155,8 +156,9 @@ const CalendarPage = ({ user }) => {
                           <span className="event-color-dot" style={{ backgroundColor: getEventColor(e) }}></span>
                           {e.title}
                         </h4>
-                        <p className="event-meta-line"><FiClock /> {getEventTimeLabel(getEventStartValue(e))}</p>
+                        <p className="event-meta-line"><FiClock /> {getEventTimeRangeLabel(getEventStartValue(e), getEventEndValue(e))}</p>
                         <p className="event-meta-line"><FiMapPin /> {getEventCity(e.location)}</p>
+                        {!e.org_id && e.organizer_name ? <p className="event-meta-line"><FiUsers /> Organizator: {e.organizer_name}</p> : null}
                       </div>
                     </div>
                   ))}

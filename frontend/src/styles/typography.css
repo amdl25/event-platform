@@ -26,6 +26,15 @@ body {
   font-weight: 400;
   line-height: var(--type-leading-default);
   font-variant-numeric: lining-nums;
+  background: var(--light-bg);
+}
+
+a,
+span,
+small,
+strong,
+em {
+  font-family: var(--font-body);
 }
 
 h1,
@@ -139,6 +148,15 @@ button,
   font-family: var(--font-body);
   font-size: var(--type-body);
   font-weight: 600;
+}
+
+input,
+textarea,
+select,
+label {
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  font-weight: 400;
 }
 
 .kpi,

@@ -34,8 +34,8 @@
 .event-main-title {
   margin: 0 0 16px;
   font-family: var(--font-display);
-  font-size: clamp(2.3rem, 4.3vw, 4.2rem);
-  line-height: 0.96;
+  font-size: var(--type-display-l);
+  line-height: var(--type-leading-none);
   letter-spacing: -0.03em;
   font-weight: 700;
 }
@@ -114,9 +114,9 @@
 .event-about-section h2,
 .event-map-header h3 {
   margin: 0 0 14px;
-  font-size: 2rem;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-size: var(--type-h2);
+  line-height: var(--type-leading-tight);
+  letter-spacing: -0.02em;
 }
 
 .event-about-section p {
@@ -191,8 +191,9 @@
 
 .event-booking-card h3 {
   margin: 0 0 12px;
-  font-size: 1.45rem;
-  line-height: 1;
+  font-size: var(--type-h3);
+  line-height: var(--type-leading-tight);
+  font-weight: 600;
 }
 
 .ticket-option {
@@ -298,7 +299,7 @@
   color: #ffffff;
   font-size: 0.6rem;
   letter-spacing: 0.1em;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 5px;
 }
 
@@ -337,7 +338,7 @@
   height: 44px;
   font-size: 0.88rem;
   letter-spacing: 0.04em;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -374,7 +375,7 @@
   color: #ffffff;
   display: grid;
   place-items: center;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .scarcity-card p {

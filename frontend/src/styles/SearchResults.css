@@ -1,19 +1,21 @@
 .search-results-page {
     padding: 40px 0 40px 0 !important;
+    background: var(--light-bg);
 }
 
 .search-results-page h2 {
-    font-family: 'Poppins', sans-serif !important;
-    font-weight: 800;
-    font-size: 2rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--type-h1);
+    line-height: var(--type-leading-tight);
     color: #1a1a1a;
     margin-bottom: 10px;
-    letter-spacing: -0.8px;
+    letter-spacing: -0.02em;
 }
 
 .search-results-count {
-    font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
+    font-family: var(--font-body);
+    font-size: var(--type-body-l);
     color: #666;
     margin-bottom: 40px;
     font-weight: 500;
@@ -58,7 +60,7 @@
 .no-results-msg {
     text-align: center;
     padding: 100px 0;
-    font-size: 1.2rem;
+    font-size: var(--type-body-l);
     color: #888;
     grid-column: 1 / -1;
 }
