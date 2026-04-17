@@ -74,7 +74,7 @@ const DiscoveryFeed = () => {
     return (
         <div className="discovery-page">
             <section className="filters-section">
-                <div className="container-max">
+                <div className="discovery-container">
                     <div className="filters-header-row">
                         <h2>Evenimente viitoare</h2>
                         <div className="filters-row">
@@ -133,7 +133,7 @@ const DiscoveryFeed = () => {
             </section>
 
             <section className="events-section">
-                <div className="container-max">
+                <div className="discovery-container">
                     {loading ? (
                         <p className="loading-text">Se încarcă...</p>
                     ) : publicEvents.length > 0 ? (

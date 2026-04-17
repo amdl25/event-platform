@@ -1,0 +1,277 @@
+.home-member-zone {
+  padding: 10px 24px 18px;
+}
+
+.home-member-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.home-member-pair {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+}
+
+.home-member-card {
+  border-radius: 22px;
+  padding: 24px;
+  border: 1px solid #e9ddd5;
+}
+
+.home-member-card-loyalty {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.home-member-card-ticket {
+  background: #ffffff;
+  color: #1f1720;
+}
+
+.home-member-eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.home-member-card h2,
+.home-member-card h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.home-member-copy {
+  margin: 12px 0 18px;
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.home-loyalty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-loyalty-row span {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+.home-loyalty-row strong {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.home-level-chip {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.home-level-chip.gold {
+  background: rgba(255, 241, 184, 0.28);
+}
+
+.home-level-chip.silver {
+  background: rgba(226, 232, 240, 0.35);
+}
+
+.home-level-chip.bronze {
+  background: rgba(255, 230, 208, 0.28);
+}
+
+.home-ticket-meta {
+  margin: 10px 0 0;
+  color: #6f6259;
+  font-size: 0.96rem;
+}
+
+.home-ticket-action {
+  margin-top: 20px;
+  border: 1px solid #f97316;
+  background: #f97316;
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-ticket-action:hover {
+  background: #ea580c;
+  border-color: #ea580c;
+}
+
+.home-reco-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-reco-head h2 {
+  margin: 0;
+  color: #231a18;
+}
+
+.home-reco-kicker {
+  margin: 0 0 6px;
+  color: #ea5a36;
+}
+
+.home-reco-headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-h2);
+  font-weight: 600;
+  line-height: var(--type-leading-tight);
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+}
+
+.home-reco-headline .serif-accent {
+  color: #5f524a;
+  font-weight: 500;
+}
+
+.home-reco-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-reco-card {
+  position: relative;
+  height: 270px;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+  background: linear-gradient(140deg, #3a2015 0%, #5f2f1d 100%);
+}
+
+.home-reco-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-reco-card.is-placeholder {
+  cursor: default;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.home-reco-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 20%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+.home-reco-content {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  color: #fff;
+}
+
+.home-reco-content span {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.home-reco-content h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.12;
+  font-weight: 600;
+}
+
+.home-final-cta {
+  padding: 14px 24px 28px;
+}
+
+.home-final-cta-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  border-radius: 22px;
+  padding: 28px;
+  background: linear-gradient(130deg, #23110b 0%, #4a2112 100%);
+  color: #fff;
+}
+
+.home-final-cta-shell p {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.home-final-cta-shell h2 {
+  margin: 10px 0 0;
+  max-width: 24ch;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.45rem, 2.6vw, 2.35rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.home-final-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.home-final-actions button {
+  border: 1px solid #f97316;
+  border-radius: 11px;
+  padding: 11px 16px;
+  background: #f97316;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-final-actions button.secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.44);
+}
+
+@media (max-width: 980px) {
+  .home-member-pair,
+  .home-reco-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-reco-card {
+    height: 250px;
+  }
+}

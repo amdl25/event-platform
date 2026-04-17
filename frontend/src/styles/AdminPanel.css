@@ -20,14 +20,14 @@
   min-height: 100vh;
   background: var(--admin-bg);
   color: var(--admin-text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.35;
 }
 
 .admin-shell,
 .admin-shell * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-family: var(--font-body) !important;
 }
 
 .admin-sidebar {
@@ -538,14 +538,14 @@
   font-size: 12px;
   font-weight: 600;
   fill: #1f2937;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
 }
 
 .admin-chart-tooltip-label {
   font-size: 12px;
   font-weight: 500;
   fill: #1f2937;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
 }
 
 .admin-chart-labels {

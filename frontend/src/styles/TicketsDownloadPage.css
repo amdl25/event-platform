@@ -42,10 +42,10 @@
 }
 
 .tickets-header h1 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: clamp(2.15rem, 4.6vw, 3.5rem);
-  font-style: italic;
-  font-weight: 500;
+  font-style: normal;
+  font-weight: 700;
   color: #2f241d;
   margin: 0;
   line-height: 0.94;
@@ -53,10 +53,10 @@
 }
 
 .tickets-subtitle {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: clamp(1.22rem, 2.5vw, 1.78rem);
-  font-style: italic;
-  font-weight: 400;
+  font-style: normal;
+  font-weight: 600;
   color: #6d5e55;
   margin: 2px 0 8px;
   line-height: 1;
@@ -108,12 +108,12 @@
 }
 
 .tickets-event-title {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: clamp(1.54rem, 2.6vw, 1.92rem);
   line-height: 1.03;
   margin: 0;
   color: #2a211b;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .tickets-event-location {
