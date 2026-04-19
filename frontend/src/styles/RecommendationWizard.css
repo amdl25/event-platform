@@ -57,7 +57,7 @@
 
 .wizard-step-badge {
   font-size: 11px; font-weight: 800; letter-spacing: 3px;
-  color: #F97316; margin-bottom: 24px; display: block;
+  color: var(--primary); margin-bottom: 24px; display: block;
 }
 
 .wizard-drawer-title {
@@ -135,7 +135,7 @@
 }
 
 .result-content { padding: 24px; }
-.result-date-label { font-size: 11px; font-weight: 800; color: #F97316; margin-bottom: 8px; display: block; }
+.result-date-label { font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; }
 .result-content h4 { font-size: 1.2rem; font-weight: 850; margin: 0 0 6px 0; }
 .result-content p { font-size: 0.75rem; color: #999; font-weight: 700; letter-spacing: 1px; }
 

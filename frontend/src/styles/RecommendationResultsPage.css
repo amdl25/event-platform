@@ -42,7 +42,7 @@
 }
 
 .recommendation-card.city-fallback {
-  border-color: #f97316;
+  border-color: var(--primary);
 }
 
 .recommendation-card:hover {
@@ -68,7 +68,7 @@
   font-size: 48px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #ff7f50 0%, #ff9668 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient-end) 100%);
 }
 
 .recommendation-city-badge {
@@ -86,7 +86,7 @@
 }
 
 .recommendation-city-badge.highlighted {
-  background: #f97316;
+  background: var(--primary);
 }
 
 .recommendation-price {
@@ -124,7 +124,7 @@
   place-items: center;
   flex: 0 0 auto;
   font-size: 18px;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.14);
+  box-shadow: 0 4px 12px rgba(233, 91, 60, 0.14);
 }
 
 .recommendation-fallback-copy {
@@ -152,7 +152,7 @@
 
 .recommendation-date {
   display: block;
-  color: #f97316;
+  color: var(--primary);
   font-size: 0.7rem;
   font-weight: 700;
   margin-bottom: 2px;
@@ -218,3 +218,5 @@
     font-size: 1.95rem;
   }
 }
+
+

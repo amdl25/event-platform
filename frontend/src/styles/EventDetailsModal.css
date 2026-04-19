@@ -88,7 +88,7 @@
 
 .event-modal-kicker {
   margin: 0 0 8px;
-  color: #ea5a36;
+  color: var(--primary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -120,7 +120,7 @@
 }
 
 .event-modal-primary-button {
-  background: #ea5a36;
+  background: var(--primary);
   color: #fff;
 }
 
@@ -165,7 +165,7 @@
 
 .event-modal-meta-item svg {
   flex: 0 0 auto;
-  color: #ea5a36;
+  color: var(--primary);
   margin-top: 2px;
 }
 
@@ -210,7 +210,7 @@
 .event-modal-tag {
   padding: 6px 10px;
   background: #fff7f4;
-  color: #ea5a36;
+  color: var(--primary);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
@@ -411,8 +411,8 @@
 .event-modal-field select:focus,
 .event-modal-field textarea:focus {
   outline: none;
-  border-color: #ea5a36;
-  box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
 .event-modal-datetime-group {
@@ -474,8 +474,8 @@
 
 .event-modal-time-select-trigger:focus {
   outline: none;
-  border-color: #ea5a36;
-  box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
 .event-modal-time-dropdown-menu {
@@ -590,3 +590,4 @@
     align-items: flex-start;
   }
 }
+

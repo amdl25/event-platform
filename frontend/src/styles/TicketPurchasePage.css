@@ -207,7 +207,7 @@
 }
 
 .checkout-switch input:checked + .checkout-slider {
-  background: #ea5a36;
+  background: var(--primary);
 }
 
 .checkout-switch input:checked + .checkout-slider::before {
@@ -235,8 +235,8 @@
 
 .checkout-input:focus {
   outline: none;
-  border-color: #ea5a36;
-  box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
 .checkout-input:disabled {
@@ -376,3 +376,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+

@@ -182,7 +182,7 @@
 .btn-load-more:hover {
     background: var(--primary);
     color: white;
-    box-shadow: 0 8px 20px rgba(255, 127, 80, 0.2);
+    box-shadow: 0 8px 20px rgba(233, 91, 60, 0.2);
 }
 
 @media (max-width: 1100px) {

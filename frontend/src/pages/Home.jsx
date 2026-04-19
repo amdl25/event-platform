@@ -11,12 +11,6 @@ import '../styles/Home.css';
 
 const NEXT_TICKET_CACHE_KEY = 'homeNextTicket';
 
-const getUserLevel = (points) => {
-  if (points >= 2500) return { label: 'Gold', accent: 'gold' };
-  if (points >= 1000) return { label: 'Silver', accent: 'silver' };
-  return { label: 'Bronze', accent: 'bronze' };
-};
-
 const getDaysUntilLabel = (dateValue) => {
   const now = new Date();
   const target = new Date(dateValue);
@@ -28,22 +22,24 @@ const getDaysUntilLabel = (dateValue) => {
   return `În ${diffDays} zile`;
 };
 
-const formatTicketDateTime = (dateValue) => {
+const formatTicketDateParts = (dateValue) => {
   const date = new Date(dateValue);
-  const datePartRaw = date.toLocaleDateString('ro-RO', {
+  const dayPartRaw = date.toLocaleDateString('ro-RO', {
     weekday: 'short',
     day: 'numeric',
     month: 'short'
   });
-  const datePart = datePartRaw
+
+  const dayPart = dayPartRaw
     .replace(/\./g, '')
     .replace(/^./, (char) => char.toUpperCase());
+
   const timePart = date.toLocaleTimeString('ro-RO', {
     hour: '2-digit',
     minute: '2-digit'
   });
 
-  return `${datePart} · ${timePart}`;
+  return { dayPart, timePart };
 };
 
 const toLocalDateKey = (dateValue) => {
@@ -61,14 +57,12 @@ const Home = ({ user }) => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [nextTicket, setNextTicket] = useState(null);
   const [isHomeLoading, setIsHomeLoading] = useState(false);
-  const [totalPoints, setTotalPoints] = useState(0);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
 
   useEffect(() => {
     if (!user?.id) {
       setNextTicket(null);
       setIsHomeLoading(false);
-      setTotalPoints(0);
       setRecommendedEvents([]);
       sessionStorage.removeItem(NEXT_TICKET_CACHE_KEY);
       return;
@@ -89,16 +83,12 @@ const Home = ({ user }) => {
 
     const loadPersonalizedHome = async () => {
       try {
-        const [loyaltyRes, ticketsRes, eventsRes] = await Promise.all([
-          API.get('/users/me/loyalty'),
+        const [ticketsRes, eventsRes] = await Promise.all([
           API.get('/events/tickets/mine'),
           API.get('/events')
         ]);
-
-        const points = Number(loyaltyRes.data?.totalPoints || 0);
-        setTotalPoints(points);
-
         const now = new Date();
+
         const upcomingTickets = (ticketsRes.data || [])
           .filter((ticket) => ticket?.event?.startDate && new Date(ticket.event.startDate) > now)
           .sort((a, b) => new Date(a.event.startDate) - new Date(b.event.startDate));
@@ -159,9 +149,12 @@ const Home = ({ user }) => {
     loadPersonalizedHome();
   }, [user]);
 
-  const level = useMemo(() => getUserLevel(totalPoints), [totalPoints]);
   const greetingName = useMemo(() => user?.firstName || user?.first_name || 'prietene', [user]);
   const nextTicketDate = nextTicket?.event?.startDate || null;
+  const nextTicketDateParts = useMemo(
+    () => (nextTicketDate ? formatTicketDateParts(nextTicketDate) : { dayPart: '', timePart: '' }),
+    [nextTicketDate]
+  );
   const recommendationCards = useMemo(() => {
     const cards = [...recommendedEvents.slice(0, 3)];
     while (cards.length < 3) {
@@ -183,23 +176,16 @@ const Home = ({ user }) => {
       {user ? (
         <section className="home-member-zone">
           <div className="home-member-shell">
-            <div className="home-member-pair">
-              <article className="home-member-card home-member-card-loyalty">
-                <p className="home-member-eyebrow">Dashboard personal</p>
-                <h2>Bine ai revenit, {greetingName}.</h2>
-                <p className="home-member-copy">Punctele tale cresc cu fiecare bilet validat. Ține ritmul și urcă în nivel.</p>
+            <div className="home-member-head">
+              <div>
+                <h2 className="home-member-greeting">
+                  Bună, <span>{greetingName}</span>!
+                </h2>
+                <p className="home-member-subtitle">Ai un eveniment în curând — pregătește-te!</p>
+              </div>
+            </div>
 
-                <div className="home-loyalty-row">
-                  <div>
-                    <span>Puncte fidelitate</span>
-                    <strong>{totalPoints.toLocaleString('ro-RO')}</strong>
-                  </div>
-                  <div className={`home-level-chip ${level.accent}`}>
-                    Nivel {level.label}
-                  </div>
-                </div>
-              </article>
-
+            <div className="home-member-pair ticket-only">
               <article className={`home-member-card home-member-card-ticket${nextTicket ? ' has-ticket' : ''}`}>
                 {nextTicket ? (
                   <div className="home-ticket-layout">
@@ -217,29 +203,47 @@ const Home = ({ user }) => {
                       )}
                     </div>
                     <div className="home-ticket-main">
-                      <p className="home-ticket-kicker"><FaTicketAlt /> URMĂTORUL TĂU BILET</p>
+                      <p className="home-ticket-kicker"><FaTicketAlt /> URMĂTORUL TĂU EVENIMENT</p>
                       <h3>{nextTicket.event?.title || 'Eveniment'}</h3>
-                      <p className="home-ticket-meta with-icon">
-                        <FiCalendar />
-                        <span>{formatTicketDateTime(nextTicket.event.startDate)}</span>
-                      </p>
-                      <p className="home-ticket-meta with-icon">
-                        <FiMapPin />
-                        <span>{nextTicket.event?.location || 'Locație nespecificată'}</span>
-                      </p>
-                      {nextTicketDate ? (
+
+                      <div className="home-ticket-meta-grid">
+                        <div className="home-ticket-meta-block">
+                          <p className="home-ticket-meta-label"><FiCalendar /> DATA</p>
+                          <p className="home-ticket-meta-value">{nextTicketDateParts.dayPart}</p>
+                          <p className="home-ticket-meta-time">{nextTicketDateParts.timePart}</p>
+                        </div>
+
+                        <div className="home-ticket-meta-block">
+                          <p className="home-ticket-meta-label"><FiMapPin /> LOCAȚIE</p>
+                          <p className="home-ticket-meta-value">{nextTicket.event?.location || 'Locație nespecificată'}</p>
+                        </div>
+                      </div>
+
+                      <div className="home-ticket-actions-row">
                         <button
                           type="button"
-                          className="home-ticket-calendar-btn"
+                          className="home-ticket-primary-btn"
                           onClick={() => {
-                            const encodedDate = encodeURIComponent(nextTicketDate);
-                            navigate(`/calendar?selectedDate=${encodedDate}`);
+                            if (nextTicket.event?.id) {
+                              navigate(`/event/${nextTicket.event.id}`);
+                            } else {
+                              navigate('/my-events');
+                            }
                           }}
                         >
-                          <FiCalendar />
-                          <span>Vezi în calendar</span>
+                          <FaTicketAlt />
+                          <span>Vezi evenimentul</span>
                         </button>
-                      ) : null}
+                      </div>
+                    </div>
+
+                    <div className="home-ticket-qr-col">
+                      <div className="home-ticket-qr-box" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                      </div>
+                      <p>QR</p>
                     </div>
                   </div>
                 ) : isHomeLoading ? (

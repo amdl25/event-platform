@@ -179,14 +179,14 @@ const ExplorePage = () => {
         
         <header className="explore-header">
           <div className="explore-header-top">
-            <div className="explore-header-text">
+            <div className="explore-header-copy">
               <h1 className="explore-title">Descoperă</h1>
               <p className="explore-subtitle">Găsește următoarea ta experiență memorabilă.</p>
             </div>
 
             {showAll ? (
               <div className="explore-header-controls">
-                <button className="btn-browse-all" onClick={() => setShowAll(!showAll)}>
+                <button className="btn-browse-all explore-back-link" onClick={() => setShowAll(!showAll)}>
                   <i className="fi fi-rr-arrow-left"></i> Înapoi la categorii
                 </button>
 

@@ -3,7 +3,7 @@
   color: #f8fafc;
   padding: 80px 8% 40px 8%;
   margin-top: 60px;
-  border-top: 1px solid rgba(255, 127, 80, 0.1); 
+  border-top: 1px solid rgba(233, 91, 60, 0.1); 
 }
 
 .footer-content {
@@ -45,7 +45,7 @@
   background: var(--primary); 
   border-radius: 50%;
   margin-right: 8px;
-  box-shadow: 0 0 10px rgba(255, 127, 80, 0.4); 
+  box-shadow: 0 0 10px rgba(233, 91, 60, 0.4); 
 }
 
 .footer-status {
@@ -97,3 +97,4 @@
   color: #475569;
   font-size: 0.85rem;
 }
+

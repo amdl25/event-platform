@@ -86,7 +86,7 @@
   font-size: 0.938rem;
   font-weight: 600;
   color: #fff;
-  background: #F97316;
+  background: var(--primary);
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -94,9 +94,9 @@
 }
 
 .hero-cta-button:hover {
-  background: #EA580C;
+  background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 4px 12px rgba(233, 91, 60, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -125,3 +125,5 @@
     width: calc(100% - 32px);
   }
 }
+
+

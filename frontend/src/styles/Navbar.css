@@ -39,7 +39,7 @@
 }
 
 .logo-event { color: #1a1a1a; }
-.logo-hub { color: #F97316; }
+.logo-hub { color: var(--primary); }
 
 .navbar-links {
   display: flex;
@@ -63,20 +63,20 @@
 
 .navbar-link:hover {
   background: transparent;
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-link-create {
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-link-create:hover {
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-link:hover svg,
 .navbar-link-create:hover svg {
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-actions {
@@ -124,11 +124,11 @@
 }
 
 .navbar-btn-secondary:hover {
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-btn-profile:hover {
-  color: #F97316;
+  color: var(--primary);
 }
 
 .navbar-btn-primary {

@@ -114,13 +114,13 @@
     gap: 8px;
     white-space: nowrap;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(255, 127, 80, 0.2);
+    box-shadow: 0 4px 12px rgba(233, 91, 60, 0.2);
 }
 
 .btn-finish-full:hover:not(:disabled) {
-    background: #ff6347;
+    background: var(--primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(255, 127, 80, 0.3);
+    box-shadow: 0 6px 15px rgba(233, 91, 60, 0.3);
 }
 
 .btn-finish-full:disabled {
@@ -152,3 +152,4 @@
     font-size: 1.1rem;
     margin-bottom: 2px;
 }
+

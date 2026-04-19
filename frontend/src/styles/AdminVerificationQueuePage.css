@@ -23,7 +23,7 @@
 }
 
 .logo-event { font-size: 22px; font-weight: 800; color: #1e293b; }
-.logo-hub { font-size: 22px; font-weight: 800; color: #ea5a36; }
+.logo-hub { font-size: 22px; font-weight: 800; color: var(--primary); }
 
 .admin-badge {
   background: #f1f5f9;
@@ -59,7 +59,7 @@
 
 .admin-nav-item.active {
   background: #fff1ed;
-  color: #ea5a36;
+  color: var(--primary);
 }
 
 .admin-nav-item.muted { opacity: 0.6; }
@@ -106,7 +106,7 @@
   width: 32px;
   height: 32px;
   background: #ffede8;
-  color: #ea5a36;
+  color: var(--primary);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -241,7 +241,7 @@
 .admin-table td { padding: 16px 12px; border-bottom: 1px solid #f1f5f9; }
 
 .company-info { display: flex; align-items: center; gap: 12px; }
-.company-icon { width: 36px; height: 36px; background: #fff1ed; color: #ea5a36; border-radius: 10px; display: grid; place-items: center; }
+.company-icon { width: 36px; height: 36px; background: #fff1ed; color: var(--primary); border-radius: 10px; display: grid; place-items: center; }
 
 .name { font-weight: 700; font-size: 14px; color: #1e293b; margin: 0; }
 .contact-p { font-weight: 600; font-size: 13px; margin: 0; }

@@ -5,7 +5,7 @@
   --admin-border: #e9e2dc;
   --admin-text: #1f2937;
   --admin-muted: #718096;
-  --admin-accent: #ea5a36;
+  --admin-accent: var(--primary);
   --admin-accent-soft: #fff1eb;
   --admin-success: #2fb46f;
   --admin-warning: #f59e0b;
@@ -959,3 +959,4 @@
   .admin-grid-4 { grid-template-columns: 1fr; }
   .admin-form-grid { grid-template-columns: 1fr; }
 }
+

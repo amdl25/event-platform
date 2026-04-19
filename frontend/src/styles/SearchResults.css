@@ -69,6 +69,6 @@
     text-align: center;
     padding: 50px;
     font-size: 1.1rem;
-    color: #ff7f50;
+    color: var(--primary);
     font-weight: 600;
 }

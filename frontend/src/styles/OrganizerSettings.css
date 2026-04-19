@@ -70,7 +70,7 @@
 .form-group input:focus {
   outline: none;
   border-color: var(--admin-accent);
-  box-shadow: 0 0 0 4px rgba(234, 90, 54, 0.1);
+  box-shadow: 0 0 0 4px rgba(233, 91, 60, 0.1);
 }
 
 .form-group input:disabled {

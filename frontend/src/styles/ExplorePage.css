@@ -13,37 +13,45 @@
 .explore-header-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
+  align-items: flex-end;
+  gap: 28px;
 }
 
-.explore-header-text {
-  flex: 1;
+.explore-header-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .explore-header-controls {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 10px;
+  margin-top: 0;
+  flex: 0 0 auto;
 }
 
 .explore-title {
   font-family: var(--font-display);
   font-size: var(--type-h1);
-  font-weight: 700;
+  font-weight: 800;
   color: #1A1A1A;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-  line-height: var(--type-leading-tight);
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .explore-subtitle {
   font-size: var(--type-body-l);
-  color: #666;
+  color: #667085;
   margin: 0;
   font-weight: 500;
+  max-width: 44rem;
+  line-height: 1.35;
 }
 
 .explore-section {
@@ -53,7 +61,7 @@
 .section-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: 25px;
 }
 
@@ -113,8 +121,8 @@
 
 .category-card:hover {
   transform: translateY(-4px);
-  border-color: #ff7f50;
-  box-shadow: 0 10px 20px rgba(255, 127, 80, 0.08);
+  border-color: var(--primary);
+  box-shadow: 0 10px 20px rgba(233, 91, 60, 0.08);
 }
 
 .explore-all-events-wrap {
@@ -128,11 +136,11 @@
   align-items: flex-end;
   gap: 12px;
   margin-left: auto;
-  margin-bottom: 14px;
+  margin-bottom: 0;
   padding: 0;
   border-bottom: none;
   flex-wrap: wrap;
-  width: min(760px, 100%);
+  width: min(860px, 100%);
   max-width: 100%;
 }
 
@@ -144,17 +152,19 @@
 .filter-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   flex: 1 1 0;
 }
 
 .filter-item label {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #8a95a5;
+  color: #94a3b8;
   letter-spacing: 0.5px;
+  line-height: 1;
+  margin: 0;
 }
 
 .explore-events-grid {
@@ -232,13 +242,13 @@
   height: 34px;
   padding: 0 16px;
   padding-right: 28px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #dbe3ee !important;
   border-radius: 100px !important;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   background: #fff !important;
   cursor: pointer;
   font-weight: 600;
-  color: #4a5568;
+  color: #475569;
   outline: none;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -303,13 +313,56 @@
 .react-datepicker__input-container input {
   width: 100%;
   height: 34px;
-  padding: 0 12px;
-  border: 1px solid #d6dde8;
+  padding: 0 16px;
+  border: 1px solid #dbe3ee;
   border-radius: 100px;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   background: white;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
+}
+
+.btn-browse-all.explore-back-link {
+  margin-bottom: 0;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.btn-browse-all.explore-back-link:hover {
+  opacity: 0.75;
+}
+
+@media (max-width: 1100px) {
+  .explore-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .explore-header-controls {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .explore-filters-bar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 850px) {
+  .explore-title {
+    font-size: 2.6rem;
+  }
+
+  .explore-filters-bar {
+    gap: 10px;
+  }
+
+  .filter-item {
+    flex: 1 1 100%;
+  }
 }
 
 .react-datepicker-popper {
@@ -333,7 +386,7 @@
 }
 
 .react-datepicker__day--selected {
-  background-color: #ff7f50 !important;
+  background-color: var(--primary) !important;
   color: white !important;
 }
 
@@ -348,7 +401,7 @@
   font-size: 1rem;
   margin-right: 10px;
   background: var(--primary-soft);
-  color: #ff7f50;
+  color: var(--primary);
 }
 
 .cat-card-info {
@@ -477,3 +530,4 @@
   .explore-events-grid { grid-template-columns: 1fr; }
   .cities-browser { max-width: 100%; }
 }
+

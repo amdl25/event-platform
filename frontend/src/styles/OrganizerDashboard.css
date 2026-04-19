@@ -30,7 +30,7 @@
 }
 
 .organizer-logo-event { font-size: 22px; font-weight: 800; color: #1e293b; }
-.organizer-logo-hub { font-size: 22px; font-weight: 800; color: #ea5a36; }
+.organizer-logo-hub { font-size: 22px; font-weight: 800; color: var(--primary); }
 
 .organizer-logo-badge {
   font-size: 10px;
@@ -255,7 +255,7 @@
 }
 
 .organizer-new-event-btn {
-  background: #ea5a36;
+  background: var(--primary);
   color: #fff;
   border: none;
   padding: 8px 18px;
@@ -343,7 +343,7 @@
 }
 
 .organizer-status-banner-new button { 
-  background: #ea5a36; 
+  background: var(--primary); 
   color: #fff; 
   border: none; 
   padding: 6px 14px; 
@@ -389,10 +389,10 @@
 
 .icon-green, .text-green { color: #10b981; }
 .icon-blue, .text-blue { color: #3b82f6; }
-.icon-orange, .text-orange { color: #ea5a36; }
+.icon-orange, .text-orange { color: var(--primary); }
 
 .organizer-primary-button {
-  background: #ea5a36;
+  background: var(--primary);
   color: #fff;
   border: none;
   padding: 10px 16px;
@@ -409,7 +409,7 @@
   padding: 14px 20px;
   border-radius: 18px;
   font-size: 14px;
-  box-shadow: 0 14px 24px rgba(234, 90, 54, 0.16);
+  box-shadow: 0 14px 24px rgba(233, 91, 60, 0.16);
 }
 
 .organizer-primary-button-large svg {
@@ -439,9 +439,9 @@
 }
 
 .organizer-tab.active {
-  background: #ea5a36;
+  background: var(--primary);
   color: #fff;
-  box-shadow: 0 10px 20px rgba(234, 90, 54, 0.18);
+  box-shadow: 0 10px 20px rgba(233, 91, 60, 0.18);
 }
 
 .organizer-tab:hover:not(.active) {
@@ -582,7 +582,7 @@
 .organizer-upcoming-accent.color-1 { background: #f59e0b; }
 .organizer-upcoming-accent.color-2 { background: #8b5cf6; }
 .organizer-upcoming-accent.color-3 { background: #10b981; }
-.organizer-upcoming-accent.color-4 { background: #ea5a36; }
+.organizer-upcoming-accent.color-4 { background: var(--primary); }
 
 .organizer-upcoming-main h4 {
   margin: 0;
@@ -808,7 +808,7 @@
   height: 38px;
   border-radius: 12px;
   background: #fff1ed;
-  color: #ea5a36;
+  color: var(--primary);
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -882,7 +882,7 @@
 .stat-icon { font-size: 24px; color: #cbd5e1; }
 .icon-green, .text-green { color: #10b981; }
 .icon-blue, .text-blue { color: #3b82f6; }
-.icon-orange, .text-orange { color: #ea5a36; }
+.icon-orange, .text-orange { color: var(--primary); }
 
 .organizer-panel { 
   background: #fff; 
@@ -994,7 +994,7 @@
 
 .event-progress-cell p { font-size: 13px; margin-bottom: 6px; color: #64748b; }
 .progress-bg { height: 7px; background: #edf2f7; border-radius: 999px; overflow: hidden; width: 100%; }
-.progress-fill { height: 100%; background: #ea5a36; border-radius: 10px; }
+.progress-fill { height: 100%; background: var(--primary); border-radius: 10px; }
 
 .event-price-cell {
   display: flex;
@@ -1047,7 +1047,7 @@
 }
 
 .event-icon-action.edit:hover:not(:disabled) {
-  color: #ea5a36;
+  color: var(--primary);
   border-color: #fed7aa;
   background: #fff7ed;
 }
@@ -1275,8 +1275,8 @@
 .organizer-create-field textarea:focus,
 .organizer-create-field select:focus {
   outline: none;
-  border-color: #ea5a36;
-  box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
 .organizer-location-autocomplete {
@@ -1313,7 +1313,7 @@
 
 .organizer-location-suggestion:hover {
   background: #fff7f3;
-  color: #ea5a36;
+  color: var(--primary);
 }
 
 .organizer-location-suggestion + .organizer-location-suggestion {
@@ -1417,8 +1417,8 @@
 
 .organizer-time-select-trigger:focus {
   outline: none;
-  border-color: #ea5a36;
-  box-shadow: 0 0 0 3px rgba(234, 90, 54, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
 .organizer-time-dropdown-menu {
@@ -1555,8 +1555,8 @@
 }
 
 .organizer-ticket-add {
-  border-color: #ea5a36;
-  color: #ea5a36;
+  border-color: var(--primary);
+  color: var(--primary);
   white-space: nowrap;
 }
 
@@ -1638,8 +1638,8 @@
 }
 
 .organizer-create-submit {
-  border: 1px solid #ea5a36;
-  background: #ea5a36;
+  border: 1px solid var(--primary);
+  background: var(--primary);
   color: #fff;
 }
 
@@ -1672,3 +1672,4 @@
     width: 100%;
   }
 }
+
