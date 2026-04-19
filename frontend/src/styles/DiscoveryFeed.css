@@ -34,13 +34,16 @@
 .filters-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    width: min(500px, 100%);
 }
 
 .filter-pill-container {
     position: relative;
     display: flex;
     align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .filter-select {
@@ -49,7 +52,7 @@
     justify-content: space-between;
     gap: 8px;
     height: 34px;
-    padding: 0 12px;
+    padding: 0 16px;
     background-color: #FFFFFF !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 100px !important;
@@ -58,13 +61,16 @@
     color: #4a5568;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: unset;
+    min-width: 0;
     outline: none;
     padding-right: 28px !important;
+    white-space: nowrap;
+    width: 100%;
+    flex: 1 1 auto;
 }
 
 .filter-pill-container .custom-dropdown {
-    min-width: 170px;
+    width: 100%;
 }
 
 .filter-select:hover {
