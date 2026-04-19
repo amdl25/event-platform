@@ -42,7 +42,7 @@ const AdminParticipantsPage = ({ user, handleLogout }) => {
   });
 
   if (loading) {
-    return <AdminShell user={user} handleLogout={handleLogout} title="Participanți" subtitle="Se încarcă participanții..."><div className="admin-card">Se încarcă...</div></AdminShell>;
+    return null;
   }
 
   return (

@@ -716,7 +716,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   );
 
   if (loading) {
-    return <OrganizerShell user={user} handleLogout={handleLogout} title="Evenimentele mele" subtitle="Se încarcă..." actions={actions}><div className="organizer-card">Se încarcă...</div></OrganizerShell>;
+    return null;
   }
 
   return (

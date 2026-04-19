@@ -51,7 +51,7 @@ const OrganizerOverviewPage = ({ user, handleLogout }) => {
   const recentTransactions = useMemo(() => transactions.slice(0, 6), [transactions]);
 
   if (loading) {
-    return <OrganizerShell user={user} handleLogout={handleLogout} title="Dashboard" subtitle="Se încarcă..."><div className="organizer-card">Se încarcă dashboard-ul...</div></OrganizerShell>;
+    return null;
   }
 
   return (

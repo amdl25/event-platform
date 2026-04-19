@@ -112,11 +112,7 @@ const AdminDashboardPage = ({ user, handleLogout }) => {
   );
 
   if (loading) {
-    return (
-      <AdminShell user={user} handleLogout={handleLogout} title="Dashboard" subtitle="Privire de ansamblu asupra platformei" actions={actions}>
-        <div className="admin-card">Se încarcă dashboard-ul...</div>
-      </AdminShell>
-    );
+    return null;
   }
 
   return (

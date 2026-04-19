@@ -277,7 +277,7 @@ const Profile = ({ user }) => {
     };
 
     if (!user || loading) {
-        return <div className="profile-loader">Se încarcă profilul...</div>;
+        return null;
     }
 
     return (

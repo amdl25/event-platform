@@ -285,7 +285,7 @@ const MyEventsPage = ({ user }) => {
                     {openMenuEventId === eventItem.id ? (
                       <div className="private-menu-dropdown">
                         <button type="button" onClick={(event) => { event.stopPropagation(); handleOpenEditModal(eventItem.id); }} disabled={loadingEventId === eventItem.id}>
-                          <FiEdit2 /> {loadingEventId === eventItem.id ? 'Se încarcă...' : 'Editează'}
+                          <FiEdit2 /> Editează
                         </button>
                         <button type="button" onClick={(event) => { event.stopPropagation(); handleRegenerateInviteLink(eventItem.id); }} disabled={regeneratingEventId === eventItem.id}>
                           <FiRefreshCw /> {regeneratingEventId === eventItem.id ? 'Se regenerează...' : 'Regenerare link'}

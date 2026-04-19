@@ -90,7 +90,7 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
   };
 
   if (loading) {
-    return <div className="organizer-loading">Se încarcă...</div>;
+    return null;
   }
 
   return (

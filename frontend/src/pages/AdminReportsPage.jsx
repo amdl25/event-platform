@@ -27,7 +27,7 @@ const AdminReportsPage = ({ user, handleLogout }) => {
   }, [user]);
 
   if (loading) {
-    return <AdminShell user={user} handleLogout={handleLogout} title="Rapoarte" subtitle="Statistici și export CSV"><div className="admin-card">Se încarcă...</div></AdminShell>;
+    return null;
   }
 
   const stats = data?.reportStats || {};

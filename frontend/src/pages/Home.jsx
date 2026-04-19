@@ -5,7 +5,11 @@ import DiscoveryFeed from '../components/DiscoveryFeed';
 import Benefits from '../components/Benefits';
 import RecommendationWizard from '../components/RecommendationWizard';
 import API, { API_BASE } from '../api';
+import { FiCalendar, FiMapPin } from 'react-icons/fi';
+import { FaTicketAlt } from 'react-icons/fa';
 import '../styles/Home.css';
+
+const NEXT_TICKET_CACHE_KEY = 'homeNextTicket';
 
 const getUserLevel = (points) => {
   if (points >= 2500) return { label: 'Gold', accent: 'gold' };
@@ -13,19 +17,74 @@ const getUserLevel = (points) => {
   return { label: 'Bronze', accent: 'bronze' };
 };
 
+const getDaysUntilLabel = (dateValue) => {
+  const now = new Date();
+  const target = new Date(dateValue);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const diffDays = Math.ceil((targetStart - todayStart) / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return 'Astăzi';
+  return `În ${diffDays} zile`;
+};
+
+const formatTicketDateTime = (dateValue) => {
+  const date = new Date(dateValue);
+  const datePartRaw = date.toLocaleDateString('ro-RO', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  });
+  const datePart = datePartRaw
+    .replace(/\./g, '')
+    .replace(/^./, (char) => char.toUpperCase());
+  const timePart = date.toLocaleTimeString('ro-RO', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  return `${datePart} · ${timePart}`;
+};
+
+const toLocalDateKey = (dateValue) => {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const Home = ({ user }) => {
   const navigate = useNavigate();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [nextTicket, setNextTicket] = useState(null);
+  const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
 
   useEffect(() => {
     if (!user?.id) {
       setNextTicket(null);
+      setIsHomeLoading(false);
       setTotalPoints(0);
       setRecommendedEvents([]);
+      sessionStorage.removeItem(NEXT_TICKET_CACHE_KEY);
       return;
+    }
+
+    setIsHomeLoading(true);
+
+    try {
+      const cachedTicketRaw = sessionStorage.getItem(NEXT_TICKET_CACHE_KEY);
+      if (cachedTicketRaw) {
+        const cachedTicket = JSON.parse(cachedTicketRaw);
+        if (cachedTicket?.event?.startDate) {
+          setNextTicket(cachedTicket);
+        }
+      }
+    } catch {
     }
 
     const loadPersonalizedHome = async () => {
@@ -43,32 +102,57 @@ const Home = ({ user }) => {
         const upcomingTickets = (ticketsRes.data || [])
           .filter((ticket) => ticket?.event?.startDate && new Date(ticket.event.startDate) > now)
           .sort((a, b) => new Date(a.event.startDate) - new Date(b.event.startDate));
-        setNextTicket(upcomingTickets[0] || null);
+        const nextUpcomingTicket = upcomingTickets[0] || null;
+        setNextTicket(nextUpcomingTicket);
+
+        if (nextUpcomingTicket) {
+          sessionStorage.setItem(NEXT_TICKET_CACHE_KEY, JSON.stringify(nextUpcomingTicket));
+        } else {
+          sessionStorage.removeItem(NEXT_TICKET_CACHE_KEY);
+        }
 
         const events = Array.isArray(eventsRes.data) ? eventsRes.data : [];
         const interests = Array.isArray(user?.interests)
           ? user.interests.map((item) => String(item?.name || item).toLowerCase())
           : [];
         const userCity = String(user?.city || user?.location || '').toLowerCase();
+        const tomorrowLocalDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const tomorrowLocalKey = toLocalDateKey(tomorrowLocalDate);
 
         const scored = events
-          .filter((event) => event?.org_id)
+          .filter((event) => {
+            if (!event?.org_id) return false;
+            const eventStart = event?.start_date || event?.start;
+            if (!eventStart) return false;
+
+            const eventLocalKey = toLocalDateKey(eventStart);
+            if (!eventLocalKey || !tomorrowLocalKey) return false;
+
+            return eventLocalKey >= tomorrowLocalKey;
+          })
           .map((event) => {
             let score = 0;
+            const eventStart = event?.start_date || event?.start;
             const categories = (event.categories || []).map((cat) => String(cat?.name || '').toLowerCase());
             if (userCity && String(event.location || '').toLowerCase().includes(userCity)) score += 3;
             if (interests.length > 0 && categories.some((cat) => interests.includes(cat))) score += 4;
-            if (event.start_date && new Date(event.start_date) > now) score += 2;
+            if (eventStart && new Date(eventStart) > now) score += 2;
             if (Number(event.price || 0) === 0) score += 1;
             return { event, score };
           })
-          .sort((a, b) => b.score - a.score || new Date(a.event.start_date) - new Date(b.event.start_date))
+          .sort((a, b) => {
+            const startA = new Date(a.event?.start_date || a.event?.start).getTime();
+            const startB = new Date(b.event?.start_date || b.event?.start).getTime();
+            return b.score - a.score || startA - startB;
+          })
           .slice(0, 3)
           .map((item) => item.event);
 
         setRecommendedEvents(scored);
       } catch (error) {
         console.error('Eroare la încărcarea home personalizat:', error);
+      } finally {
+        setIsHomeLoading(false);
       }
     };
 
@@ -77,6 +161,7 @@ const Home = ({ user }) => {
 
   const level = useMemo(() => getUserLevel(totalPoints), [totalPoints]);
   const greetingName = useMemo(() => user?.firstName || user?.first_name || 'prietene', [user]);
+  const nextTicketDate = nextTicket?.event?.startDate || null;
   const recommendationCards = useMemo(() => {
     const cards = [...recommendedEvents.slice(0, 3)];
     while (cards.length < 3) {
@@ -115,17 +200,50 @@ const Home = ({ user }) => {
                 </div>
               </article>
 
-              <article className="home-member-card home-member-card-ticket">
-                <p className="home-member-eyebrow">Următorul bilet</p>
+              <article className={`home-member-card home-member-card-ticket${nextTicket ? ' has-ticket' : ''}`}>
                 {nextTicket ? (
-                  <>
-                    <h3>{nextTicket.event?.title || 'Eveniment'}</h3>
-                    <p className="home-ticket-meta">{new Date(nextTicket.event.startDate).toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                    <p className="home-ticket-meta">{nextTicket.event?.location || 'Locație nespecificată'}</p>
-                    <button className="home-ticket-action" onClick={() => navigate('/profile')}>
-                      Vezi Bilet QR
-                    </button>
-                  </>
+                  <div className="home-ticket-layout">
+                    <div className="home-ticket-visual">
+                      <span className="home-ticket-days-chip">{getDaysUntilLabel(nextTicket.event.startDate)}</span>
+                      {nextTicket.event?.image_url ? (
+                        <img
+                          src={nextTicket.event.image_url?.startsWith('http') ? nextTicket.event.image_url : `${API_BASE}${nextTicket.event.image_url}`}
+                          alt={nextTicket.event?.title || 'Eveniment'}
+                        />
+                      ) : (
+                        <div className="home-ticket-visual-placeholder">
+                          {(nextTicket.event?.title || 'E').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="home-ticket-main">
+                      <p className="home-ticket-kicker"><FaTicketAlt /> URMĂTORUL TĂU BILET</p>
+                      <h3>{nextTicket.event?.title || 'Eveniment'}</h3>
+                      <p className="home-ticket-meta with-icon">
+                        <FiCalendar />
+                        <span>{formatTicketDateTime(nextTicket.event.startDate)}</span>
+                      </p>
+                      <p className="home-ticket-meta with-icon">
+                        <FiMapPin />
+                        <span>{nextTicket.event?.location || 'Locație nespecificată'}</span>
+                      </p>
+                      {nextTicketDate ? (
+                        <button
+                          type="button"
+                          className="home-ticket-calendar-btn"
+                          onClick={() => {
+                            const encodedDate = encodeURIComponent(nextTicketDate);
+                            navigate(`/calendar?selectedDate=${encodedDate}`);
+                          }}
+                        >
+                          <FiCalendar />
+                          <span>Vezi în calendar</span>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : isHomeLoading ? (
+                  null
                 ) : (
                   <>
                     <h3>Nu ai bilete viitoare momentan</h3>

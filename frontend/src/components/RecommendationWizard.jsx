@@ -325,7 +325,7 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
             <div className="wizard-drawer-body">
               {screen === 0 && (
                 <button className="wizard-btn-black-pill" onClick={() => setScreen(1)} disabled={loading}>
-                  {loading ? 'SE ÎNCARCĂ...' : screenConfigs[0].actionLabel}
+                  {screenConfigs[0].actionLabel}
                 </button>
               )}
               {screen === 1 && (

@@ -199,7 +199,7 @@ const PurchaseConfirmationPage = () => {
   }, [ticketData, eventData, emailSent, sending, firstTicket, handleSendEmail]);
 
   if (!ticketData || !eventData) {
-    return <div className="auth-page-container"><div className="auth-card">Se încarcă...</div></div>;
+    return null;
   }
 
   const buyerEmailLabel = firstTicket?.buyerEmail || '—';

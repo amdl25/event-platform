@@ -55,7 +55,7 @@ const AdminEventsPage = ({ user, handleLogout }) => {
   };
 
   if (loading) {
-    return <AdminShell user={user} handleLogout={handleLogout} title="Evenimente" subtitle="Moderare și gestionare" ><div className="admin-card">Se încarcă...</div></AdminShell>;
+    return null;
   }
 
   return (

@@ -258,7 +258,7 @@ const TicketPurchasePage = ({ user }) => {
     setQuantity((prev) => Math.min(20, Number(prev || 1) + 1));
   };
 
-  if (loadingEvent) return <div className="checkout-page"><div className="checkout-shell">Se încarcă...</div></div>;
+  if (loadingEvent) return null;
   if (!event) return <div className="checkout-page"><div className="checkout-shell">Evenimentul nu a fost găsit.</div></div>;
 
   const eventDateLabel = event.start_date

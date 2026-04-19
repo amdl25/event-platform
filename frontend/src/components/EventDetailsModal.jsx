@@ -480,7 +480,6 @@ const EventDetailsModal = ({
 
                   {guestListMeta.guestNotes ? <p className="event-modal-guest-notes">{guestListMeta.guestNotes}</p> : null}
 
-                  {guestListLoading ? <p className="event-modal-guest-state">Se încarcă invitații...</p> : null}
                   {!guestListLoading && guestListError ? <p className="event-modal-guest-state error">{guestListError}</p> : null}
                   {!guestListLoading && !guestListError && guestList.length === 0 ? (
                     <p className="event-modal-guest-state">Niciun invitat încă.</p>

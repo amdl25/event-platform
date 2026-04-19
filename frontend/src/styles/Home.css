@@ -33,6 +33,97 @@
   color: #1f1720;
 }
 
+.home-member-card-ticket.has-ticket {
+  padding: 0;
+  overflow: hidden;
+  max-width: 735px;
+  width: 100%;
+  justify-self: end;
+}
+
+.home-ticket-layout {
+  display: grid;
+  grid-template-columns: 198px minmax(0, 1fr);
+  gap: 0;
+  align-items: stretch;
+}
+
+.home-ticket-visual {
+  position: relative;
+  border-radius: 0;
+  overflow: hidden;
+  min-height: 224px;
+  background: #f1f5f9;
+}
+
+.home-ticket-days-chip {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.home-ticket-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-ticket-visual-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 224px;
+  display: grid;
+  place-items: center;
+  font-size: 50px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(130deg, #1f2937 0%, #334155 100%);
+}
+
+.home-ticket-main {
+  padding: 17px 17px 15px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100%;
+}
+
+.home-ticket-kicker {
+  margin: 0 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.home-ticket-kicker svg {
+  font-size: 11px;
+}
+
+.home-member-card-ticket.has-ticket .home-ticket-main h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.5vw, 1.98rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .home-member-eyebrow {
   margin: 0 0 10px;
   font-size: 0.76rem;
@@ -98,9 +189,22 @@
 }
 
 .home-ticket-meta {
-  margin: 10px 0 0;
-  color: #6f6259;
-  font-size: 0.96rem;
+  margin: 8px 0 0;
+  color: #4b5563;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.home-ticket-meta.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-ticket-meta.with-icon svg {
+  color: #64748b;
+  font-size: 15px;
+  flex: 0 0 auto;
 }
 
 .home-ticket-action {
@@ -118,6 +222,56 @@
 .home-ticket-action:hover {
   background: #ea580c;
   border-color: #ea580c;
+}
+
+.home-ticket-calendar-btn {
+  margin-top: auto;
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #f97316;
+  background: #f97316;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.home-ticket-calendar-btn svg {
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.home-ticket-calendar-btn:hover {
+  background: #ea580c;
+  border-color: #ea580c;
+}
+
+@media (max-width: 900px) {
+  .home-member-card-ticket.has-ticket {
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .home-ticket-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .home-ticket-main {
+    padding: 14px 14px 16px;
+  }
+
+  .home-ticket-visual,
+  .home-ticket-visual-placeholder {
+    min-height: 185px;
+  }
 }
 
 .home-reco-block {

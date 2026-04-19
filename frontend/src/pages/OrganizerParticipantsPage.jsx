@@ -51,7 +51,7 @@ const OrganizerParticipantsPage = ({ user, handleLogout }) => {
   );
 
   if (loading) {
-    return <OrganizerShell user={user} handleLogout={handleLogout} title="Participanți" subtitle="Se încarcă participanții..." actions={actions}><div className="organizer-card">Se încarcă...</div></OrganizerShell>;
+    return null;
   }
 
   return (

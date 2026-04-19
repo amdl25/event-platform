@@ -87,7 +87,7 @@ const AdminSettingsPage = ({ user, handleLogout }) => {
   ]), []);
 
   if (loading) {
-    return <AdminShell user={user} handleLogout={handleLogout} title="Setări" subtitle="Configurări platformă"><div className="admin-card">Se încarcă...</div></AdminShell>;
+    return null;
   }
 
   return (

@@ -5,6 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ro } from 'date-fns/locale/ro';
 import API from '../api';
 import EventCard from '../components/EventCard';
+import CustomDropdown from '../components/CustomDropdown';
 import '../styles/CategoryPage.css';
 
 registerLocale('ro', ro);
@@ -111,6 +112,17 @@ const CategoryPage = ({ user }) => {
         return parts[parts.length - 1]?.trim(); 
     }));
 
+    const cityOptions = [
+        { value: 'Toate orașele', label: 'Toate orașele' },
+        ...availableCities.map((city) => ({ value: city, label: city }))
+    ];
+
+    const typeOptions = [
+        { value: 'Toate', label: 'Toate prețurile' },
+        { value: 'Gratuite', label: 'Gratuite' },
+        { value: 'Cu plată', label: 'Cu plată' }
+    ];
+
     const filteredResults = events.filter(event => {
         const eventCity = event.location.split(',').pop().trim();
         const matchCity = filters.city === 'Toate orașele' || normalizeText(eventCity) === normalizeText(filters.city);
@@ -145,29 +157,22 @@ const CategoryPage = ({ user }) => {
                             <div className="category-filters-bar">
                                 <div className="category-filter-pill-container">
                                     <div className="category-input-with-clear">
-                                        <select
-                                            className="category-filter-select"
+                                        <CustomDropdown
                                             value={filters.city}
-                                            onChange={(e) => handleFilterChange('city', e.target.value)}
-                                        >
-                                            <option>Toate orașele</option>
-                                            {availableCities.map(city => <option key={city} value={city}>{city}</option>)}
-                                        </select>
-                                        {filters.city !== 'Toate orașele' && (
-                                            <button
-                                                type="button"
-                                                className="category-clear-filter-btn"
-                                                onClick={() => resetField('city')}
-                                                aria-label="Resetează orașul"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
+                                            options={cityOptions}
+                                            onChange={(nextValue) => handleFilterChange('city', nextValue)}
+                                            clearable={filters.city !== 'Toate orașele'}
+                                            onClear={() => resetField('city')}
+                                            triggerClassName="category-filter-select"
+                                            menuClassName="category-dropdown-menu"
+                                            optionClassName="category-dropdown-option"
+                                            ariaLabel="Filtru oraș"
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="category-filter-pill-container">
-                                    <div className="category-input-with-clear">
+                                    <div className="category-input-with-clear category-date-with-clear">
                                         <DatePicker
                                             selected={filters.selectedDate}
                                             onChange={(date) => handleFilterChange('selectedDate', date)}
@@ -184,18 +189,17 @@ const CategoryPage = ({ user }) => {
 
                                 <div className="category-filter-pill-container">
                                     <div className="category-input-with-clear">
-                                        <select
-                                            className="category-filter-select"
+                                        <CustomDropdown
                                             value={filters.type}
-                                            onChange={(e) => handleFilterChange('type', e.target.value)}
-                                        >
-                                            <option value="Toate">Toate prețurile</option>
-                                            <option value="Gratuite">Gratuite</option>
-                                            <option value="Cu plată">Cu plată</option>
-                                        </select>
-                                        {filters.type !== 'Toate' && (
-                                            <button className="category-clear-filter-btn" onClick={() => resetField('type')}>×</button>
-                                        )}
+                                            options={typeOptions}
+                                            onChange={(nextValue) => handleFilterChange('type', nextValue)}
+                                            clearable={filters.type !== 'Toate'}
+                                            onClear={() => resetField('type')}
+                                            triggerClassName="category-filter-select"
+                                            menuClassName="category-dropdown-menu"
+                                            optionClassName="category-dropdown-option"
+                                            ariaLabel="Filtru preț"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -209,7 +213,7 @@ const CategoryPage = ({ user }) => {
 
                 <div className="events-grid">
                     {loading ? (
-                        <p className="loading-text">Se încarcă...</p>
+                        null
                     ) : filteredResults.length > 0 ? (
                         filteredResults.map(event => (
                             <div key={event.id} className="event-card-wrapper">

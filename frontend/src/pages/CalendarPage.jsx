@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { FiCalendar, FiClock, FiMapPin, FiUsers, FiZap } from 'react-icons/fi';
@@ -10,7 +10,16 @@ import '../styles/CalendarPage.css';
 
 const CalendarPage = ({ user }) => {
   const navigate = useNavigate();
-  const [value, onChange] = useState(new Date());
+  const location = useLocation();
+  const [value, onChange] = useState(() => {
+    const queryDate = new URLSearchParams(location.search).get('selectedDate');
+    const stateDate = location.state?.selectedDate;
+    const rawDate = queryDate || stateDate;
+    if (!rawDate) return new Date();
+
+    const parsed = new Date(rawDate);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  });
   const [activeEvent, setActiveEvent] = useState(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
@@ -79,7 +88,7 @@ const CalendarPage = ({ user }) => {
   };
 
   if (isLoading) {
-    return <div className="calendar-dashboard-bg"><div className="calendar-dashboard-container">Se încarcă evenimentele...</div></div>;
+    return null;
   }
 
   if (error) {

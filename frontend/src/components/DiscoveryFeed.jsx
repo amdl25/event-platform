@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import API from '../api';
 import EventCard from '../components/EventCard';
+import CustomDropdown from './CustomDropdown';
 import '../styles/DiscoveryFeed.css';
 
 const initialDiscoveryFilters = {
     weekday: 'Oricând',
     category: 'Toate',
     price: 'Toate',
+};
+
+const toLocalDateKey = (dateValue) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return null;
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 const DiscoveryFeed = () => {
@@ -48,16 +59,31 @@ const DiscoveryFeed = () => {
             event.categories?.some(cat => cat.name === filters.category);
 
         const matchDate = (() => {
-            if (filters.weekday === 'Oricând') return true;
-            const eventDate = new Date(event.start_date);
+            const eventStart = event.start_date || event.start;
+            const eventDate = new Date(eventStart);
+            if (Number.isNaN(eventDate.getTime())) return false;
+
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
+            const nextWeekLimit = new Date(tomorrow);
+            nextWeekLimit.setDate(tomorrow.getDate() + 6);
 
-            if (filters.weekday === 'Astăzi') return eventDate.toDateString() === today.toDateString();
-            if (filters.weekday === 'Mâine') return eventDate.toDateString() === tomorrow.toDateString();
-            if (filters.weekday === 'În weekend') return [0, 6].includes(eventDate.getDay());
+            const eventKey = toLocalDateKey(eventDate);
+            const todayKey = toLocalDateKey(today);
+            const tomorrowKey = toLocalDateKey(tomorrow);
+            const nextWeekLimitKey = toLocalDateKey(nextWeekLimit);
+
+            if (!eventKey || !todayKey || !tomorrowKey || !nextWeekLimitKey) return false;
+
+            const isFromTomorrow = eventKey >= tomorrowKey;
+
+            if (filters.weekday === 'Oricând') return isFromTomorrow;
+            if (filters.weekday === 'Astăzi') return eventKey === todayKey;
+            if (filters.weekday === 'Mâine') return eventKey === tomorrowKey;
+            if (filters.weekday === 'În weekend') return isFromTomorrow && [0, 6].includes(eventDate.getDay());
+            if (filters.weekday === 'Săptămâna viitoare') return eventKey >= tomorrowKey && eventKey <= nextWeekLimitKey;
             return true;
         })();
 
@@ -70,6 +96,24 @@ const DiscoveryFeed = () => {
     });
 
     const publicEvents = filteredEvents.filter(e => !!e.org_id);
+    const weekdayOptions = [
+        { value: 'Oricând', label: 'Orice dată' },
+        { value: 'Astăzi', label: 'Astăzi' },
+        { value: 'Mâine', label: 'Mâine' },
+        { value: 'În weekend', label: 'În weekend' },
+        { value: 'Săptămâna viitoare', label: 'Săptămâna viitoare' }
+    ];
+
+    const categoryOptions = [
+        { value: 'Toate', label: 'Orice categorie' },
+        ...dbCategories.map((cat) => ({ value: cat.name, label: cat.name }))
+    ];
+
+    const priceOptions = [
+        { value: 'Toate', label: 'Toate prețurile' },
+        { value: 'Gratuite', label: 'Gratuite' },
+        { value: 'Cu plată', label: 'Cu plată' }
+    ];
 
     return (
         <div className="discovery-page">
@@ -80,51 +124,45 @@ const DiscoveryFeed = () => {
                         <div className="filters-row">
                             
                             <div className="filter-pill-container">
-                                <select 
-                                    className="filter-select"
+                                <CustomDropdown
                                     value={filters.weekday}
-                                    onChange={(e) => handleFilterChange('weekday', e.target.value)}
-                                >
-                                    <option value="Oricând">Orice dată</option>
-                                    <option>Astăzi</option>
-                                    <option>Mâine</option>
-                                    <option>În weekend</option>
-                                    <option>Săptămâna viitoare</option>
-                                </select>
-                                {filters.weekday !== 'Oricând' && (
-                                    <button className="clear-filter-btn" onClick={() => resetField('weekday')}>×</button>
-                                )}
+                                    options={weekdayOptions}
+                                    onChange={(nextValue) => handleFilterChange('weekday', nextValue)}
+                                    clearable={filters.weekday !== 'Oricând'}
+                                    onClear={() => resetField('weekday')}
+                                    triggerClassName="filter-select"
+                                    menuClassName="filter-dropdown-menu"
+                                    optionClassName="filter-dropdown-option"
+                                    ariaLabel="Filtru dată"
+                                />
                             </div>
 
                             <div className="filter-pill-container">
-                                <select 
-                                    className="filter-select"
+                                <CustomDropdown
                                     value={filters.category}
-                                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                                >
-                                    <option value="Toate">Orice categorie</option>
-                                    {dbCategories.map(cat => (
-                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                {filters.category !== 'Toate' && (
-                                    <button className="clear-filter-btn" onClick={() => resetField('category')}>×</button>
-                                )}
+                                    options={categoryOptions}
+                                    onChange={(nextValue) => handleFilterChange('category', nextValue)}
+                                    clearable={filters.category !== 'Toate'}
+                                    onClear={() => resetField('category')}
+                                    triggerClassName="filter-select"
+                                    menuClassName="filter-dropdown-menu"
+                                    optionClassName="filter-dropdown-option"
+                                    ariaLabel="Filtru categorie"
+                                />
                             </div>
 
                             <div className="filter-pill-container">
-                                <select 
-                                    className="filter-select"
+                                <CustomDropdown
                                     value={filters.price}
-                                    onChange={(e) => handleFilterChange('price', e.target.value)}
-                                >
-                                    <option value="Toate">Toate prețurile</option>
-                                    <option>Gratuite</option>
-                                    <option>Cu plată</option>
-                                </select>
-                                {filters.price !== 'Toate' && (
-                                    <button className="clear-filter-btn" onClick={() => resetField('price')}>×</button>
-                                )}
+                                    options={priceOptions}
+                                    onChange={(nextValue) => handleFilterChange('price', nextValue)}
+                                    clearable={filters.price !== 'Toate'}
+                                    onClear={() => resetField('price')}
+                                    triggerClassName="filter-select"
+                                    menuClassName="filter-dropdown-menu"
+                                    optionClassName="filter-dropdown-option"
+                                    ariaLabel="Filtru preț"
+                                />
                             </div>
 
                         </div>
@@ -135,7 +173,7 @@ const DiscoveryFeed = () => {
             <section className="events-section">
                 <div className="discovery-container">
                     {loading ? (
-                        <p className="loading-text">Se încarcă...</p>
+                        null
                     ) : publicEvents.length > 0 ? (
                         <>
                             <div className="events-grid">

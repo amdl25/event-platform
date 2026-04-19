@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fa6';
 import { useAllEvents, useCategories } from '../hooks/useEvents';
 import EventCard from '../components/EventCard';
+import CustomDropdown from '../components/CustomDropdown';
 import '../styles/ExplorePage.css';
 
 registerLocale('ro', ro);
@@ -154,7 +155,23 @@ const ExplorePage = () => {
 
   const loading = categoriesLoading || eventsLoading;
 
-  if (loading) return <div className="explore-loader">Se încarcă...</div>;
+  const categoryOptions = [
+    { value: 'Toate categoriile', label: 'Toate categoriile' },
+    ...categories.map((cat) => ({ value: cat.name, label: cat.name }))
+  ];
+
+  const cityOptions = [
+    { value: 'Toate orașele', label: 'Toate orașele' },
+    ...availableCities.map((city) => ({ value: city, label: city }))
+  ];
+
+  const typeOptions = [
+    { value: 'Toate', label: 'Oricare' },
+    { value: 'Gratuite', label: 'Gratuite' },
+    { value: 'Cu plată', label: 'Cu plată' }
+  ];
+
+  if (loading) return null;
 
   return (
     <div className="discovery-page">
@@ -177,36 +194,34 @@ const ExplorePage = () => {
                   <div className="filter-item">
                     <label>Categorie</label>
                     <div className="input-with-clear">
-                      <select
+                      <CustomDropdown
                         value={filters.category}
-                        onChange={(e) => handleFilterChange('category', e.target.value)}
-                      >
-                        <option value="Toate categoriile">Toate categoriile</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
-                      {filters.category !== 'Toate categoriile' && (
-                        <button className="clear-x-btn" onClick={() => resetField('category')}>×</button>
-                      )}
+                        options={categoryOptions}
+                        onChange={(nextValue) => handleFilterChange('category', nextValue)}
+                        clearable={filters.category !== 'Toate categoriile'}
+                        onClear={() => resetField('category')}
+                        triggerClassName="filter-select"
+                        menuClassName="explore-dropdown-menu"
+                        optionClassName="explore-dropdown-option"
+                        ariaLabel="Filtru categorie"
+                      />
                     </div>
                   </div>
 
                   <div className="filter-item">
                     <label>Oraș</label>
                     <div className="input-with-clear">
-                      <select
+                      <CustomDropdown
                         value={filters.city}
-                        onChange={(e) => handleFilterChange('city', e.target.value)}
-                      >
-                        <option>Toate orașele</option>
-                        {availableCities.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                      {filters.city !== 'Toate orașele' && (
-                        <button className="clear-x-btn" onClick={() => resetField('city')}>×</button>
-                      )}
+                        options={cityOptions}
+                        onChange={(nextValue) => handleFilterChange('city', nextValue)}
+                        clearable={filters.city !== 'Toate orașele'}
+                        onClear={() => resetField('city')}
+                        triggerClassName="filter-select"
+                        menuClassName="explore-dropdown-menu"
+                        optionClassName="explore-dropdown-option"
+                        ariaLabel="Filtru oraș"
+                      />
                     </div>
                   </div>
 
@@ -230,17 +245,17 @@ const ExplorePage = () => {
                   <div className="filter-item">
                     <label>Acces</label>
                     <div className="input-with-clear">
-                      <select
+                      <CustomDropdown
                         value={filters.type}
-                        onChange={(e) => handleFilterChange('type', e.target.value)}
-                      >
-                        <option value="Toate">Oricare</option>
-                        <option value="Gratuite">Gratuite</option>
-                        <option value="Cu plată">Cu plată</option>
-                      </select>
-                      {filters.type !== 'Toate' && (
-                        <button className="clear-x-btn" onClick={() => resetField('type')}>×</button>
-                      )}
+                        options={typeOptions}
+                        onChange={(nextValue) => handleFilterChange('type', nextValue)}
+                        clearable={filters.type !== 'Toate'}
+                        onClear={() => resetField('type')}
+                        triggerClassName="filter-select"
+                        menuClassName="explore-dropdown-menu"
+                        optionClassName="explore-dropdown-option"
+                        ariaLabel="Filtru acces"
+                      />
                     </div>
                   </div>
                 </div>

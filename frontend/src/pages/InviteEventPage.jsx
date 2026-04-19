@@ -131,7 +131,7 @@ const InviteEventPage = ({ user }) => {
     confirmParticipationDirectly(user.id, inviteToken);
   };
 
-  if (loading) return <div className="invite-page"><div className="invite-card">Se încarcă invitația...</div></div>;
+  if (loading) return null;
   if (error) return <div className="invite-page"><div className="invite-card">{error}</div></div>;
   if (!eventData) return <div className="invite-page"><div className="invite-card">Invitația nu este disponibilă.</div></div>;
 

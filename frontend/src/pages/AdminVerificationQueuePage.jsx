@@ -99,7 +99,7 @@ const AdminVerificationQueuePage = ({ user, handleLogout }) => {
   };
 
   if (loading) {
-    return <AdminShell user={user} handleLogout={handleLogout} title="Cereri Firme" subtitle="Aprobări organizatori"><div className="admin-card">Se încarcă...</div></AdminShell>;
+    return null;
   }
 
   return (
