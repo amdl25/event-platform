@@ -1,11 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import QRCode from 'react-qr-code';
 import Hero from '../components/Hero';
 import DiscoveryFeed from '../components/DiscoveryFeed';
 import Benefits from '../components/Benefits';
 import RecommendationWizard from '../components/RecommendationWizard';
+import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import API, { API_BASE } from '../api';
-import { FiCalendar, FiMapPin } from 'react-icons/fi';
+import { FiCalendar, FiDownload, FiMapPin, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import '../styles/Home.css';
 
@@ -42,6 +46,22 @@ const formatTicketDateParts = (dateValue) => {
   return { dayPart, timePart };
 };
 
+const buildTicketQrPayload = (ticket) => {
+  if (!ticket?.event?.id || !ticket?.ticketCode || !ticket?.event?.startDate) {
+    return ticket?.ticketCode || '';
+  }
+
+  return `ticket:${ticket.ticketCode}|event:${ticket.event.id}|title:${ticket.event.title || 'Eveniment'}|date:${ticket.event.startDate}`;
+};
+
+const toSafeFileSlug = (value) => {
+  return String(value || 'eveniment')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .slice(0, 42) || 'eveniment';
+};
+
 const toLocalDateKey = (dateValue) => {
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return null;
@@ -55,9 +75,13 @@ const toLocalDateKey = (dateValue) => {
 const Home = ({ user }) => {
   const navigate = useNavigate();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [pdfPayload, setPdfPayload] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [nextTicket, setNextTicket] = useState(null);
   const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
+  const ticketPdfRef = useRef(null);
 
   useEffect(() => {
     if (!user?.id) {
@@ -155,6 +179,88 @@ const Home = ({ user }) => {
     () => (nextTicketDate ? formatTicketDateParts(nextTicketDate) : { dayPart: '', timePart: '' }),
     [nextTicketDate]
   );
+  const nextTicketQrValue = useMemo(() => buildTicketQrPayload(nextTicket), [nextTicket]);
+
+  const buildPdfPayload = () => {
+    if (!nextTicket?.event) return null;
+
+    return {
+      eventTitle: nextTicket.event?.title || 'Eveniment',
+      generatedAt: new Date().toISOString(),
+      tickets: [{
+        number: 1,
+        code: nextTicket.ticketCode || 'TK-UNKNOWN',
+        qrValue: nextTicketQrValue || nextTicket.ticketCode || 'ticket',
+        date: nextTicket.event?.startDate,
+        location: nextTicket.event?.location || 'Locație nespecificată',
+        points: Number(nextTicket.event?.pointsValue || 0),
+        organizationName: nextTicket.event?.organizationName || 'Organizator'
+      }]
+    };
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!nextTicket?.event || downloadingPdf) return;
+
+    setDownloadingPdf(true);
+    try {
+      const payload = buildPdfPayload();
+      setPdfPayload(payload);
+
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      if (!ticketPdfRef.current) return;
+
+      const canvas = await html2canvas(ticketPdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= 297;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= 297;
+      }
+
+      const fileBase = toSafeFileSlug(nextTicket.event?.title || nextTicket.ticketCode || 'eveniment');
+      pdf.save(`bilet-${fileBase}.pdf`);
+    } catch (error) {
+      console.error('Eroare la exportul PDF al biletului:', error);
+    } finally {
+      setPdfPayload(null);
+      setDownloadingPdf(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isTicketModalOpen) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsTicketModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isTicketModalOpen]);
+
   const recommendationCards = useMemo(() => {
     const cards = [...recommendedEvents.slice(0, 3)];
     while (cards.length < 3) {
@@ -237,14 +343,19 @@ const Home = ({ user }) => {
                       </div>
                     </div>
 
-                    <div className="home-ticket-qr-col">
+                    <button
+                      type="button"
+                      className="home-ticket-qr-col"
+                      onClick={() => setIsTicketModalOpen(true)}
+                      aria-label="Deschide detaliile biletului și codul QR"
+                    >
                       <div className="home-ticket-qr-box" aria-hidden="true">
                         <span></span><span></span><span></span><span></span>
                         <span></span><span></span><span></span><span></span>
                         <span></span><span></span><span></span><span></span>
                       </div>
                       <p>QR</p>
-                    </div>
+                    </button>
                   </div>
                 ) : isHomeLoading ? (
                   null
@@ -317,6 +428,70 @@ const Home = ({ user }) => {
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
       />
+
+      {isTicketModalOpen && nextTicket ? (
+        <div
+          className="home-ticket-modal-overlay"
+          role="presentation"
+          onClick={() => setIsTicketModalOpen(false)}
+        >
+          <div
+            className="home-ticket-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="home-ticket-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="home-ticket-modal-header">
+              <button
+                type="button"
+                className="home-ticket-modal-close"
+                onClick={() => setIsTicketModalOpen(false)}
+                aria-label="Închide dialogul biletului"
+              >
+                <FiX />
+              </button>
+
+              <p className="home-ticket-modal-kicker"><FaTicketAlt /> BILETUL TĂU</p>
+              <h2 id="home-ticket-modal-title">{nextTicket.event?.title || 'Eveniment'}</h2>
+
+              <div className="home-ticket-modal-meta">
+                <span><FiCalendar /> {nextTicketDateParts.dayPart}</span>
+                <span><FiMapPin /> {nextTicket.event?.location || 'Locație nespecificată'}</span>
+              </div>
+            </div>
+
+            <div className="home-ticket-modal-body">
+              <div className="home-ticket-modal-perforation" aria-hidden="true">
+                <span></span>
+                <span></span>
+              </div>
+
+              <div className="home-ticket-modal-qr-shell">
+                <div className="home-ticket-modal-qr-card">
+                  <QRCode
+                    value={nextTicketQrValue || nextTicket.ticketCode || 'ticket'}
+                    size={220}
+                    bgColor="#141821"
+                    fgColor="#f8fafc"
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+
+                <p className="home-ticket-modal-code">{nextTicket.ticketCode || 'TK-UNKNOWN'}</p>
+                <p className="home-ticket-modal-note">Arată acest cod la intrare</p>
+              </div>
+
+              <button type="button" className="home-ticket-modal-action" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+                <FiDownload />
+                {downloadingPdf ? 'Se descarcă...' : 'Descarcă PDF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}
     </div>
   );
 };
