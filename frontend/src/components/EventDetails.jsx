@@ -11,13 +11,10 @@ const EventDetails = ({ event, user }) => {
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
-  const isSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
+  const isGlobalSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
   const eventStart = getEventStartValue(event);
   const eventEnd = getEventEndValue(event);
   const eventTimeRange = getEventTimeRangeLabel(eventStart, eventEnd);
-  const occupied = Number(event.current_occupancy || 0);
-  const capacity = Number(event.max_capacity || 0);
-  const remainingTickets = capacity > 0 ? Math.max(0, capacity - occupied) : null;
 
   const ticketTypes = Array.isArray(event.ticketTypes) ? event.ticketTypes : [];
   
@@ -28,6 +25,13 @@ const EventDetails = ({ event, user }) => {
   }, [ticketTypes, selectedTicketTypeId]);
   
   const selectedTicketType = ticketTypes.find(tt => tt.id === selectedTicketTypeId);
+  const selectedTypeCapacity = selectedTicketType ? Number(selectedTicketType.quantity || 0) : null;
+  const selectedTypeSold = selectedTicketType ? Number(selectedTicketType.sold_quantity || 0) : null;
+  const remainingTickets = selectedTicketType
+    ? Math.max(0, (selectedTypeCapacity || 0) - (selectedTypeSold || 0))
+    : null;
+  const isSelectedTypeSoldOut = selectedTicketType ? remainingTickets <= 0 : false;
+  const isSoldOut = isGlobalSoldOut || isSelectedTypeSoldOut;
   const unitPrice = selectedTicketType ? Number(selectedTicketType.price || 0) : 0;
   const totalPrice = Number((unitPrice * quantity).toFixed(2));
   
@@ -155,10 +159,12 @@ const EventDetails = ({ event, user }) => {
                 </div>
               </div>
 
-              <div className="loyalty-banner">
-                <span>BENEFICIU LOIALITATE</span>
-                <p>Castigi +{earnedPoints} puncte cu aceasta achizitie pentru reduceri viitoare.</p>
-              </div>
+              {earnedPoints > 0 ? (
+                <div className="loyalty-banner">
+                  <span>BENEFICIU LOIALITATE</span>
+                  <p>Castigi +{earnedPoints} puncte cu aceasta achizitie pentru reduceri viitoare.</p>
+                </div>
+              ) : null}
 
               <div className="booking-total">
                 <span>Total de plata</span>
@@ -172,7 +178,7 @@ const EventDetails = ({ event, user }) => {
               <p className="booking-safe-note">PLATA SECURIZATA · CONFIRMARE INSTANTA</p>
             </div>
 
-            {remainingTickets !== null && remainingTickets > 0 ? (
+            {remainingTickets !== null && remainingTickets > 0 && remainingTickets < 100 ? (
               <div className="scarcity-card">
                 <span>!</span>
                 <p>Doar {remainingTickets} bilete ramase la acest pret. Asigura-ti prezenta in centrul actiunii.</p>

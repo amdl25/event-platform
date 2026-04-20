@@ -117,6 +117,7 @@ const completePurchase = async ({
 	buyerName,
 	buyerEmail,
 	quantity,
+	ticketTypeId = null,
 	pointsUsed = 0,
 	paymentSessionId = null,
 	transaction: existingTransaction = null
@@ -133,6 +134,24 @@ const completePurchase = async ({
 
 		if (event.current_occupancy + quantity > event.max_capacity) {
 			throw new Error('Eveniment sold out');
+		}
+
+		let selectedTicketType = null;
+		if (ticketTypeId) {
+			selectedTicketType = await TicketType.findByPk(ticketTypeId, {
+				transaction,
+				lock: transaction.LOCK.UPDATE
+			});
+
+			if (!selectedTicketType || selectedTicketType.event_id !== event.id) {
+				throw new Error('Tipul de bilet nu a fost găsit');
+			}
+
+			const typeCapacity = Number(selectedTicketType.quantity || 0);
+			const typeSold = Number(selectedTicketType.sold_quantity || 0);
+			if (typeSold + quantity > typeCapacity) {
+				throw new Error('Nu mai sunt suficiente bilete disponibile pentru tipul selectat');
+			}
 		}
 
 		if (pointsUsed > 0 && accountId) {
@@ -202,6 +221,10 @@ const completePurchase = async ({
 			quantity,
 			paymentSessionId
 		});
+
+		if (selectedTicketType) {
+			await selectedTicketType.increment('sold_quantity', { by: quantity, transaction });
+		}
 
 		await event.increment('current_occupancy', { by: quantity, transaction });
 
@@ -381,7 +404,16 @@ export const createCheckoutSession = async (req, res) => {
 			if (!selectedTicketType) {
 				return res.status(404).json({ message: 'Tipul de bilet nu a fost găsit' });
 			}
+			if (selectedTicketType.event_id !== event.id) {
+				return res.status(400).json({ message: 'Tipul de bilet nu aparține acestui eveniment' });
+			}
 			unitPrice = Number(selectedTicketType.price) || 0;
+
+			const typeCapacity = Number(selectedTicketType.quantity || 0);
+			const typeSold = Number(selectedTicketType.sold_quantity || 0);
+			if (typeSold + parsedQuantity > typeCapacity) {
+				return res.status(400).json({ message: 'Nu mai sunt suficiente bilete disponibile pentru tipul selectat' });
+			}
 		}
 
 		if (event.current_occupancy + parsedQuantity > event.max_capacity) {
@@ -404,6 +436,7 @@ export const createCheckoutSession = async (req, res) => {
 				buyerName: buyer_name.trim(),
 				buyerEmail: buyer_email.trim(),
 				quantity: pricing.quantity,
+				ticketTypeId: selectedTicketType?.id || null,
 				pointsUsed: pricing.pointsUsed,
 				paymentSessionId: noChargeSessionId
 			});
@@ -460,6 +493,7 @@ export const createCheckoutSession = async (req, res) => {
 			],
 			metadata: {
 				event_id: String(event.id),
+				ticket_type_id: selectedTicketType?.id ? String(selectedTicketType.id) : '',
 				account_id: accountId ? String(accountId) : '',
 				buyer_name: buyer_name.trim(),
 				buyer_email: buyer_email.trim(),
@@ -510,6 +544,7 @@ export const confirmCheckoutSession = async (req, res) => {
 		}
 
 		const accountId = metadata.account_id || null;
+		const ticketTypeId = metadata.ticket_type_id || null;
 		const pointsUsed = toPositiveInteger(metadata.points_used, 0);
 		const quantity = clamp(toPositiveInteger(metadata.quantity, 1), 1, 20);
 
@@ -555,6 +590,7 @@ export const confirmCheckoutSession = async (req, res) => {
 				buyerName: metadata.buyer_name || session.customer_details?.name || 'Participant',
 				buyerEmail: metadata.buyer_email || session.customer_details?.email || '',
 				quantity,
+				ticketTypeId: ticketTypeId || null,
 				pointsUsed,
 				paymentSessionId: session.id,
 				transaction
