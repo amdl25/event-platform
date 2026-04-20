@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import API from '../api';
 import { useParams } from 'react-router-dom';
 import EventDetails from '../components/EventDetails';
+import { recordEventCategoryClick } from '../utils/recommendationSignals';
 
 const EventDetailsPage = ({ user }) => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const EventDetailsPage = ({ user }) => {
         const response = await API.get(`/events/${id}`);
         
         setEvent(response.data);
+        recordEventCategoryClick(response.data);
       } catch (err) {
         console.error("Eroare la încărcarea evenimentului:", err);
       } finally {

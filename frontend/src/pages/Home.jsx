@@ -11,6 +11,7 @@ import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import API, { API_BASE } from '../api';
 import { FiCalendar, FiDownload, FiMapPin, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
+import { getRecentCategoryClickCounts } from '../utils/recommendationSignals';
 import '../styles/Home.css';
 
 const NEXT_TICKET_CACHE_KEY = 'homeNextTicket';
@@ -72,6 +73,55 @@ const toLocalDateKey = (dateValue) => {
   return `${year}-${month}-${day}`;
 };
 
+const normalizeCategoryToken = (value) => {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+};
+
+const getUrgencyBoost = (eventStart, now) => {
+  if (!eventStart) return 0;
+  const startDate = new Date(eventStart);
+  const diffMs = startDate.getTime() - now.getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return 0;
+
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const threeDaysMs = 3 * oneDayMs;
+  const sevenDaysMs = 7 * oneDayMs;
+
+  if (diffMs <= oneDayMs) return 15;
+  if (diffMs <= threeDaysMs) return 10;
+  if (diffMs <= sevenDaysMs) return 5;
+  return 0;
+};
+
+const getRecommendationDateLabel = (event) => {
+  const dateValue = event?.start_date || event?.start;
+  if (!dateValue) return 'DATA ÎN CURÂND';
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 'DATA ÎN CURÂND';
+
+  return date
+    .toLocaleDateString('ro-RO', { weekday: 'short', day: '2-digit', month: 'short' })
+    .replace(/\./g, '')
+    .toUpperCase();
+};
+
+const getMinTicketPoints = (event) => {
+  const ticketTypes = Array.isArray(event?.ticketTypes) ? event.ticketTypes : [];
+  const pointCandidates = ticketTypes
+    .map((ticketType) => Number(ticketType?.points_reward ?? ticketType?.pointsReward ?? 0))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  if (pointCandidates.length > 0) return Math.min(...pointCandidates);
+
+  const fallbackPoints = Number(event?.points_value ?? event?.pointsValue ?? 0);
+  return Number.isFinite(fallbackPoints) && fallbackPoints > 0 ? fallbackPoints : 0;
+};
+
 const Home = ({ user }) => {
   const navigate = useNavigate();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -107,13 +157,15 @@ const Home = ({ user }) => {
 
     const loadPersonalizedHome = async () => {
       try {
-        const [ticketsRes, eventsRes] = await Promise.all([
+        const [ticketsRes, eventsRes, profileRes] = await Promise.all([
           API.get('/events/tickets/mine'),
-          API.get('/events')
+          API.get('/events'),
+          API.get(`/users/${user.id}`).catch(() => ({ data: null }))
         ]);
         const now = new Date();
+        const allTickets = Array.isArray(ticketsRes.data) ? ticketsRes.data : [];
 
-        const upcomingTickets = (ticketsRes.data || [])
+        const upcomingTickets = allTickets
           .filter((ticket) => ticket?.event?.startDate && new Date(ticket.event.startDate) > now)
           .sort((a, b) => new Date(a.event.startDate) - new Date(b.event.startDate));
         const nextUpcomingTicket = upcomingTickets[0] || null;
@@ -126,9 +178,29 @@ const Home = ({ user }) => {
         }
 
         const events = Array.isArray(eventsRes.data) ? eventsRes.data : [];
-        const interests = Array.isArray(user?.interests)
-          ? user.interests.map((item) => String(item?.name || item).toLowerCase())
-          : [];
+        const eventsById = new Map(events.map((event) => [event.id, event]));
+        const purchasedEventIds = new Set(allTickets.map((ticket) => ticket?.event?.id).filter(Boolean));
+        const profileInterests = Array.isArray(profileRes?.data?.interests) ? profileRes.data.interests : [];
+        const sourceInterests = profileInterests.length > 0 ? profileInterests : (Array.isArray(user?.interests) ? user.interests : []);
+        const interests = sourceInterests.map((item) => normalizeCategoryToken(item?.name || item));
+        const recentClickCategoryCounts = getRecentCategoryClickCounts({ days: 45, maxEntries: 120 });
+
+        const purchaseCategoryCounts = allTickets.reduce((accumulator, ticket) => {
+          const eventId = ticket?.event?.id;
+          if (!eventId) return accumulator;
+
+          const sourceEvent = eventsById.get(eventId);
+          const categories = (sourceEvent?.categories || [])
+            .map((category) => normalizeCategoryToken(category?.name || ''))
+            .filter(Boolean);
+
+          categories.forEach((categoryName) => {
+            accumulator[categoryName] = (accumulator[categoryName] || 0) + 1;
+          });
+
+          return accumulator;
+        }, {});
+
         const userCity = String(user?.city || user?.location || '').toLowerCase();
         const tomorrowLocalDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
         const tomorrowLocalKey = toLocalDateKey(tomorrowLocalDate);
@@ -136,6 +208,7 @@ const Home = ({ user }) => {
         const scored = events
           .filter((event) => {
             if (!event?.org_id) return false;
+            if (purchasedEventIds.has(event.id)) return false;
             const eventStart = event?.start_date || event?.start;
             if (!eventStart) return false;
 
@@ -147,22 +220,131 @@ const Home = ({ user }) => {
           .map((event) => {
             let score = 0;
             const eventStart = event?.start_date || event?.start;
-            const categories = (event.categories || []).map((cat) => String(cat?.name || '').toLowerCase());
-            if (userCity && String(event.location || '').toLowerCase().includes(userCity)) score += 3;
-            if (interests.length > 0 && categories.some((cat) => interests.includes(cat))) score += 4;
-            if (eventStart && new Date(eventStart) > now) score += 2;
-            if (Number(event.price || 0) === 0) score += 1;
-            return { event, score };
+            const categories = (event.categories || []).map((cat) => normalizeCategoryToken(cat?.name || ''));
+            const onboardingInterestMatches = categories.filter((categoryName) => interests.includes(categoryName)).length;
+            const purchaseSignalScore = categories.reduce((sum, categoryName) => {
+              return sum + (purchaseCategoryCounts[categoryName] || 0);
+            }, 0);
+            const recentClickSignalScore = categories.reduce((sum, categoryName) => {
+              return sum + (recentClickCategoryCounts[categoryName] || 0);
+            }, 0);
+            const reasons = [];
+            const contributions = [];
+            const urgencyBoost = getUrgencyBoost(eventStart, now);
+
+            if (userCity && String(event.location || '').toLowerCase().includes(userCity)) {
+              const points = 3;
+              score += points;
+              contributions.push({ label: 'Oraș', points, detail: `Locație compatibilă: ${event.location || 'fără locație'}` });
+              reasons.push(`Match pe oraș (+3): ${event.location || 'fără locație'}`);
+            }
+
+            if (onboardingInterestMatches > 0) {
+              const points = 10;
+              score += points;
+              contributions.push({
+                label: 'Interese onboarding',
+                points,
+                detail: `${onboardingInterestMatches} categorie(i) potrivite cu ce a selectat la creare cont`,
+              });
+              reasons.push(`Interese onboarding (+${points}): match de categorie găsit`);
+            }
+
+            if (purchaseSignalScore > 0) {
+              const points = 50;
+              score += points;
+              contributions.push({
+                label: 'Istoric achiziții',
+                points,
+                detail: `Semnal din categoriile evenimentelor cumpărate: ${purchaseSignalScore}`,
+              });
+              reasons.push(`Istoric achiziții (+${points}): categorie cumpărată anterior`);
+            }
+
+            if (recentClickSignalScore > 0) {
+              const points = Math.min(recentClickSignalScore * 2, 20);
+              score += points;
+              contributions.push({
+                label: 'Click-uri recente',
+                points,
+                detail: `Semnal din vizualizări recente pe categorii: ${recentClickSignalScore}`,
+              });
+              reasons.push(`Click-uri recente (+${points.toFixed(1)}): ${recentClickSignalScore} click-uri agregate, max 20 puncte`);
+            }
+
+            if (urgencyBoost > 0) {
+              score += urgencyBoost;
+              contributions.push({
+                label: 'Urgență temporală',
+                points: urgencyBoost,
+                detail: urgencyBoost === 15
+                  ? 'Eveniment în următoarele 24h'
+                  : urgencyBoost === 10
+                    ? 'Eveniment în următoarele 3 zile'
+                    : 'Eveniment în următoarele 7 zile',
+              });
+              reasons.push(`Urgență temporală (+${urgencyBoost})`);
+            }
+
+            if (Number(event.price || 0) === 0) {
+              const points = 1;
+              score += points;
+              contributions.push({ label: 'Preț', points, detail: 'Eveniment gratuit' });
+              reasons.push('Eveniment gratuit (+1)');
+            }
+
+            return {
+              event,
+              score,
+              contributions,
+              reasons,
+              debug: {
+                categories,
+                onboardingInterestMatches,
+                purchaseSignalScore,
+                recentClickSignalScore,
+                userCity,
+              },
+            };
           })
           .sort((a, b) => {
             const startA = new Date(a.event?.start_date || a.event?.start).getTime();
             const startB = new Date(b.event?.start_date || b.event?.start).getTime();
             return b.score - a.score || startA - startB;
-          })
-          .slice(0, 3)
-          .map((item) => item.event);
+          });
 
-        setRecommendedEvents(scored);
+        const topRecommendations = scored.slice(0, 8);
+
+        if (topRecommendations.length > 0) {
+          console.group('[Home] Recomandări pentru tine - explicații');
+          topRecommendations.slice(0, 3).forEach((item, index) => {
+            console.group(`Top ${index + 1}: ${item.event?.title || 'Eveniment'} | scor ${item.score.toFixed(2)}`);
+
+            const formula = item.contributions
+              .map((contribution) => `${contribution.points.toFixed(1)} (${contribution.label})`)
+              .join(' + ');
+
+            console.info(
+              `[Home][Recomandare] ${item.event?.title || 'Eveniment'} => ${formula || '0'} = ${item.score.toFixed(2)}`
+            );
+            console.log(`Formula scor: ${formula || '0'} = ${item.score.toFixed(2)}`);
+
+            if (item.contributions.length === 0) {
+              console.log('Motiv: fără semnale puternice; scor minim/fallback.');
+            } else {
+              item.contributions.forEach((contribution) => {
+                console.log(`Motiv: ${contribution.label} | +${contribution.points.toFixed(1)} | ${contribution.detail}`);
+              });
+            }
+
+            item.reasons.forEach((reason) => console.log(`- ${reason}`));
+            console.log('Debug semnale:', item.debug);
+            console.groupEnd();
+          });
+          console.groupEnd();
+        }
+
+        setRecommendedEvents(topRecommendations.map((item) => item.event));
       } catch (error) {
         console.error('Eroare la încărcarea home personalizat:', error);
       } finally {
@@ -262,17 +444,7 @@ const Home = ({ user }) => {
   }, [isTicketModalOpen]);
 
   const recommendationCards = useMemo(() => {
-    const cards = [...recommendedEvents.slice(0, 3)];
-    while (cards.length < 3) {
-      cards.push({
-        id: `placeholder-${cards.length}`,
-        title: 'Recomandare în curs',
-        categories: [{ name: 'Curând' }],
-        image_url: null,
-        isPlaceholder: true
-      });
-    }
-    return cards;
+    return [...recommendedEvents];
   }, [recommendedEvents]);
 
   return (
@@ -383,11 +555,9 @@ const Home = ({ user }) => {
                 {recommendationCards.map((event) => (
                   <article
                     key={event.id}
-                    className={`home-reco-card${event.isPlaceholder ? ' is-placeholder' : ''}`}
+                    className={`home-reco-card${event.image_url ? ' has-image' : ' no-image'}`}
                     onClick={() => {
-                      if (!event.isPlaceholder) {
-                        navigate(`/event/${event.id}`);
-                      }
+                      navigate(`/event/${event.id}`);
                     }}
                   >
                     {event.image_url ? (
@@ -396,10 +566,16 @@ const Home = ({ user }) => {
                         alt={event.title}
                       />
                     ) : null}
-                    <div className="home-reco-overlay" />
+                    <div className="home-reco-top-row">
+                      <span className="home-reco-category-chip">{event.categories?.[0]?.name || 'Experiență live'}</span>
+                      {getMinTicketPoints(event) > 0 ? (
+                        <span className="home-reco-points-chip">★ +{getMinTicketPoints(event)}</span>
+                      ) : null}
+                    </div>
                     <div className="home-reco-content">
-                      <span>{event.categories?.[0]?.name || 'Experiență live'}</span>
+                      <p className="home-reco-date">{getRecommendationDateLabel(event)}</p>
                       <h3>{event.title}</h3>
+                      <p className="home-reco-location"><FiMapPin /> {event.location || 'Locație nespecificată'}</p>
                     </div>
                   </article>
                 ))}
