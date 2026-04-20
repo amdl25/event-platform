@@ -9,7 +9,7 @@ import Benefits from '../components/Benefits';
 import RecommendationWizard from '../components/RecommendationWizard';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import API, { API_BASE } from '../api';
-import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiUsers, FiX } from 'react-icons/fi';
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import { PiConfetti } from 'react-icons/pi';
 import { getRecentCategoryClickCounts } from '../utils/recommendationSignals';
@@ -155,6 +155,7 @@ const isWithinWindow = (startTimestamp, nowTimestamp, windowHours) => {
 
 const buildStackCandidate = ({ kind, event, ticket = null, privateMeta = null }) => {
   const startDate = event?.startDate || event?.start_date || event?.start;
+  const endDate = event?.endDate || event?.end_date || event?.end || null;
   const startTimestamp = toTimestamp(startDate);
   if (!event?.id || !startDate || !Number.isFinite(startTimestamp)) return null;
 
@@ -168,8 +169,10 @@ const buildStackCandidate = ({ kind, event, ticket = null, privateMeta = null })
       id: event.id,
       title: event.title,
       description: event.description || event.desc || '',
+      guestNotes: event.guestNotes || event.guest_notes || '',
       location: event.location,
       image_url: event.image_url,
+      endDate,
       organizationName: event.organizationName || event.hostName || privateMeta?.hostName || 'Organizator',
       pointsValue: Number(event.pointsValue || 0),
     },
@@ -202,6 +205,9 @@ const Home = ({ user }) => {
   const [activeStackIndex, setActiveStackIndex] = useState(0);
   const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
+  const [privateModalGuests, setPrivateModalGuests] = useState([]);
+  const [privateModalGuestsLoading, setPrivateModalGuestsLoading] = useState(false);
+  const [privateModalGuestsError, setPrivateModalGuestsError] = useState('');
   const ticketPdfRef = useRef(null);
 
   useEffect(() => {
@@ -284,8 +290,10 @@ const Home = ({ user }) => {
               id: entry?.id,
               title: entry?.title,
               description: entry?.description,
+              guestNotes: entry?.guestNotes,
               location: entry?.location,
               startDate: entry?.start_date,
+              endDate: entry?.end_date,
               image_url: entry?.image_url,
             },
             privateMeta: {
@@ -310,8 +318,10 @@ const Home = ({ user }) => {
               id: entry?.event?.id,
               title: entry?.event?.title,
               description: entry?.event?.description,
+              guestNotes: entry?.event?.guestNotes,
               location: entry?.event?.location,
               startDate: entry?.event?.start_date,
+              endDate: entry?.event?.end_date,
               image_url: entry?.event?.image_url,
               organizationName: entry?.event?.hostName,
             },
@@ -630,6 +640,44 @@ const Home = ({ user }) => {
   }, [isPrimaryPrivate]);
 
   useEffect(() => {
+    if (!isPrivateInviteModalOpen || !isPrimaryPrivate || !primaryStackEvent?.event?.id || !user?.id) {
+      setPrivateModalGuests([]);
+      setPrivateModalGuestsError('');
+      setPrivateModalGuestsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPrivateModalGuests = async () => {
+      try {
+        setPrivateModalGuestsLoading(true);
+        setPrivateModalGuestsError('');
+
+        const response = await API.get(`/events/private/${primaryStackEvent.event.id}/guests`);
+        if (cancelled) return;
+
+        const guests = Array.isArray(response.data?.guests) ? response.data.guests : [];
+        setPrivateModalGuests(guests);
+      } catch (loadError) {
+        if (cancelled) return;
+        setPrivateModalGuests([]);
+        setPrivateModalGuestsError(loadError?.response?.data?.message || 'Lista invitaților nu este disponibilă.');
+      } finally {
+        if (!cancelled) {
+          setPrivateModalGuestsLoading(false);
+        }
+      }
+    };
+
+    loadPrivateModalGuests();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPrimaryPrivate, isPrivateInviteModalOpen, primaryStackEvent?.event?.id, user?.id]);
+
+  useEffect(() => {
     setActiveStackIndex((currentIndex) => {
       if (stackEvents.length === 0) return 0;
       return Math.min(currentIndex, stackEvents.length - 1);
@@ -641,10 +689,6 @@ const Home = ({ user }) => {
   }, [recommendedEvents]);
 
   const hasUpcomingStack = Boolean(primaryStackEvent?.startDate);
-  const stackedPreview = stackEvents
-    .filter((_, index) => index !== safeActiveStackIndex)
-    .slice(0, 3);
-  const nextStackTitle = stackedPreview[0]?.event?.title || null;
   const isPrimaryHost = primaryStackEvent?.kind === 'private-host';
   const privateOrganizerLine = isPrimaryHost
     ? 'Ești gazdă'
@@ -656,6 +700,26 @@ const Home = ({ user }) => {
     : [];
   const visibleConfirmedGuests = canViewGuestList ? confirmedGuests.slice(0, 5) : [];
   const remainingConfirmedGuests = Math.max(confirmedGuests.length - visibleConfirmedGuests.length, 0);
+  const privateInviteImageUrl = primaryStackEvent?.event?.image_url
+    ? (primaryStackEvent.event.image_url.startsWith('http') || primaryStackEvent.event.image_url.startsWith('data:')
+      ? primaryStackEvent.event.image_url
+      : `${API_BASE}${primaryStackEvent.event.image_url}`)
+    : '';
+  const privateDescription = String(primaryStackEvent?.event?.description || '').trim();
+  const privateGuestNotes = String(primaryStackEvent?.event?.guestNotes || '').trim();
+  const privateInviteHeaderStyle = privateInviteImageUrl
+    ? {
+      backgroundImage: `linear-gradient(115deg, rgba(15, 23, 42, 0.88) 8%, rgba(15, 23, 42, 0.72) 42%, rgba(15, 23, 42, 0.78) 100%), url(${privateInviteImageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }
+    : undefined;
+  const fallbackModalGuests = confirmedGuests.map((guest, index) => ({
+    id: guest?.id || `confirmed-${index}`,
+    displayName: String(guest?.fullName || `${guest?.firstName || ''} ${guest?.lastName || ''}`.trim() || 'Invitat').trim(),
+    inviteStatus: 'accepted',
+  }));
+  const modalGuestsToRender = privateModalGuests.length > 0 ? privateModalGuests : fallbackModalGuests;
 
   const goToPreviousStackEvent = () => {
     if (stackEvents.length <= 1) return;
@@ -820,10 +884,6 @@ const Home = ({ user }) => {
                       </div>
                     </article>
 
-                    {isPrimaryPrivate && nextStackTitle ? (
-                      <p className="home-stack-preview">Următorul: {nextStackTitle}</p>
-                    ) : null}
-
                     {hasMultipleStackEvents ? (
                       <div className="home-stack-indicator" aria-label="Indicator stivă evenimente">
                         <button
@@ -987,7 +1047,10 @@ const Home = ({ user }) => {
                     aria-labelledby="home-private-modal-title"
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <div className="home-ticket-modal-header home-private-invite-header">
+                    <div
+                      className={`home-ticket-modal-header home-private-invite-header${privateInviteImageUrl ? ' has-image' : ''}`}
+                      style={privateInviteHeaderStyle}
+                    >
                       <button
                         type="button"
                         className="home-ticket-modal-close"
@@ -999,7 +1062,7 @@ const Home = ({ user }) => {
 
                       <p className="home-ticket-modal-kicker"><PiConfetti /> {isPrimaryHost ? 'EȘTI GAZDĂ' : 'EȘTI INVITAT LA'}</p>
                       <h2 id="home-private-modal-title">{primaryStackEvent.event?.title || 'Eveniment privat'}</h2>
-                      <p className="home-private-organizer-line in-modal">{privateOrganizerLine}</p>
+                      {!isPrimaryHost ? <p className="home-private-organizer-line in-modal">{privateOrganizerLine}</p> : null}
 
                       <div className="home-ticket-modal-meta">
                         <span><FiCalendar /> {nextTicketDateParts.dayPart} • {nextTicketDateParts.timePart}</span>
@@ -1008,23 +1071,55 @@ const Home = ({ user }) => {
                     </div>
 
                     <div className="home-ticket-modal-body home-private-invite-body">
-                      <p className="home-private-description">
-                        {primaryStackEvent.event?.description || 'Moment special, invitație privată. Deschide invitația pentru detaliile complete ale evenimentului.'}
-                      </p>
+                      {privateDescription ? (
+                        <div className="home-private-details-block">
+                          <p className="home-private-details-title">Descriere</p>
+                          <p className="home-private-details-copy">{privateDescription}</p>
+                        </div>
+                      ) : null}
 
-                      <button
-                        type="button"
-                        className="home-ticket-modal-action"
-                        onClick={() => {
-                          setIsPrivateInviteModalOpen(false);
-                          if (primaryStackEvent.event?.id) {
-                            navigate(`/invite/${primaryStackEvent.event.id}`);
-                          }
-                        }}
-                      >
-                        <FiUsers />
-                        Deschide invitația
-                      </button>
+                      {privateGuestNotes ? (
+                        <div className="home-private-details-block">
+                          <p className="home-private-details-title">Detalii pentru invitați</p>
+                          <p className="home-private-details-copy">{privateGuestNotes}</p>
+                        </div>
+                      ) : null}
+
+                      {canViewGuestList ? (
+                        <div className="home-private-details-block">
+                          <p className="home-private-details-title">Lista invitaților</p>
+
+                          {privateModalGuestsLoading ? (
+                            <p className="home-private-details-copy">Se încarcă invitații...</p>
+                          ) : null}
+
+                          {!privateModalGuestsLoading && privateModalGuestsError ? (
+                            <p className="home-private-details-copy">{privateModalGuestsError}</p>
+                          ) : null}
+
+                          {!privateModalGuestsLoading && !privateModalGuestsError && modalGuestsToRender.length > 0 ? (
+                            <ul className="home-private-modal-guests-list">
+                              {modalGuestsToRender.map((guest, index) => {
+                                const fullName = String(guest?.displayName || guest?.fullName || 'Invitat').trim();
+                                const initials = getGuestInitials(guest) || fullName.charAt(0).toUpperCase();
+                                const inviteStatus = guest?.inviteStatus || 'accepted';
+                                const inviteStatusLabel = inviteStatus === 'accepted' ? 'Acceptat' : (inviteStatus === 'pending' ? 'În așteptare' : inviteStatus);
+                                return (
+                                  <li key={guest?.id || `${fullName}-${index}`}>
+                                    <span>{initials}</span>
+                                    <strong>{fullName}</strong>
+                                    <small>{inviteStatusLabel}</small>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : null}
+
+                          {!privateModalGuestsLoading && !privateModalGuestsError && modalGuestsToRender.length === 0 ? (
+                            <p className="home-private-details-copy">Nu există invitați încă.</p>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>

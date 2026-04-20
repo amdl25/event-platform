@@ -636,10 +636,12 @@ export const getMyPrivateEvents = async (req, res) => {
       return {
         id: data.id,
         title: data.title,
+        description: data.description || null,
         location: data.location,
         start_date: data.start_date,
         end_date: data.end_date,
         showGuestList: Boolean(data.show_guest_list),
+        guestNotes: data.guest_notes || null,
         inviteLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invite/${data.id}?token=${data.private_invite_token}`,
         inviteExpiresAt: data.private_invite_token_expires_at,
         confirmedCount,
@@ -682,12 +684,14 @@ export const getMyPrivateEvents = async (req, res) => {
           event: {
             id: event.id,
             title: event.title,
+            description: event.description || null,
             location: event.location,
             start_date: event.start_date,
             end_date: event.end_date,
             hostName,
             image_url: event.image_url,
             showGuestList: canShowGuestList,
+            guestNotes: event.guest_notes || null,
             confirmedCount: confirmedGuests.length,
             totalInvited: event.max_capacity > 0 ? event.max_capacity : eventParticipations.length,
             confirmedGuests: canShowGuestList ? confirmedGuests : []

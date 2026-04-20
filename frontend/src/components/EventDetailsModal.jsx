@@ -66,6 +66,8 @@ const EventDetailsModal = ({
     title: '',
     description: '',
     location: '',
+    imageUrl: '',
+    imageFile: null,
     guestNotes: '',
     startDate: '',
     startTime: '',
@@ -113,6 +115,8 @@ const EventDetailsModal = ({
       title: event.title || '',
       description: event.description || '',
       location: event.location || '',
+      imageUrl: event.image_url || '',
+      imageFile: null,
       guestNotes: event.guest_notes || '',
       startDate,
       startTime,
@@ -182,6 +186,28 @@ const EventDetailsModal = ({
     }
   }, [endTimeOptions, form.endTime]);
 
+  const editImagePreview = useMemo(() => {
+    if (form.imageFile instanceof File) {
+      return URL.createObjectURL(form.imageFile);
+    }
+
+    if (form.imageUrl) {
+      return form.imageUrl.startsWith('http') || form.imageUrl.startsWith('data:')
+        ? form.imageUrl
+        : `${API_BASE}${form.imageUrl}`;
+    }
+
+    return '';
+  }, [form.imageFile, form.imageUrl]);
+
+  useEffect(() => {
+    if (!editImagePreview || !(form.imageFile instanceof File)) return undefined;
+
+    return () => {
+      URL.revokeObjectURL(editImagePreview);
+    };
+  }, [editImagePreview, form.imageFile]);
+
   if (!isOpen || !event) return null;
 
   const eventImage = event.image_url
@@ -223,16 +249,25 @@ const EventDetailsModal = ({
 
     try {
       setSaving(true);
-      const response = await API.patch(`/events/${event.id}`, {
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        location: form.location.trim(),
-        guest_notes: form.guestNotes.trim() || null,
-        start_date: startDateTime.toISOString(),
-        end_date: endDateTime.toISOString(),
-        max_capacity: Number(form.maxCapacity || 0),
-        price: Number(form.price || 0),
-        points_value: Number(form.pointsValue || 0),
+      const payload = new FormData();
+      payload.append('title', form.title.trim());
+      payload.append('description', form.description.trim());
+      payload.append('location', form.location.trim());
+      payload.append('guest_notes', form.guestNotes.trim());
+      payload.append('start_date', startDateTime.toISOString());
+      payload.append('end_date', endDateTime.toISOString());
+      payload.append('max_capacity', String(Number(form.maxCapacity || 0)));
+      payload.append('price', String(Number(form.price || 0)));
+      payload.append('points_value', String(Number(form.pointsValue || 0)));
+
+      if (form.imageFile instanceof File) {
+        payload.append('image', form.imageFile);
+      } else {
+        payload.append('image_url', form.imageUrl.trim());
+      }
+
+      const response = await API.patch(`/events/${event.id}`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (onSaved) {
@@ -256,7 +291,7 @@ const EventDetailsModal = ({
         {mode === 'edit' ? (
           <form className="event-modal-edit-form" onSubmit={handleSubmit}>
             <div className="event-modal-hero">
-              {eventImage ? <img src={eventImage} alt={event.title} /> : <div className="event-modal-hero-placeholder">{event.title}</div>}
+              {editImagePreview ? <img src={editImagePreview} alt={form.title || event.title} /> : <div className="event-modal-hero-placeholder">{form.title || event.title}</div>}
             </div>
 
             <div className="event-modal-content scrollable">
@@ -284,6 +319,28 @@ const EventDetailsModal = ({
                 <label className="event-modal-field full-width">
                   <span>Locație</span>
                   <input value={form.location} onChange={(eventChange) => handleChange('location', eventChange.target.value)} required />
+                </label>
+
+                <label className="event-modal-field full-width">
+                  <span>Poză eveniment (link)</span>
+                  <input
+                    type="url"
+                    value={form.imageUrl}
+                    onChange={(eventChange) => handleChange('imageUrl', eventChange.target.value)}
+                    placeholder="https://..."
+                  />
+                </label>
+
+                <label className="event-modal-field full-width">
+                  <span>Încarcă poză</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(eventChange) => {
+                      const file = eventChange.target.files?.[0] || null;
+                      handleChange('imageFile', file);
+                    }}
+                  />
                 </label>
 
                 <label className="event-modal-field full-width">
