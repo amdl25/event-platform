@@ -336,7 +336,9 @@
   padding-left: 16px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .home-private-side-title {
@@ -352,6 +354,7 @@
   margin-top: 10px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .home-private-side-avatars span {
@@ -379,17 +382,19 @@
 
 .home-private-side-count {
   margin: 12px 0 0;
-  font-size: 1.95rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
   color: #0f172a;
   line-height: 1;
 }
 
 .home-private-side-count strong {
+  font-size: 1.95rem;
   font-weight: 800;
 }
 
-.home-private-side-note {
-  margin: 6px 0 0;
+.home-private-side-count span {
   color: #64748b;
   font-size: 0.95rem;
 }

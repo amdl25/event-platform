@@ -565,7 +565,13 @@ export const getMyPrivateEvents = async (req, res) => {
     const createdEvents = await Event.findAll({
       where: { creator_id: accountId, org_id: null },
       include: [
-        { model: Participation, attributes: ['id', 'account_id', 'invite_status'] }
+        {
+          model: Participation,
+          attributes: ['id', 'account_id', 'invite_status', 'buyer_name'],
+          include: [
+            { model: Account, attributes: ['id', 'first_name', 'last_name'] }
+          ]
+        }
       ],
       order: [['start_date', 'DESC']]
     });
@@ -577,7 +583,14 @@ export const getMyPrivateEvents = async (req, res) => {
           model: Event,
           where: { org_id: null },
           include: [
-            { model: Account, as: 'creator', attributes: ['id', 'first_name', 'last_name'] }
+            { model: Account, as: 'creator', attributes: ['id', 'first_name', 'last_name'] },
+            {
+              model: Participation,
+              attributes: ['id', 'account_id', 'invite_status', 'buyer_name'],
+              include: [
+                { model: Account, attributes: ['id', 'first_name', 'last_name'] }
+              ]
+            }
           ]
         }
       ],
@@ -600,8 +613,25 @@ export const getMyPrivateEvents = async (req, res) => {
         data = event.toJSON();
       }
 
-      const totalInvited = (data.Participations || []).length;
-      const confirmedCount = (data.Participations || []).filter((item) => item.invite_status === 'accepted').length;
+      const participations = data.Participations || [];
+      const totalInvited = participations.length;
+      const confirmedGuests = participations
+        .filter((item) => item.invite_status === 'accepted')
+        .map((item) => {
+          const firstName = item?.Account?.first_name || '';
+          const lastName = item?.Account?.last_name || '';
+          const fullName = `${firstName} ${lastName}`.trim() || item?.buyer_name || '';
+
+          if (!fullName) return null;
+          return {
+            id: item.id,
+            firstName: firstName || null,
+            lastName: lastName || null,
+            fullName
+          };
+        })
+        .filter(Boolean);
+      const confirmedCount = confirmedGuests.length;
 
       return {
         id: data.id,
@@ -614,6 +644,7 @@ export const getMyPrivateEvents = async (req, res) => {
         inviteExpiresAt: data.private_invite_token_expires_at,
         confirmedCount,
         totalInvited: data.max_capacity > 0 ? data.max_capacity : totalInvited,
+        confirmedGuests,
         image_url: data.image_url
       };
     }));
@@ -626,6 +657,24 @@ export const getMyPrivateEvents = async (req, res) => {
         }
 
         const hostName = `${event.creator?.first_name || ''} ${event.creator?.last_name || ''}`.trim() || 'Organizator';
+        const eventParticipations = event.Participations || [];
+        const canShowGuestList = Boolean(event.show_guest_list);
+        const confirmedGuests = eventParticipations
+          .filter((item) => item.invite_status === 'accepted')
+          .map((item) => {
+            const firstName = item?.Account?.first_name || '';
+            const lastName = item?.Account?.last_name || '';
+            const fullName = `${firstName} ${lastName}`.trim() || item?.buyer_name || '';
+
+            if (!fullName) return null;
+            return {
+              id: item.id,
+              firstName: firstName || null,
+              lastName: lastName || null,
+              fullName
+            };
+          })
+          .filter(Boolean);
 
         return {
           participationId: participation.id,
@@ -637,7 +686,11 @@ export const getMyPrivateEvents = async (req, res) => {
             start_date: event.start_date,
             end_date: event.end_date,
             hostName,
-            image_url: event.image_url
+            image_url: event.image_url,
+            showGuestList: canShowGuestList,
+            confirmedCount: confirmedGuests.length,
+            totalInvited: event.max_capacity > 0 ? event.max_capacity : eventParticipations.length,
+            confirmedGuests: canShowGuestList ? confirmedGuests : []
           }
         };
       })

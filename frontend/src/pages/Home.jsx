@@ -125,6 +125,23 @@ const getMinTicketPoints = (event) => {
   return Number.isFinite(fallbackPoints) && fallbackPoints > 0 ? fallbackPoints : 0;
 };
 
+const getGuestInitials = (guest) => {
+  const fullName = String(
+    guest?.fullName ||
+    `${guest?.firstName || ''} ${guest?.lastName || ''}`.trim() ||
+    ''
+  ).trim();
+
+  if (!fullName) return '';
+
+  return fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+};
+
 const toTimestamp = (value) => {
   const timestamp = value ? new Date(value).getTime() : NaN;
   return Number.isFinite(timestamp) ? timestamp : null;
@@ -274,8 +291,10 @@ const Home = ({ user }) => {
             privateMeta: {
               roleLabel: 'Gazda',
               hostName: 'Tu',
+              showGuestList: Boolean(entry?.showGuestList),
               confirmedCount: Number(entry?.confirmedCount || 0),
               totalInvited: Number(entry?.totalInvited || 0),
+              confirmedGuests: Array.isArray(entry?.confirmedGuests) ? entry.confirmedGuests : [],
             }
           }))
           .filter(Boolean);
@@ -300,6 +319,10 @@ const Home = ({ user }) => {
               roleLabel: 'Invitat',
               hostName: entry?.event?.hostName || 'Organizator',
               inviteStatus: entry?.inviteStatus || 'accepted',
+              showGuestList: Boolean(entry?.event?.showGuestList),
+              confirmedCount: Number(entry?.event?.confirmedCount || 0),
+              totalInvited: Number(entry?.event?.totalInvited || 0),
+              confirmedGuests: Array.isArray(entry?.event?.confirmedGuests) ? entry.event.confirmedGuests : [],
             }
           }))
           .filter(Boolean);
@@ -626,9 +649,13 @@ const Home = ({ user }) => {
   const privateOrganizerLine = isPrimaryHost
     ? 'Ești gazdă'
     : `Organizat de ${primaryStackEvent?.event?.organizationName || primaryStackEvent?.privateMeta?.hostName || 'Organizator'}`;
+  const canViewGuestList = isPrimaryHost || Boolean(primaryStackEvent?.privateMeta?.showGuestList);
   const privateConfirmedCount = Number(primaryStackEvent?.privateMeta?.confirmedCount || 0);
-  const privateTotalInvitedRaw = Number(primaryStackEvent?.privateMeta?.totalInvited || 0);
-  const privateTotalInvited = privateTotalInvitedRaw > 0 ? privateTotalInvitedRaw : privateConfirmedCount;
+  const confirmedGuests = Array.isArray(primaryStackEvent?.privateMeta?.confirmedGuests)
+    ? primaryStackEvent.privateMeta.confirmedGuests
+    : [];
+  const visibleConfirmedGuests = canViewGuestList ? confirmedGuests.slice(0, 5) : [];
+  const remainingConfirmedGuests = Math.max(confirmedGuests.length - visibleConfirmedGuests.length, 0);
 
   const goToPreviousStackEvent = () => {
     if (stackEvents.length <= 1) return;
@@ -754,18 +781,21 @@ const Home = ({ user }) => {
 
                                 <aside className="home-private-side-col">
                                   <p className="home-private-side-title">INVITAȚI</p>
-                                  <div className="home-private-side-avatars" aria-hidden="true">
-                                    <span>AM</span>
-                                    <span>DR</span>
-                                    <span>IV</span>
-                                    <span>SC</span>
-                                    <span>MP</span>
-                                    <span className="more">+7</span>
-                                  </div>
-                                  <p className="home-private-side-count">
-                                    <strong>{privateConfirmedCount}</strong>/{privateTotalInvited}
-                                  </p>
-                                  <p className="home-private-side-note">au confirmat</p>
+                                  {canViewGuestList && visibleConfirmedGuests.length > 0 ? (
+                                    <div className="home-private-side-avatars" aria-hidden="true">
+                                      {visibleConfirmedGuests.map((guest, index) => {
+                                        const initials = getGuestInitials(guest) || '•';
+                                        return <span key={guest?.id || `${guest?.fullName || 'guest'}-${index}`}>{initials}</span>;
+                                      })}
+                                      {remainingConfirmedGuests > 0 ? <span className="more">+{remainingConfirmedGuests}</span> : null}
+                                    </div>
+                                  ) : null}
+                                  {canViewGuestList ? (
+                                    <p className="home-private-side-count">
+                                      <strong>{privateConfirmedCount}</strong>
+                                      <span>au confirmat</span>
+                                    </p>
+                                  ) : null}
                                 </aside>
                               </div>
 
