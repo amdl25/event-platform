@@ -38,7 +38,7 @@ const CustomDropdown = ({
   };
 
   return (
-    <div ref={rootRef} className={`custom-dropdown ${open ? 'is-open' : ''}`}>
+    <div ref={rootRef} className={`custom-dropdown ${open ? 'is-open' : ''} ${clearable ? 'has-clear' : ''}`.trim()}>
       <button
         type="button"
         className={`custom-dropdown-trigger ${triggerClassName}`.trim()}
@@ -48,7 +48,7 @@ const CustomDropdown = ({
         aria-label={ariaLabel}
       >
         <span>{selected?.label || ''}</span>
-        <FiChevronDown className="custom-dropdown-chevron" aria-hidden="true" />
+        {!clearable ? <FiChevronDown className="custom-dropdown-chevron" aria-hidden="true" /> : null}
       </button>
 
       {clearable ? (

@@ -9,6 +9,11 @@ const EventCard = ({ event, variant = 'default' }) => {
   const month = dateObj.toLocaleDateString('ro-RO', { month: 'short' }).toUpperCase();
   const day = dateObj.getDate();
   const isSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
+  const createdAtValue = event.created_at || event.createdAt;
+  const createdAtTs = createdAtValue ? new Date(createdAtValue).getTime() : NaN;
+  const isRecentlyAdded = Number.isFinite(createdAtTs)
+    && (Date.now() - createdAtTs) <= (14 * 24 * 60 * 60 * 1000);
+  const badgeLabel = isSoldOut ? 'Sold out' : (isRecentlyAdded ? 'Nou' : '');
   const cardImageSrc = event.image_url
     ? (event.image_url.startsWith('http') || event.image_url.startsWith('data:')
       ? event.image_url
@@ -26,15 +31,11 @@ const EventCard = ({ event, variant = 'default' }) => {
               <div className="card-image-placeholder no-image">{event.title?.charAt(0)}</div>
             )}
             
-            <div className="price-badge-premium">
-              {isSoldOut ? (
-                <span className="sold-out">Sold out</span>
-              ) : Number(event.price) > 0 ? (
-                <span>{Number(event.price).toFixed(0)} lei</span>
-              ) : (
-                <span>Gratuit</span>
-              )}
-            </div>
+            {badgeLabel ? (
+              <div className={`status-badge ${isSoldOut ? 'sold-out' : 'is-new'}`}>
+                <span>{badgeLabel}</span>
+              </div>
+            ) : null}
           </div>
 
           <div className="card-content-premium">
@@ -49,7 +50,7 @@ const EventCard = ({ event, variant = 'default' }) => {
               </div>
 
               <p className="card-points-premium">
-                +{event.points_value || 50} puncte
+                <span className="card-points-star" aria-hidden="true">★</span> +{event.points_value || 50} puncte
               </p>
             </div>
           </div>

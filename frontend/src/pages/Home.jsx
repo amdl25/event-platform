@@ -9,12 +9,15 @@ import Benefits from '../components/Benefits';
 import RecommendationWizard from '../components/RecommendationWizard';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import API, { API_BASE } from '../api';
-import { FiCalendar, FiDownload, FiMapPin, FiX } from 'react-icons/fi';
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiUsers, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
+import { PiConfetti } from 'react-icons/pi';
 import { getRecentCategoryClickCounts } from '../utils/recommendationSignals';
 import '../styles/Home.css';
 
 const NEXT_TICKET_CACHE_KEY = 'homeNextTicket';
+const STACK_WINDOW_HOURS = 72;
+const PUBLIC_PRIORITY_WINDOW_HOURS = 4;
 
 const getDaysUntilLabel = (dateValue) => {
   const now = new Date();
@@ -122,20 +125,71 @@ const getMinTicketPoints = (event) => {
   return Number.isFinite(fallbackPoints) && fallbackPoints > 0 ? fallbackPoints : 0;
 };
 
+const toTimestamp = (value) => {
+  const timestamp = value ? new Date(value).getTime() : NaN;
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+
+const isWithinWindow = (startTimestamp, nowTimestamp, windowHours) => {
+  if (!Number.isFinite(startTimestamp)) return false;
+  const diff = startTimestamp - nowTimestamp;
+  return diff >= 0 && diff <= windowHours * 60 * 60 * 1000;
+};
+
+const buildStackCandidate = ({ kind, event, ticket = null, privateMeta = null }) => {
+  const startDate = event?.startDate || event?.start_date || event?.start;
+  const startTimestamp = toTimestamp(startDate);
+  if (!event?.id || !startDate || !Number.isFinite(startTimestamp)) return null;
+
+  return {
+    id: `${kind}-${event.id}-${ticket?.id || 'evt'}`,
+    kind,
+    startDate,
+    startTimestamp,
+    hasQr: kind === 'public-ticket',
+    event: {
+      id: event.id,
+      title: event.title,
+      description: event.description || event.desc || '',
+      location: event.location,
+      image_url: event.image_url,
+      organizationName: event.organizationName || event.hostName || privateMeta?.hostName || 'Organizator',
+      pointsValue: Number(event.pointsValue || 0),
+    },
+    ticketCode: ticket?.ticketCode || null,
+    privateMeta,
+  };
+};
+
+const sortSmartStack = (events, nowTimestamp) => {
+  return [...events].sort((a, b) => {
+    const aPublicBoost = a.kind === 'public-ticket' && isWithinWindow(a.startTimestamp, nowTimestamp, PUBLIC_PRIORITY_WINDOW_HOURS);
+    const bPublicBoost = b.kind === 'public-ticket' && isWithinWindow(b.startTimestamp, nowTimestamp, PUBLIC_PRIORITY_WINDOW_HOURS);
+
+    if (aPublicBoost !== bPublicBoost) {
+      return aPublicBoost ? -1 : 1;
+    }
+
+    return a.startTimestamp - b.startTimestamp;
+  });
+};
+
 const Home = ({ user }) => {
   const navigate = useNavigate();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isPrivateInviteModalOpen, setIsPrivateInviteModalOpen] = useState(false);
   const [pdfPayload, setPdfPayload] = useState(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [nextTicket, setNextTicket] = useState(null);
+  const [stackEvents, setStackEvents] = useState([]);
+  const [activeStackIndex, setActiveStackIndex] = useState(0);
   const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
   const ticketPdfRef = useRef(null);
 
   useEffect(() => {
     if (!user?.id) {
-      setNextTicket(null);
+      setStackEvents([]);
       setIsHomeLoading(false);
       setRecommendedEvents([]);
       sessionStorage.removeItem(NEXT_TICKET_CACHE_KEY);
@@ -148,8 +202,8 @@ const Home = ({ user }) => {
       const cachedTicketRaw = sessionStorage.getItem(NEXT_TICKET_CACHE_KEY);
       if (cachedTicketRaw) {
         const cachedTicket = JSON.parse(cachedTicketRaw);
-        if (cachedTicket?.event?.startDate) {
-          setNextTicket(cachedTicket);
+        if (cachedTicket?.event?.startDate && cachedTicket?.kind) {
+          setStackEvents([cachedTicket]);
         }
       }
     } catch {
@@ -157,22 +211,107 @@ const Home = ({ user }) => {
 
     const loadPersonalizedHome = async () => {
       try {
-        const [ticketsRes, eventsRes, profileRes] = await Promise.all([
+        const [ticketsRes, eventsRes, privateRes, profileRes] = await Promise.all([
           API.get('/events/tickets/mine'),
           API.get('/events'),
+          API.get('/events/private/mine').catch(() => ({ data: { created: [], invited: [] } })),
           API.get(`/users/${user.id}`).catch(() => ({ data: null }))
         ]);
         const now = new Date();
+        const nowTimestamp = now.getTime();
         const allTickets = Array.isArray(ticketsRes.data) ? ticketsRes.data : [];
+        const privateData = privateRes?.data || { created: [], invited: [] };
+        const privateCreated = Array.isArray(privateData?.created) ? privateData.created : [];
+        const privateInvited = Array.isArray(privateData?.invited) ? privateData.invited : [];
+        const privateEventIds = new Set([
+          ...privateCreated.map((entry) => entry?.id),
+          ...privateInvited.map((entry) => entry?.event?.id),
+        ].filter(Boolean));
 
-        const upcomingTickets = allTickets
-          .filter((ticket) => ticket?.event?.startDate && new Date(ticket.event.startDate) > now)
-          .sort((a, b) => new Date(a.event.startDate) - new Date(b.event.startDate));
-        const nextUpcomingTicket = upcomingTickets[0] || null;
-        setNextTicket(nextUpcomingTicket);
+        const publicCandidates = allTickets
+          .filter((ticket) => {
+            const eventId = ticket?.event?.id;
+            if (!eventId || privateEventIds.has(eventId)) return false;
 
-        if (nextUpcomingTicket) {
-          sessionStorage.setItem(NEXT_TICKET_CACHE_KEY, JSON.stringify(nextUpcomingTicket));
+            const hasOrgIdField = Object.prototype.hasOwnProperty.call(ticket?.event || {}, 'org_id');
+            const hasOrgIdCamelField = Object.prototype.hasOwnProperty.call(ticket?.event || {}, 'orgId');
+            if (hasOrgIdField && ticket?.event?.org_id == null) return false;
+            if (hasOrgIdCamelField && ticket?.event?.orgId == null) return false;
+
+            const startTs = toTimestamp(ticket?.event?.startDate);
+            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+          })
+          .map((ticket) => buildStackCandidate({
+            kind: 'public-ticket',
+            event: {
+              id: ticket?.event?.id,
+              title: ticket?.event?.title,
+              location: ticket?.event?.location,
+              startDate: ticket?.event?.startDate,
+              image_url: ticket?.event?.image_url,
+              organizationName: ticket?.event?.organizationName,
+              pointsValue: ticket?.event?.pointsValue,
+            },
+            ticket,
+          }))
+          .filter(Boolean);
+
+        const privateCreatedCandidates = privateCreated
+          .filter((entry) => {
+            const startTs = toTimestamp(entry?.start_date);
+            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+          })
+          .map((entry) => buildStackCandidate({
+            kind: 'private-host',
+            event: {
+              id: entry?.id,
+              title: entry?.title,
+              description: entry?.description,
+              location: entry?.location,
+              startDate: entry?.start_date,
+              image_url: entry?.image_url,
+            },
+            privateMeta: {
+              roleLabel: 'Gazda',
+              hostName: 'Tu',
+              confirmedCount: Number(entry?.confirmedCount || 0),
+              totalInvited: Number(entry?.totalInvited || 0),
+            }
+          }))
+          .filter(Boolean);
+
+        const privateInvitedCandidates = privateInvited
+          .filter((entry) => {
+            const startTs = toTimestamp(entry?.event?.start_date);
+            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+          })
+          .map((entry) => buildStackCandidate({
+            kind: 'private-invited',
+            event: {
+              id: entry?.event?.id,
+              title: entry?.event?.title,
+              description: entry?.event?.description,
+              location: entry?.event?.location,
+              startDate: entry?.event?.start_date,
+              image_url: entry?.event?.image_url,
+              organizationName: entry?.event?.hostName,
+            },
+            privateMeta: {
+              roleLabel: 'Invitat',
+              hostName: entry?.event?.hostName || 'Organizator',
+              inviteStatus: entry?.inviteStatus || 'accepted',
+            }
+          }))
+          .filter(Boolean);
+
+        const nextStack = sortSmartStack(
+          [...publicCandidates, ...privateCreatedCandidates, ...privateInvitedCandidates],
+          nowTimestamp
+        );
+        setStackEvents(nextStack);
+
+        if (nextStack[0]) {
+          sessionStorage.setItem(NEXT_TICKET_CACHE_KEY, JSON.stringify(nextStack[0]));
         } else {
           sessionStorage.removeItem(NEXT_TICKET_CACHE_KEY);
         }
@@ -356,33 +495,50 @@ const Home = ({ user }) => {
   }, [user]);
 
   const greetingName = useMemo(() => user?.firstName || user?.first_name || 'prietene', [user]);
-  const nextTicketDate = nextTicket?.event?.startDate || null;
+  const hasMultipleStackEvents = stackEvents.length > 1;
+  const safeActiveStackIndex = stackEvents.length > 0 ? Math.min(activeStackIndex, stackEvents.length - 1) : 0;
+  const primaryStackEvent = stackEvents[safeActiveStackIndex] || null;
+  const stackGhostCount = hasMultipleStackEvents ? 2 : 0;
+  const isPrimaryPublic = primaryStackEvent?.kind === 'public-ticket';
+  const isPrimaryPrivate = primaryStackEvent?.kind === 'private-host' || primaryStackEvent?.kind === 'private-invited';
+  const nextTicketDate = primaryStackEvent?.startDate || null;
   const nextTicketDateParts = useMemo(
     () => (nextTicketDate ? formatTicketDateParts(nextTicketDate) : { dayPart: '', timePart: '' }),
     [nextTicketDate]
   );
-  const nextTicketQrValue = useMemo(() => buildTicketQrPayload(nextTicket), [nextTicket]);
+  const nextTicketQrValue = useMemo(() => {
+    if (!isPrimaryPublic || !primaryStackEvent?.event) return '';
+
+    return buildTicketQrPayload({
+      ticketCode: primaryStackEvent.ticketCode,
+      event: {
+        id: primaryStackEvent.event.id,
+        title: primaryStackEvent.event.title,
+        startDate: primaryStackEvent.startDate,
+      }
+    });
+  }, [isPrimaryPublic, primaryStackEvent]);
 
   const buildPdfPayload = () => {
-    if (!nextTicket?.event) return null;
+    if (!isPrimaryPublic || !primaryStackEvent?.event) return null;
 
     return {
-      eventTitle: nextTicket.event?.title || 'Eveniment',
+      eventTitle: primaryStackEvent.event?.title || 'Eveniment',
       generatedAt: new Date().toISOString(),
       tickets: [{
         number: 1,
-        code: nextTicket.ticketCode || 'TK-UNKNOWN',
-        qrValue: nextTicketQrValue || nextTicket.ticketCode || 'ticket',
-        date: nextTicket.event?.startDate,
-        location: nextTicket.event?.location || 'Locație nespecificată',
-        points: Number(nextTicket.event?.pointsValue || 0),
-        organizationName: nextTicket.event?.organizationName || 'Organizator'
+        code: primaryStackEvent.ticketCode || 'TK-UNKNOWN',
+        qrValue: nextTicketQrValue || primaryStackEvent.ticketCode || 'ticket',
+        date: primaryStackEvent.startDate,
+        location: primaryStackEvent.event?.location || 'Locație nespecificată',
+        points: Number(primaryStackEvent.event?.pointsValue || 0),
+        organizationName: primaryStackEvent.event?.organizationName || 'Organizator'
       }]
     };
   };
 
   const handleDownloadPdf = async () => {
-    if (!nextTicket?.event || downloadingPdf) return;
+    if (!isPrimaryPublic || !primaryStackEvent?.event || downloadingPdf) return;
 
     setDownloadingPdf(true);
     try {
@@ -420,7 +576,7 @@ const Home = ({ user }) => {
         heightLeft -= 297;
       }
 
-      const fileBase = toSafeFileSlug(nextTicket.event?.title || nextTicket.ticketCode || 'eveniment');
+      const fileBase = toSafeFileSlug(primaryStackEvent.event?.title || primaryStackEvent.ticketCode || 'eveniment');
       pdf.save(`bilet-${fileBase}.pdf`);
     } catch (error) {
       console.error('Eroare la exportul PDF al biletului:', error);
@@ -431,21 +587,58 @@ const Home = ({ user }) => {
   };
 
   useEffect(() => {
-    if (!isTicketModalOpen) return undefined;
+    if (!isTicketModalOpen && !isPrivateInviteModalOpen) return undefined;
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         setIsTicketModalOpen(false);
+        setIsPrivateInviteModalOpen(false);
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isTicketModalOpen]);
+  }, [isPrivateInviteModalOpen, isTicketModalOpen]);
+
+  useEffect(() => {
+    if (!isPrimaryPrivate) {
+      setIsPrivateInviteModalOpen(false);
+    }
+  }, [isPrimaryPrivate]);
+
+  useEffect(() => {
+    setActiveStackIndex((currentIndex) => {
+      if (stackEvents.length === 0) return 0;
+      return Math.min(currentIndex, stackEvents.length - 1);
+    });
+  }, [stackEvents.length]);
 
   const recommendationCards = useMemo(() => {
     return [...recommendedEvents];
   }, [recommendedEvents]);
+
+  const hasUpcomingStack = Boolean(primaryStackEvent?.startDate);
+  const stackedPreview = stackEvents
+    .filter((_, index) => index !== safeActiveStackIndex)
+    .slice(0, 3);
+  const nextStackTitle = stackedPreview[0]?.event?.title || null;
+  const isPrimaryHost = primaryStackEvent?.kind === 'private-host';
+  const privateOrganizerLine = isPrimaryHost
+    ? 'Ești gazdă'
+    : `Organizat de ${primaryStackEvent?.event?.organizationName || primaryStackEvent?.privateMeta?.hostName || 'Organizator'}`;
+  const privateConfirmedCount = Number(primaryStackEvent?.privateMeta?.confirmedCount || 0);
+  const privateTotalInvitedRaw = Number(primaryStackEvent?.privateMeta?.totalInvited || 0);
+  const privateTotalInvited = privateTotalInvitedRaw > 0 ? privateTotalInvitedRaw : privateConfirmedCount;
+
+  const goToPreviousStackEvent = () => {
+    if (stackEvents.length <= 1) return;
+    setActiveStackIndex((currentIndex) => (currentIndex - 1 + stackEvents.length) % stackEvents.length);
+  };
+
+  const goToNextStackEvent = () => {
+    if (stackEvents.length <= 1) return;
+    setActiveStackIndex((currentIndex) => (currentIndex + 1) % stackEvents.length);
+  };
 
   return (
     <div className="home-page">
@@ -454,222 +647,362 @@ const Home = ({ user }) => {
       {user ? (
         <section className="home-member-zone">
           <div className="home-member-shell">
-            <div className="home-member-head">
-              <div>
-                <h2 className="home-member-greeting">
-                  Bună, <span>{greetingName}</span>!
-                </h2>
-                <p className="home-member-subtitle">Ai un eveniment în curând — pregătește-te!</p>
-              </div>
-            </div>
-
-            <div className="home-member-pair ticket-only">
-              <article className={`home-member-card home-member-card-ticket${nextTicket ? ' has-ticket' : ''}`}>
-                {nextTicket ? (
-                  <div className="home-ticket-layout">
-                    <div className="home-ticket-visual">
-                      <span className="home-ticket-days-chip">{getDaysUntilLabel(nextTicket.event.startDate)}</span>
-                      {nextTicket.event?.image_url ? (
-                        <img
-                          src={nextTicket.event.image_url?.startsWith('http') ? nextTicket.event.image_url : `${API_BASE}${nextTicket.event.image_url}`}
-                          alt={nextTicket.event?.title || 'Eveniment'}
-                        />
-                      ) : (
-                        <div className="home-ticket-visual-placeholder">
-                          {(nextTicket.event?.title || 'E').charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="home-ticket-main">
-                      <p className="home-ticket-kicker"><FaTicketAlt /> URMĂTORUL TĂU EVENIMENT</p>
-                      <h3>{nextTicket.event?.title || 'Eveniment'}</h3>
-
-                      <div className="home-ticket-meta-grid">
-                        <div className="home-ticket-meta-block">
-                          <p className="home-ticket-meta-label"><FiCalendar /> DATA</p>
-                          <p className="home-ticket-meta-value">{nextTicketDateParts.dayPart}</p>
-                          <p className="home-ticket-meta-time">{nextTicketDateParts.timePart}</p>
-                        </div>
-
-                        <div className="home-ticket-meta-block">
-                          <p className="home-ticket-meta-label"><FiMapPin /> LOCAȚIE</p>
-                          <p className="home-ticket-meta-value">{nextTicket.event?.location || 'Locație nespecificată'}</p>
-                        </div>
-                      </div>
-
-                      <div className="home-ticket-actions-row">
-                        <button
-                          type="button"
-                          className="home-ticket-primary-btn"
-                          onClick={() => {
-                            if (nextTicket.event?.id) {
-                              navigate(`/event/${nextTicket.event.id}`);
-                            } else {
-                              navigate('/my-events');
-                            }
-                          }}
-                        >
-                          <FaTicketAlt />
-                          <span>Vezi evenimentul</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="home-ticket-qr-col"
-                      onClick={() => setIsTicketModalOpen(true)}
-                      aria-label="Deschide detaliile biletului și codul QR"
-                    >
-                      <div className="home-ticket-qr-box" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                      </div>
-                      <p>QR</p>
-                    </button>
+            {hasUpcomingStack ? (
+              <>
+                <div className="home-member-head">
+                  <div>
+                    <h2 className="home-member-greeting">
+                      Bună, <span>{greetingName}</span>
+                    </h2>
+                    <p className="home-member-subtitle">
+                      {isHomeLoading
+                        ? ''
+                        : `Ai ${stackEvents.length} eveniment${stackEvents.length > 1 ? 'e' : ''} în curând — pregătește-te!`}
+                    </p>
                   </div>
-                ) : isHomeLoading ? (
-                  null
-                ) : (
-                  <>
-                    <h3>Nu ai bilete viitoare momentan</h3>
-                    <p className="home-ticket-meta">Alege un eveniment nou și îți pregătim biletul instant.</p>
-                    <button className="home-ticket-action" onClick={() => navigate('/explore')}>
-                      Explorează Evenimente
-                    </button>
-                  </>
-                )}
-              </article>
-            </div>
-
-            <div className="home-reco-block">
-              <div className="home-reco-head">
-                <p className="home-reco-kicker overline">Pentru tine</p>
-                <h2 className="home-reco-headline">
-                  <span>Recomandate</span> <span className="serif-accent">pentru tine</span>
-                </h2>
-              </div>
-
-              <div className="home-reco-grid">
-                {recommendationCards.map((event) => (
-                  <article
-                    key={event.id}
-                    className={`home-reco-card${event.image_url ? ' has-image' : ' no-image'}`}
-                    onClick={() => {
-                      navigate(`/event/${event.id}`);
-                    }}
-                  >
-                    {event.image_url ? (
-                      <img
-                        src={event.image_url?.startsWith('http') ? event.image_url : `${API_BASE}${event.image_url || ''}`}
-                        alt={event.title}
-                      />
-                    ) : null}
-                    <div className="home-reco-top-row">
-                      <span className="home-reco-category-chip">{event.categories?.[0]?.name || 'Experiență live'}</span>
-                      {getMinTicketPoints(event) > 0 ? (
-                        <span className="home-reco-points-chip">★ +{getMinTicketPoints(event)}</span>
-                      ) : null}
-                    </div>
-                    <div className="home-reco-content">
-                      <p className="home-reco-date">{getRecommendationDateLabel(event)}</p>
-                      <h3>{event.title}</h3>
-                      <p className="home-reco-location"><FiMapPin /> {event.location || 'Locație nespecificată'}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : (
-        <Benefits />
-      )}
-
-      <DiscoveryFeed />
-
-      <section className="home-final-cta">
-        <div className="home-final-cta-shell">
-          <p>Următorul eveniment memorabil te așteaptă.</p>
-          <h2>Rezervă locul tău și transformă seara în experiență.</h2>
-          <div className="home-final-actions">
-            <button type="button" onClick={() => navigate('/explore')}>Explorează Acum</button>
-            <button type="button" className="secondary" onClick={() => setIsWizardOpen(true)}>Recomandă-mi ceva</button>
-          </div>
-        </div>
-      </section>
-
-      <RecommendationWizard
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-      />
-
-      {isTicketModalOpen && nextTicket ? (
-        <div
-          className="home-ticket-modal-overlay"
-          role="presentation"
-          onClick={() => setIsTicketModalOpen(false)}
-        >
-          <div
-            className="home-ticket-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="home-ticket-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="home-ticket-modal-header">
-              <button
-                type="button"
-                className="home-ticket-modal-close"
-                onClick={() => setIsTicketModalOpen(false)}
-                aria-label="Închide dialogul biletului"
-              >
-                <FiX />
-              </button>
-
-              <p className="home-ticket-modal-kicker"><FaTicketAlt /> BILETUL TĂU</p>
-              <h2 id="home-ticket-modal-title">{nextTicket.event?.title || 'Eveniment'}</h2>
-
-              <div className="home-ticket-modal-meta">
-                <span><FiCalendar /> {nextTicketDateParts.dayPart}</span>
-                <span><FiMapPin /> {nextTicket.event?.location || 'Locație nespecificată'}</span>
-              </div>
-            </div>
-
-            <div className="home-ticket-modal-body">
-              <div className="home-ticket-modal-perforation" aria-hidden="true">
-                <span></span>
-                <span></span>
-              </div>
-
-              <div className="home-ticket-modal-qr-shell">
-                <div className="home-ticket-modal-qr-card">
-                  <QRCode
-                    value={nextTicketQrValue || nextTicket.ticketCode || 'ticket'}
-                    size={220}
-                    bgColor="#141821"
-                    fgColor="#f8fafc"
-                    style={{ width: '100%', height: '100%' }}
-                  />
                 </div>
 
-                <p className="home-ticket-modal-code">{nextTicket.ticketCode || 'TK-UNKNOWN'}</p>
-                <p className="home-ticket-modal-note">Arată acest cod la intrare</p>
-              </div>
+                <div className="home-member-pair ticket-only">
+                  <div className={hasMultipleStackEvents ? 'home-member-stack-wrapper' : ''}>
+                    {stackGhostCount > 0 ? <div className="stack-ghost-card stack-ghost-card-one" aria-hidden="true"></div> : null}
+                    {stackGhostCount > 1 ? <div className="stack-ghost-card stack-ghost-card-two" aria-hidden="true"></div> : null}
 
-              <button type="button" className="home-ticket-modal-action" onClick={handleDownloadPdf} disabled={downloadingPdf}>
-                <FiDownload />
-                {downloadingPdf ? 'Se descarcă...' : 'Descarcă PDF'}
-              </button>
+                    <article className={`home-member-card home-member-card-ticket has-ticket home-member-stack-card${isPrimaryPrivate ? ' is-private' : ' is-public'}`}>
+                      <div className={`home-ticket-layout${isPrimaryPublic ? '' : ' no-qr'}`}>
+                        <div className="home-ticket-visual">
+                          <span className="home-ticket-days-chip">{getDaysUntilLabel(primaryStackEvent.startDate)}</span>
+                          {primaryStackEvent.event?.image_url ? (
+                            <img
+                              src={primaryStackEvent.event.image_url?.startsWith('http') ? primaryStackEvent.event.image_url : `${API_BASE}${primaryStackEvent.event.image_url}`}
+                              alt={primaryStackEvent.event?.title || 'Eveniment'}
+                            />
+                          ) : (
+                            <div className="home-ticket-visual-placeholder">
+                              {(primaryStackEvent.event?.title || 'E').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="home-ticket-main">
+                          {isPrimaryPublic ? (
+                            <>
+                              <p className="home-ticket-kicker"><FaTicketAlt /> URMĂTORUL TĂU EVENIMENT</p>
+                              <h3>{primaryStackEvent.event?.title || 'Eveniment'}</h3>
+
+                              <div className="home-ticket-meta-grid">
+                                <div className="home-ticket-meta-block">
+                                  <p className="home-ticket-meta-label"><FiCalendar /> DATA</p>
+                                  <p className="home-ticket-meta-value">{nextTicketDateParts.dayPart}</p>
+                                  <p className="home-ticket-meta-time">{nextTicketDateParts.timePart}</p>
+                                </div>
+
+                                <div className="home-ticket-meta-block">
+                                  <p className="home-ticket-meta-label"><FiMapPin /> LOCAȚIE</p>
+                                  <p className="home-ticket-meta-value">{primaryStackEvent.event?.location || 'Locație nespecificată'}</p>
+                                </div>
+                              </div>
+
+                              <div className="home-ticket-actions-row">
+                                <button
+                                  type="button"
+                                  className="home-ticket-primary-btn"
+                                  onClick={() => {
+                                    if (primaryStackEvent.event?.id) {
+                                      navigate(`/event/${primaryStackEvent.event.id}`);
+                                    } else {
+                                      navigate('/my-events');
+                                    }
+                                  }}
+                                >
+                                  <FaTicketAlt />
+                                  <span>Vezi evenimentul</span>
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="home-ticket-kicker"><PiConfetti /> {isPrimaryHost ? 'EȘTI GAZDĂ' : 'EȘTI INVITAT LA'}</p>
+
+                              <div className="home-private-card-grid">
+                                <div className="home-private-main-col">
+                                  <h3>{primaryStackEvent.event?.title || 'Eveniment'}</h3>
+
+                                  <div className="home-ticket-meta-grid">
+                                    <div className="home-ticket-meta-block">
+                                      <p className="home-ticket-meta-label"><FiCalendar /> DATA</p>
+                                      <p className="home-ticket-meta-value">{nextTicketDateParts.dayPart}</p>
+                                      <p className="home-ticket-meta-time">{nextTicketDateParts.timePart}</p>
+                                    </div>
+
+                                    <div className="home-ticket-meta-block">
+                                      <p className="home-ticket-meta-label"><FiMapPin /> LOCAȚIE</p>
+                                      <p className="home-ticket-meta-value">{primaryStackEvent.event?.location || 'Locație nespecificată'}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="home-ticket-actions-row">
+                                    <button
+                                      type="button"
+                                      className="home-ticket-primary-btn"
+                                      onClick={() => setIsPrivateInviteModalOpen(true)}
+                                    >
+                                      <FiLock />
+                                      <span>Deschide invitația</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <aside className="home-private-side-col">
+                                  <p className="home-private-side-title">INVITAȚI</p>
+                                  <div className="home-private-side-avatars" aria-hidden="true">
+                                    <span>AM</span>
+                                    <span>DR</span>
+                                    <span>IV</span>
+                                    <span>SC</span>
+                                    <span>MP</span>
+                                    <span className="more">+7</span>
+                                  </div>
+                                  <p className="home-private-side-count">
+                                    <strong>{privateConfirmedCount}</strong>/{privateTotalInvited}
+                                  </p>
+                                  <p className="home-private-side-note">au confirmat</p>
+                                </aside>
+                              </div>
+
+                              {nextStackTitle ? (
+                                <p className="home-stack-preview">Următorul: {nextStackTitle}</p>
+                              ) : null}
+                            </>
+                          )}
+                        </div>
+
+                        {isPrimaryPublic ? (
+                          <button
+                            type="button"
+                            className="home-ticket-qr-col"
+                            onClick={() => setIsTicketModalOpen(true)}
+                            aria-label="Deschide detaliile biletului și codul QR"
+                          >
+                            <div className="home-ticket-qr-box" aria-hidden="true">
+                              <span></span><span></span><span></span><span></span>
+                              <span></span><span></span><span></span><span></span>
+                              <span></span><span></span><span></span><span></span>
+                            </div>
+                            <p>QR</p>
+                          </button>
+                        ) : null}
+                      </div>
+                    </article>
+
+                    {hasMultipleStackEvents ? (
+                      <div className="home-stack-indicator" aria-label="Indicator stivă evenimente">
+                        <button
+                          type="button"
+                          className="home-stack-nav-btn"
+                          onClick={goToPreviousStackEvent}
+                          aria-label="Evenimentul anterior"
+                        >
+                          <FiChevronLeft />
+                        </button>
+                        <span>{safeActiveStackIndex + 1} din {stackEvents.length}</span>
+                        <button
+                          type="button"
+                          className="home-stack-nav-btn"
+                          onClick={goToNextStackEvent}
+                          aria-label="Evenimentul următor"
+                        >
+                          <FiChevronRight />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </>
+            ) : null}
+
+                    <div className="home-reco-block">
+                      <div className="home-reco-head">
+                        <p className="home-reco-kicker overline">Pentru tine</p>
+                        <h2 className="home-reco-headline">
+                          <span>Recomandate</span> <span className="serif-accent">pentru tine</span>
+                        </h2>
+                      </div>
+
+                      <div className="home-reco-grid">
+                        {recommendationCards.map((event) => (
+                          <article
+                            key={event.id}
+                            className={`home-reco-card${event.image_url ? ' has-image' : ' no-image'}`}
+                            onClick={() => {
+                              navigate(`/event/${event.id}`);
+                            }}
+                          >
+                            {event.image_url ? (
+                              <img
+                                src={event.image_url?.startsWith('http') ? event.image_url : `${API_BASE}${event.image_url || ''}`}
+                                alt={event.title}
+                              />
+                            ) : null}
+                            <div className="home-reco-top-row">
+                              <span className="home-reco-category-chip">{event.categories?.[0]?.name || 'Experiență live'}</span>
+                              {getMinTicketPoints(event) > 0 ? (
+                                <span className="home-reco-points-chip">★ +{getMinTicketPoints(event)}</span>
+                              ) : null}
+                            </div>
+                            <div className="home-reco-content">
+                              <p className="home-reco-date">{getRecommendationDateLabel(event)}</p>
+                              <h3>{event.title}</h3>
+                              <p className="home-reco-location"><FiMapPin /> {event.location || 'Locație nespecificată'}</p>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              ) : (
+                <Benefits />
+              )}
+
+              <DiscoveryFeed />
+
+              <section className="home-final-cta">
+                <div className="home-final-cta-shell">
+                  <p>Următorul eveniment memorabil te așteaptă.</p>
+                  <h2>Rezervă locul tău și transformă seara în experiență.</h2>
+                  <div className="home-final-actions">
+                    <button type="button" onClick={() => navigate('/explore')}>Explorează Acum</button>
+                    <button type="button" className="secondary" onClick={() => setIsWizardOpen(true)}>Recomandă-mi ceva</button>
+                  </div>
+                </div>
+              </section>
+
+              <RecommendationWizard
+                isOpen={isWizardOpen}
+                onClose={() => setIsWizardOpen(false)}
+              />
+
+              {isTicketModalOpen && isPrimaryPublic && primaryStackEvent ? (
+                <div
+                  className="home-ticket-modal-overlay"
+                  role="presentation"
+                  onClick={() => setIsTicketModalOpen(false)}
+                >
+                  <div
+                    className="home-ticket-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="home-ticket-modal-title"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="home-ticket-modal-header">
+                      <button
+                        type="button"
+                        className="home-ticket-modal-close"
+                        onClick={() => setIsTicketModalOpen(false)}
+                        aria-label="Închide dialogul biletului"
+                      >
+                        <FiX />
+                      </button>
+
+                      <p className="home-ticket-modal-kicker"><FaTicketAlt /> BILETUL TĂU</p>
+                      <h2 id="home-ticket-modal-title">{primaryStackEvent.event?.title || 'Eveniment'}</h2>
+
+                      <div className="home-ticket-modal-meta">
+                        <span><FiCalendar /> {nextTicketDateParts.dayPart}</span>
+                        <span><FiMapPin /> {primaryStackEvent.event?.location || 'Locație nespecificată'}</span>
+                      </div>
+                    </div>
+
+                    <div className="home-ticket-modal-body">
+                      <div className="home-ticket-modal-perforation" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                      </div>
+
+                      <div className="home-ticket-modal-qr-shell">
+                        <div className="home-ticket-modal-qr-card">
+                          <QRCode
+                            value={nextTicketQrValue || primaryStackEvent.ticketCode || 'ticket'}
+                            size={220}
+                            bgColor="#141821"
+                            fgColor="#f8fafc"
+                            style={{ width: '100%', height: '100%' }}
+                          />
+                        </div>
+
+                        <p className="home-ticket-modal-code">{primaryStackEvent.ticketCode || 'TK-UNKNOWN'}</p>
+                        <p className="home-ticket-modal-note">Arată acest cod la intrare</p>
+                      </div>
+
+                      <button type="button" className="home-ticket-modal-action" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+                        <FiDownload />
+                        {downloadingPdf ? 'Se descarcă...' : 'Descarcă PDF'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {isPrivateInviteModalOpen && isPrimaryPrivate && primaryStackEvent ? (
+                <div
+                  className="home-ticket-modal-overlay"
+                  role="presentation"
+                  onClick={() => setIsPrivateInviteModalOpen(false)}
+                >
+                  <div
+                    className="home-ticket-modal home-private-invite-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="home-private-modal-title"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="home-ticket-modal-header home-private-invite-header">
+                      <button
+                        type="button"
+                        className="home-ticket-modal-close"
+                        onClick={() => setIsPrivateInviteModalOpen(false)}
+                        aria-label="Închide invitația"
+                      >
+                        <FiX />
+                      </button>
+
+                      <p className="home-ticket-modal-kicker"><PiConfetti /> {isPrimaryHost ? 'EȘTI GAZDĂ' : 'EȘTI INVITAT LA'}</p>
+                      <h2 id="home-private-modal-title">{primaryStackEvent.event?.title || 'Eveniment privat'}</h2>
+                      <p className="home-private-organizer-line in-modal">{privateOrganizerLine}</p>
+
+                      <div className="home-ticket-modal-meta">
+                        <span><FiCalendar /> {nextTicketDateParts.dayPart} • {nextTicketDateParts.timePart}</span>
+                        <span><FiMapPin /> {primaryStackEvent.event?.location || 'Locație nespecificată'}</span>
+                      </div>
+                    </div>
+
+                    <div className="home-ticket-modal-body home-private-invite-body">
+                      <p className="home-private-description">
+                        {primaryStackEvent.event?.description || 'Moment special, invitație privată. Deschide invitația pentru detaliile complete ale evenimentului.'}
+                      </p>
+
+                      <button
+                        type="button"
+                        className="home-ticket-modal-action"
+                        onClick={() => {
+                          setIsPrivateInviteModalOpen(false);
+                          if (primaryStackEvent.event?.id) {
+                            navigate(`/invite/${primaryStackEvent.event.id}`);
+                          }
+                        }}
+                      >
+                        <FiUsers />
+                        Deschide invitația
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}
             </div>
-          </div>
-        </div>
-      ) : null}
+          );
+        };
 
-      {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}
-    </div>
-  );
-};
-
-export default Home;
+        export default Home;

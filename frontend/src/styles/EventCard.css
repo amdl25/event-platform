@@ -43,22 +43,25 @@
     transform: scale(1.08);
 }
 
-.price-badge-premium {
+.status-badge {
     position: absolute;
     top: 12px;
     left: 12px;
-    background: #ffffff;
     padding: 4px 12px;
-    border-radius: 100px;
+    border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--primary);
+    color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 2;
 }
 
-.price-badge-premium .sold-out {
-    color: #4b5563;
+.status-badge.is-new {
+    background: #f06f45;
+}
+
+.status-badge.sold-out {
+    background: #111111;
 }
 
 .card-content-premium {
@@ -110,9 +113,18 @@
     margin: 0;
     padding-top: 2px;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: #ff9a8b;
+    font-weight: 700;
+    color: #e56a4a;
     letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-points-star {
+    font-size: 0.8rem;
+    line-height: 1;
+    color: #e56a4a;
 }
 
 .card-image-placeholder.no-image {
