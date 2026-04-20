@@ -25,14 +25,19 @@ const DiscoveryFeed = () => {
     const [loading, setLoading] = useState(true);
     const [dbCategories, setDbCategories] = useState([]);
     const [filters, setFilters] = useState(initialDiscoveryFilters);
+    const [showAllEvents, setShowAllEvents] = useState(false);
 
-    const resetFilters = () => setFilters(initialDiscoveryFilters);
+    const resetFilters = () => {
+        setFilters(initialDiscoveryFilters);
+        setShowAllEvents(false);
+    };
 
     const resetField = (fieldName) => {
         setFilters(prev => ({
             ...prev,
             [fieldName]: initialDiscoveryFilters[fieldName]
         }));
+        setShowAllEvents(false);
     };
 
     useEffect(() => {
@@ -52,6 +57,7 @@ const DiscoveryFeed = () => {
 
     const handleFilterChange = (filterKey, value) => {
         setFilters(prev => ({ ...prev, [filterKey]: value }));
+        setShowAllEvents(false);
     };
 
     const filteredEvents = events.filter(event => {
@@ -96,6 +102,7 @@ const DiscoveryFeed = () => {
     });
 
     const publicEvents = filteredEvents.filter(e => !!e.org_id);
+    const visibleEvents = showAllEvents ? publicEvents : publicEvents.slice(0, 4);
     const weekdayOptions = [
         { value: 'Oricând', label: 'Orice dată' },
         { value: 'Astăzi', label: 'Astăzi' },
@@ -177,15 +184,20 @@ const DiscoveryFeed = () => {
                     ) : publicEvents.length > 0 ? (
                         <>
                             <div className="events-grid">
-                                {publicEvents.map((event) => (
+                                {visibleEvents.map((event) => (
                                     <div key={event.id} className="event-card-wrapper">
                                         <EventCard event={event} variant="compact" />
                                     </div>
                                 ))}
                             </div>
-                            <div className="load-more-container">
-                                <button className="btn-load-more">Vezi mai mult</button>
-                            </div>
+                            {!showAllEvents && publicEvents.length > 4 ? (
+                                <div className="load-more-container">
+                                    <button className="btn-load-more" onClick={() => setShowAllEvents(true)}>
+                                        <span>Vezi mai mult</span>
+                                        <span className="btn-load-more-arrow" aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                            ) : null}
                         </>
                     ) : (
                         <div className="no-events-container">
