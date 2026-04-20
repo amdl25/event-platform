@@ -167,6 +167,9 @@
 
 .home-member-stack-card.is-private .home-ticket-kicker {
   color: var(--primary);
+  font-size: 0.74rem;
+  letter-spacing: 0.15em;
+  transform: translateY(2px);
 }
 
 .home-stack-topline {
@@ -306,29 +309,22 @@
   grid-template-columns: minmax(0, 1fr) 190px;
   gap: 18px;
   align-items: stretch;
+  height: 100%;
 }
 
-.home-member-stack-card.is-private .home-ticket-main h3 {
-  margin-top: 8px;
+.home-private-card-grid.no-guest-list {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .home-private-main-col {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
 }
 
 .home-private-main-col .home-ticket-meta-grid {
-  margin-top: 16px;
-}
-
-.home-private-main-col .home-ticket-actions-row {
-  margin-top: auto;
-  padding-top: 14px;
-}
-
-.home-member-stack-card.is-private .home-ticket-actions-row .home-ticket-primary-btn {
-  transform: translateY(4px);
+  margin-top: 20px;
 }
 
 .home-private-side-col {
