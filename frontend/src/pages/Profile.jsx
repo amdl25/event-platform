@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar } from 'react-icons/fi';
-import API from '../api';
+import API, { API_BASE } from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import '../styles/Profile.css';
 
@@ -25,6 +25,10 @@ const Profile = ({ user }) => {
     const [pdfDownloading, setPdfDownloading] = useState(false);
     const [pdfPayload, setPdfPayload] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [ticketTimeline, setTicketTimeline] = useState('future');
+    const [showAllFutureTickets, setShowAllFutureTickets] = useState(false);
+    const [rewardsFilter, setRewardsFilter] = useState('all');
+    const [showAllRewardsHistory, setShowAllRewardsHistory] = useState(false);
     const [loyaltySummary, setLoyaltySummary] = useState({ totalPoints: 0, companies: [], transactions: [] });
     const ticketPdfRef = useRef(null);
     const rewardsCompanies = useMemo(() => {
@@ -52,7 +56,6 @@ const Profile = ({ user }) => {
 
     const rewardsHistory = useMemo(() => {
         return (loyaltySummary.transactions || [])
-            .slice(0, 8)
             .map((transaction) => {
                 const dateValue = transaction.createdAt;
                 const date = dateValue
@@ -75,12 +78,30 @@ const Profile = ({ user }) => {
             });
     }, [loyaltySummary.transactions]);
 
+    const filteredRewardsHistory = useMemo(() => {
+        if (rewardsFilter === 'earn') {
+            return rewardsHistory.filter((entry) => entry.type === 'earn');
+        }
+        if (rewardsFilter === 'redeem') {
+            return rewardsHistory.filter((entry) => entry.type === 'redeem');
+        }
+        return rewardsHistory;
+    }, [rewardsFilter, rewardsHistory]);
+
+    const visibleRewardsHistory = useMemo(() => {
+        if (showAllRewardsHistory) return filteredRewardsHistory;
+        return filteredRewardsHistory.slice(0, 3);
+    }, [filteredRewardsHistory, showAllRewardsHistory]);
+
+    const hiddenRewardsCount = Math.max(filteredRewardsHistory.length - visibleRewardsHistory.length, 0);
+
     const totalPoints = Number(loyaltySummary.totalPoints || 0);
     const memberSince = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
         : 'Ianuarie 2024';
     const profileCity = user?.city || user?.location || 'București';
     const profilePhone = user?.phone || '+40 721 234 567';
+    const greetingName = user?.firstName || user?.first_name || user?.name || 'prietene';
     const ticketsPurchased = tickets.length;
     const futureEvents = tickets.filter((ticket) => ticket.isFuture).length;
 
@@ -109,6 +130,34 @@ const Profile = ({ user }) => {
             return dateA - dateB;
         });
     }, [tickets]);
+
+    const futureTicketGroups = useMemo(() => {
+        return groupedTickets
+            .filter((ticketGroup) => ticketGroup.isFuture)
+            .sort((a, b) => {
+                const dateA = a.event?.startDate ? new Date(a.event.startDate).getTime() : Number.MAX_SAFE_INTEGER;
+                const dateB = b.event?.startDate ? new Date(b.event.startDate).getTime() : Number.MAX_SAFE_INTEGER;
+                return dateA - dateB;
+            });
+    }, [groupedTickets]);
+
+    const historyTicketGroups = useMemo(() => {
+        return groupedTickets
+            .filter((ticketGroup) => !ticketGroup.isFuture)
+            .sort((a, b) => {
+                const dateA = a.event?.startDate ? new Date(a.event.startDate).getTime() : 0;
+                const dateB = b.event?.startDate ? new Date(b.event.startDate).getTime() : 0;
+                return dateB - dateA;
+            });
+    }, [groupedTickets]);
+
+    const visibleTicketGroups = useMemo(() => {
+        if (ticketTimeline === 'history') return historyTicketGroups;
+        if (showAllFutureTickets) return futureTicketGroups;
+        return futureTicketGroups.slice(0, 3);
+    }, [futureTicketGroups, historyTicketGroups, showAllFutureTickets, ticketTimeline]);
+
+    const hasMoreFutureTickets = futureTicketGroups.length > 3;
 
     const formatDateLabel = (dateValue) => {
         if (!dateValue) return 'Data necunoscută';
@@ -276,6 +325,12 @@ const Profile = ({ user }) => {
         );
     };
 
+    const getTicketImageUrl = (ticketGroup) => {
+        const imageUrl = ticketGroup?.event?.image_url || ticketGroup?.event?.imageUrl || '';
+        if (!imageUrl) return '';
+        return imageUrl.startsWith('http') || imageUrl.startsWith('data:') ? imageUrl : `${API_BASE}${imageUrl}`;
+    };
+
     if (!user || loading) {
         return null;
     }
@@ -283,6 +338,10 @@ const Profile = ({ user }) => {
     return (
         <div className="profile-page">
             <div className="container-max">
+                <section className="profile-intro-block">
+                    <h1 className="profile-intro-title">Bună, <span>{greetingName}</span></h1>
+                    <p className="profile-intro-subtitle">Profilul tău, biletele și recompensele.</p>
+                </section>
                 
                 <header className="profile-top-section">
                     <div className="profile-summary-card">
@@ -406,30 +465,56 @@ const Profile = ({ user }) => {
                     
                     {activeTab === 'tickets' && (
                         <div className="tab-content tab-fade-in">
+                            <div className="ticket-timeline-pills" role="tablist" aria-label="Filtru bilete">
+                                <button
+                                    type="button"
+                                    className={`ticket-timeline-pill ${ticketTimeline === 'future' ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setTicketTimeline('future');
+                                        setShowAllFutureTickets(false);
+                                    }}
+                                >
+                                    <FiCalendar /> Viitoare <span>{futureTicketGroups.length}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`ticket-timeline-pill ${ticketTimeline === 'history' ? 'active' : ''}`}
+                                    onClick={() => setTicketTimeline('history')}
+                                >
+                                    <FiClock /> Istoric <span>{historyTicketGroups.length}</span>
+                                </button>
+                            </div>
+
                             <div className="tickets-list">
-                                {tickets.length === 0 ? (
+                                {visibleTicketGroups.length === 0 ? (
                                     <div className="empty-state-card">
-                                        <p className="empty-state-text">Nu ai bilete cumpărate încă.</p>
+                                        <p className="empty-state-text">
+                                            {ticketTimeline === 'future' ? 'Nu ai evenimente viitoare.' : 'Nu ai evenimente în istoric.'}
+                                        </p>
                                     </div>
                                 ) : (
-                                    groupedTickets.map((ticketGroup) => {
+                                    visibleTicketGroups.map((ticketGroup) => {
                                         const isMulti = ticketGroup.tickets.length > 1;
-                                        const groupPoints = ticketGroup.tickets.reduce(
-                                            (sum, ticket) => sum + Number(ticket.event?.pointsValue || 0),
-                                            0
-                                        );
+                                        const imageUrl = getTicketImageUrl(ticketGroup);
+
+                                        const isHistoryView = ticketTimeline === 'history';
 
                                         return (
-                                            <article key={`group-${ticketGroup.eventId}`} className={`ticket-group-card ${isMulti ? 'multi' : 'single'}`}>
-                                                <div className="ticket-accent" />
+                                            <article key={`group-${ticketGroup.eventId}`} className={`ticket-group-card ${isMulti ? 'multi' : 'single'}${isHistoryView ? ' is-history' : ''}`}>
+                                                <div className="ticket-card-image-wrap" aria-hidden={!imageUrl}>
+                                                    {imageUrl ? (
+                                                        <img src={imageUrl} alt={ticketGroup.event?.title || 'Eveniment'} className={`ticket-card-image${isHistoryView ? ' is-history' : ''}`} />
+                                                    ) : (
+                                                        <div className="ticket-card-image-placeholder">
+                                                            {(ticketGroup.event?.title || 'E').charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div className="ticket-group-content">
                                                     <div className="ticket-group-header">
                                                         <div className="ticket-group-title-wrap">
                                                             <h3>{ticketGroup.event?.title || 'Eveniment'}</h3>
-                                                            <span className="ticket-state-pill">{ticketGroup.isFuture ? 'Viitor' : 'Trecut'}</span>
-                                                            <span className="ticket-count-pill">{ticketGroup.tickets.length} {ticketGroup.tickets.length === 1 ? 'bilet' : 'bilete'}</span>
                                                         </div>
-                                                        <strong className="ticket-group-points">+{groupPoints} puncte</strong>
                                                     </div>
 
                                                     <p className="ticket-host">{ticketGroup.event?.organizationName || 'Organizator'}</p>
@@ -440,45 +525,35 @@ const Profile = ({ user }) => {
                                                         <span><FiMapPin /> {ticketGroup.event?.location || 'Locație nespecificată'}</span>
                                                     </div>
 
-                                                    <div className="ticket-group-divider" />
-
-                                                    <div className={`ticket-bundle-list ${isMulti ? 'multi' : 'single'}`}>
-                                                        {ticketGroup.tickets.map((ticket) => (
-                                                            <div key={ticket.id} className={`ticket-bundle-item ${isMulti ? '' : 'single'}`}>
-                                                                <div className="ticket-bundle-info">
-                                                                    <div className="ticket-bundle-icon">
-                                                                        <FiStar />
-                                                                    </div>
-                                                                    <span>{ticket.ticketCode || 'TK-UNKNOWN'}</span>
-                                                                </div>
-                                                                {isMulti ? (
-                                                                    <button
-                                                                        className="ticket-bundle-download"
-                                                                        onClick={() => exportTicketsPdf([ticket], ticketGroup.event?.title, ticket.ticketCode || ticket.id)}
-                                                                        disabled={pdfDownloading}
-                                                                    >
-                                                                        <FiDownload />
-                                                                    </button>
-                                                                ) : null}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-
-                                                    <div className="ticket-group-actions">
-                                                        <button
-                                                            className="btn-qr-trigger v2"
-                                                            onClick={() => handleDownloadAllTickets(ticketGroup)}
-                                                            disabled={pdfDownloading}
-                                                        >
-                                                            <FiDownload /> {pdfDownloading ? 'Se descarcă...' : (isMulti ? `Descarcă toate (${ticketGroup.tickets.length})` : 'Descarcă')}
-                                                        </button>
-                                                    </div>
+                                                    {!isHistoryView ? (
+                                                        <div className="ticket-group-actions">
+                                                            <button
+                                                                className="btn-qr-trigger v2"
+                                                                onClick={() => handleDownloadAllTickets(ticketGroup)}
+                                                                disabled={pdfDownloading}
+                                                            >
+                                                                <FiDownload /> {pdfDownloading ? 'Se descarcă...' : (isMulti ? 'Descarcă bilete' : 'Descarcă bilet')}
+                                                            </button>
+                                                        </div>
+                                                    ) : null}
                                                 </div>
                                             </article>
                                         );
                                     })
                                 )}
                             </div>
+
+                            {ticketTimeline === 'future' && hasMoreFutureTickets ? (
+                                <div className="tickets-more-wrap">
+                                    <button
+                                        type="button"
+                                        className="tickets-more-button"
+                                        onClick={() => setShowAllFutureTickets((prev) => !prev)}
+                                    >
+                                        {showAllFutureTickets ? 'Arată mai puține' : 'Vezi mai multe'}
+                                    </button>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 
@@ -488,10 +563,6 @@ const Profile = ({ user }) => {
                                 <div>
                                     <h2 className="section-title rewards-title">Puncte & Recompense</h2>
                                     <p className="rewards-subtitle">Urmărește punctele acumulate și istoricul de recompense.</p>
-                                </div>
-                                <div className="rewards-total-pill">
-                                    <span>Total puncte</span>
-                                    <strong>{totalPoints}</strong>
                                 </div>
                             </div>
 
@@ -519,14 +590,54 @@ const Profile = ({ user }) => {
                                             </article>
                                         ))}
                                     </div>
+
+                                    <article className="rewards-tip-card">
+                                        <p className="rewards-tip-title"><FiGift /> SFAT</p>
+                                        <p className="rewards-tip-copy">Folosește punctele pentru reduceri la următorul eveniment de la aceeași companie.</p>
+                                    </article>
                                 </section>
 
                                 <section className="rewards-column rewards-history-column">
-                                    <h3 className="rewards-column-title">ISTORIC PUNCTE</h3>
+                                    <div className="rewards-history-header">
+                                        <h3 className="rewards-column-title">ISTORIC PUNCTE</h3>
+                                        <div className="rewards-history-filters" role="tablist" aria-label="Filtru istoric puncte">
+                                            <button
+                                                type="button"
+                                                className={`rewards-filter-pill ${rewardsFilter === 'all' ? 'active' : ''}`}
+                                                onClick={() => {
+                                                    setRewardsFilter('all');
+                                                    setShowAllRewardsHistory(false);
+                                                }}
+                                            >
+                                                Toate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`rewards-filter-pill ${rewardsFilter === 'earn' ? 'active' : ''}`}
+                                                onClick={() => {
+                                                    setRewardsFilter('earn');
+                                                    setShowAllRewardsHistory(false);
+                                                }}
+                                            >
+                                                Câștigate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`rewards-filter-pill ${rewardsFilter === 'redeem' ? 'active' : ''}`}
+                                                onClick={() => {
+                                                    setRewardsFilter('redeem');
+                                                    setShowAllRewardsHistory(false);
+                                                }}
+                                            >
+                                                Folosite
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="rewards-history-list">
-                                        {rewardsHistory.length === 0 ? (
+                                        {visibleRewardsHistory.length === 0 ? (
                                             <div className="rewards-history-empty">Nu există tranzacții de puncte încă.</div>
-                                        ) : rewardsHistory.map((entry) => (
+                                        ) : visibleRewardsHistory.map((entry) => (
                                             <article key={`${entry.title}-${entry.date}`} className="rewards-history-item">
                                                 <div className={`rewards-history-icon ${entry.type}`}>
                                                     {entry.type === 'earn' ? <FiStar /> : <FiGift />}
@@ -542,6 +653,18 @@ const Profile = ({ user }) => {
                                             </article>
                                         ))}
                                     </div>
+
+                                    {filteredRewardsHistory.length > 3 ? (
+                                        <div className="rewards-history-more-wrap">
+                                            <button
+                                                type="button"
+                                                className="rewards-history-more-btn"
+                                                onClick={() => setShowAllRewardsHistory((prev) => !prev)}
+                                            >
+                                                {showAllRewardsHistory ? 'Arată mai puțin' : `Vezi mai mult (${hiddenRewardsCount} rămase)`}
+                                            </button>
+                                        </div>
+                                    ) : null}
                                 </section>
                             </div>
                         </div>

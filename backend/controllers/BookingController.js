@@ -20,15 +20,15 @@ const toPositiveInteger = (value, fallback = 0) => {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-const getWalletPoints = async (accountId) => {
-	if (!accountId) return 0;
+const getWalletPoints = async (accountId, orgId) => {
+	if (!accountId || !orgId) return 0;
 
-	const wallets = await LoyaltyWallet.findAll({
-		where: { account_id: accountId },
+	const wallet = await LoyaltyWallet.findOne({
+		where: { account_id: accountId, org_id: orgId },
 		attributes: ['points_balance']
 	});
 
-	return wallets.reduce((sum, wallet) => sum + toPositiveInteger(wallet?.points_balance, 0), 0);
+	return toPositiveInteger(wallet?.points_balance, 0);
 };
 
 const computePricing = ({ unitPrice, quantity, availablePoints = 0, requestedPoints = 0 }) => {
@@ -155,35 +155,29 @@ const completePurchase = async ({
 		}
 
 		if (pointsUsed > 0 && accountId) {
-			const wallets = await LoyaltyWallet.findAll({
-				where: { account_id: accountId },
+			if (!event.org_id) {
+				throw new Error('Punctele de loialitate pot fi folosite doar la evenimente asociate unei organizații.');
+			}
+
+			const wallet = await LoyaltyWallet.findOne({
+				where: { account_id: accountId, org_id: event.org_id },
 				transaction,
-				lock: transaction.LOCK.UPDATE,
-				order: [['points_balance', 'DESC']]
+				lock: transaction.LOCK.UPDATE
 			});
 
-			const currentBalance = wallets.reduce((sum, wallet) => sum + toPositiveInteger(wallet?.points_balance, 0), 0);
+			const currentBalance = toPositiveInteger(wallet?.points_balance, 0);
 			if (currentBalance < pointsUsed) {
 				throw new Error('Punctele disponibile nu mai acoperă reducerea selectată. Reîncearcă plata.');
 			}
 
-			let remainingToRedeem = pointsUsed;
-			for (const wallet of wallets) {
-				if (remainingToRedeem <= 0) break;
-				const balance = toPositiveInteger(wallet.points_balance, 0);
-				if (balance <= 0) continue;
-
-				const deduction = Math.min(balance, remainingToRedeem);
-				await wallet.decrement('points_balance', { by: deduction, transaction });
-				await LoyaltyTransaction.create({
-					account_id: accountId,
-					org_id: wallet.org_id,
-					event_id: event.id,
-					points_amount: deduction,
-					type: 'redeem'
-				}, { transaction });
-				remainingToRedeem -= deduction;
-			}
+			await wallet.decrement('points_balance', { by: pointsUsed, transaction });
+			await LoyaltyTransaction.create({
+				account_id: accountId,
+				org_id: event.org_id,
+				event_id: event.id,
+				points_amount: pointsUsed,
+				type: 'redeem'
+			}, { transaction });
 		}
 
 		if (accountId && event.org_id && Number(event.points_value || 0) > 0) {
@@ -342,7 +336,7 @@ export const getPurchaseQuote = async (req, res) => {
 			unitPrice = Number(ticketType.price) || 0;
 		}
 
-		const availablePoints = await getWalletPoints(accountId);
+		const availablePoints = await getWalletPoints(accountId, event.org_id);
 		const pricing = computePricing({
 			unitPrice,
 			quantity,
@@ -420,7 +414,7 @@ export const createCheckoutSession = async (req, res) => {
 			return res.status(400).json({ message: 'Eveniment sold out' });
 		}
 
-		const availablePoints = await getWalletPoints(accountId);
+		const availablePoints = await getWalletPoints(accountId, event.org_id);
 		const pricing = computePricing({
 			unitPrice,
 			quantity: parsedQuantity,

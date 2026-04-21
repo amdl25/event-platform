@@ -1,6 +1,6 @@
 .profile-page {
     min-height: 100vh;
-    padding-top: 24px;
+    padding-top: 40px;
     padding-bottom: 56px;
     background: var(--light-bg);
     font-family: var(--font-body);
@@ -10,6 +10,33 @@
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 24px;
+}
+
+.profile-intro-block {
+    padding: 4px 0 10px;
+}
+
+.profile-intro-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 1.7rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    font-style: italic;
+    font-weight: 700;
+}
+
+.profile-intro-title span {
+    color: #f15c2a;
+    font-style: normal;
+}
+
+.profile-intro-subtitle {
+    margin: 10px 0 0;
+    color: #516278;
+    font-size: clamp(1.1rem, 2vw, 1rem);
+    font-weight: 500;
 }
 
 .profile-top-section {
@@ -29,13 +56,13 @@
 }
 
 .profile-summary-card {
-    padding: 16px 16px 18px;
+    padding: 20px 24px 24px;
 }
 
 .profile-summary-main {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 22px;
 }
 
 .avatar-circle {
@@ -72,9 +99,9 @@
 .profile-summary-headline {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 6px;
+    justify-content: flex-start;
+    gap: 18px;
+    margin-bottom: 12px;
 }
 
 .profile-edit-link {
@@ -91,25 +118,27 @@
 }
 
 .profile-contact-list {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 38px;
+    row-gap: 12px;
+    margin-top: 6px;
 }
 
 .profile-contact-item {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
     color: #64748b;
-    font-size: 0.84rem;
+    font-size: 1.02rem;
     line-height: 1.2;
 }
 
 .profile-contact-item svg,
 .profile-edit-link svg,
 .profile-points-header svg {
-    width: 14px;
-    height: 14px;
+    width: 17px;
+    height: 17px;
     flex-shrink: 0;
 }
 
@@ -278,6 +307,51 @@
     gap: 12px;
 }
 
+.ticket-timeline-pills {
+    margin: 0 0 14px;
+    display: inline-flex;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 4px;
+}
+
+.ticket-timeline-pill {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    border-radius: 999px;
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.ticket-timeline-pill.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.ticket-timeline-pill span {
+    background: #e2e8f0;
+    color: #334155;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+
+.ticket-timeline-pill.active span {
+    background: #fee2d5;
+    color: #c2410c;
+}
+
 .functional-ticket-card {
     background: white;
     border: 1px solid #e5e7eb;
@@ -426,6 +500,38 @@
     gap: 0;
 }
 
+.ticket-card-image-wrap {
+    width: 92px;
+    min-width: 92px;
+    border-right: 1px solid #e5e7eb;
+    background: #f1f5f9;
+}
+
+.ticket-card-image {
+    width: 100%;
+    height: 100%;
+    min-height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.ticket-group-card.is-history .ticket-card-image,
+.ticket-card-image.is-history {
+    filter: grayscale(100%);
+}
+
+.ticket-card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 100px;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(130deg, #0f172a 0%, #334155 100%);
+}
+
 .ticket-group-card.single {
     background: #fff;
 }
@@ -442,7 +548,7 @@
 .ticket-group-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 12px;
 }
 
@@ -455,104 +561,42 @@
 
 .ticket-group-title-wrap h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 1.35rem;
     color: #111827;
     font-weight: 700;
 }
 
-.ticket-count-pill {
-    background: #f15c2a;
-    color: #fff;
-    border-radius: 999px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.ticket-group-points {
-    color: #f15c2a;
-    font-size: 15px;
-    white-space: nowrap;
-}
-
-.ticket-group-divider {
-    margin: 10px 0;
-    border-top: 1px solid #e5e7eb;
-}
-
-.ticket-bundle-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.ticket-bundle-list.single {
-    grid-template-columns: 1fr;
-    max-width: 340px;
-}
-
-.ticket-bundle-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fdf8f6;
-    padding: 8px 10px;
-}
-
-.ticket-bundle-item.single {
-    justify-content: flex-start;
-}
-
-.ticket-bundle-info {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-
-.ticket-bundle-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: #fde9e1;
-    color: #f15c2a;
-    display: grid;
-    place-items: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.ticket-bundle-info span {
-    font-size: 14px;
-    color: #475569;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ticket-bundle-download {
-    border: none;
-    background: #f15c2a;
-    color: #fff;
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-}
-
 .ticket-group-actions {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     justify-content: flex-end;
 }
 
 .ticket-group-card.single .ticket-group-actions {
     margin-top: 8px;
+}
+
+.tickets-more-wrap {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+.tickets-more-button {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    border-radius: 999px;
+    min-height: 38px;
+    padding: 0 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tickets-more-button:hover {
+    border-color: #cbd5e1;
+    color: #0f172a;
 }
 
 .date-badge {
@@ -705,6 +749,32 @@
     gap: 10px;
 }
 
+.rewards-tip-card {
+    margin-top: 10px;
+    border: 1px dashed #f8c9b3;
+    background: #fff8f4;
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.rewards-tip-title {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #f15c2a;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+}
+
+.rewards-tip-copy {
+    margin: 8px 0 0;
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
 .rewards-history-empty {
     color: #64748b;
     font-size: 0.9rem;
@@ -774,9 +844,44 @@
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
 }
 
+.rewards-history-header {
+    padding: 12px 14px 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .rewards-history-column .rewards-column-title {
-    padding: 12px 14px 0 14px;
-    margin-bottom: 8px;
+    margin: 0;
+}
+
+.rewards-history-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px;
+}
+
+.rewards-filter-pill {
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.rewards-filter-pill.active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .rewards-history-item {
@@ -789,6 +894,29 @@
 
 .rewards-history-item:first-of-type {
     border-top: none;
+}
+
+.rewards-history-more-wrap {
+    padding: 12px 14px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: center;
+}
+
+.rewards-history-more-btn {
+    border: 1px solid #d0d7e2;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 999px;
+    min-height: 40px;
+    padding: 0 24px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rewards-history-more-btn:hover {
+    border-color: #bac4d3;
 }
 
 .rewards-history-icon {
@@ -941,6 +1069,11 @@
         flex-direction: column;
     }
 
+    .rewards-history-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .functional-ticket-card,
     .rewards-company-card,
     .rewards-history-item {
@@ -979,12 +1112,20 @@
         align-items: flex-start;
     }
 
-    .ticket-group-points {
-        font-size: 14px;
+    .ticket-group-card {
+        flex-direction: column;
     }
 
-    .ticket-bundle-list {
-        grid-template-columns: 1fr;
+    .ticket-card-image-wrap {
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ticket-card-image,
+    .ticket-card-image-placeholder {
+        min-height: 124px;
     }
 
     .ticket-group-actions {
@@ -1012,6 +1153,12 @@
     .profile-summary-main {
         flex-direction: column;
         gap: 16px;
+    }
+
+    .profile-contact-list {
+        grid-template-columns: 1fr;
+        row-gap: 8px;
+        column-gap: 0;
     }
 
     .profile-summary-headline {

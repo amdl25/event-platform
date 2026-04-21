@@ -956,17 +956,6 @@ const Home = ({ user }) => {
 
               <DiscoveryFeed />
 
-              <section className="home-final-cta">
-                <div className="home-final-cta-shell">
-                  <p>Următorul eveniment memorabil te așteaptă.</p>
-                  <h2>Rezervă locul tău și transformă seara în experiență.</h2>
-                  <div className="home-final-actions">
-                    <button type="button" onClick={() => navigate('/explore')}>Explorează Acum</button>
-                    <button type="button" className="secondary" onClick={() => setIsWizardOpen(true)}>Recomandă-mi ceva</button>
-                  </div>
-                </div>
-              </section>
-
               <RecommendationWizard
                 isOpen={isWizardOpen}
                 onClose={() => setIsWizardOpen(false)}
