@@ -2,13 +2,26 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar } from 'react-icons/fi';
+import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar, FiX } from 'react-icons/fi';
 import API, { API_BASE } from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import '../styles/Profile.css';
 
+const toEditableProfile = (sourceUser = {}) => ({
+    firstName: sourceUser?.firstName || sourceUser?.first_name || '',
+    lastName: sourceUser?.lastName || sourceUser?.last_name || '',
+    email: sourceUser?.email || '',
+    city: sourceUser?.city || sourceUser?.location || 'București',
+    phone: sourceUser?.phone || '+40 721 234 567',
+    createdAt: sourceUser?.createdAt || null
+});
+
 const Profile = ({ user }) => {
     const navigate = useNavigate();
+    const [profileData, setProfileData] = useState(() => toEditableProfile(user));
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [profileForm, setProfileForm] = useState(() => toEditableProfile(user));
+    const [profileFormError, setProfileFormError] = useState('');
     const [activeTab, setActiveTab] = useState('tickets'); 
     const [tickets, setTickets] = useState([]);
     const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || null);
@@ -95,13 +108,18 @@ const Profile = ({ user }) => {
 
     const hiddenRewardsCount = Math.max(filteredRewardsHistory.length - visibleRewardsHistory.length, 0);
 
+    useEffect(() => {
+        setProfileData(toEditableProfile(user));
+        setProfileForm(toEditableProfile(user));
+    }, [user]);
+
     const totalPoints = Number(loyaltySummary.totalPoints || 0);
-    const memberSince = user?.createdAt
-        ? new Date(user.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
+    const memberSince = profileData?.createdAt
+        ? new Date(profileData.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
         : 'Ianuarie 2024';
-    const profileCity = user?.city || user?.location || 'București';
-    const profilePhone = user?.phone || '+40 721 234 567';
-    const greetingName = user?.firstName || user?.first_name || user?.name || 'prietene';
+    const profileCity = profileData?.city || 'București';
+    const profilePhone = profileData?.phone || '+40 721 234 567';
+    const greetingName = profileData?.firstName || 'prietene';
     const ticketsPurchased = tickets.length;
     const futureEvents = tickets.filter((ticket) => ticket.isFuture).length;
 
@@ -331,6 +349,67 @@ const Profile = ({ user }) => {
         return imageUrl.startsWith('http') || imageUrl.startsWith('data:') ? imageUrl : `${API_BASE}${imageUrl}`;
     };
 
+    const openEditModal = () => {
+        setProfileForm(toEditableProfile(profileData));
+        setProfileFormError('');
+        setIsEditModalOpen(true);
+    };
+
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+        setProfileFormError('');
+    };
+
+    const handleSaveProfile = (eventSave) => {
+        eventSave.preventDefault();
+        const nextFirstName = String(profileForm.firstName || '').trim();
+        const nextLastName = String(profileForm.lastName || '').trim();
+        const nextEmail = String(profileForm.email || '').trim();
+        const nextPhone = String(profileForm.phone || '').trim();
+        const nextCity = String(profileForm.city || '').trim();
+
+        if (!nextFirstName || !nextLastName || !nextEmail) {
+            setProfileFormError('Prenumele, numele și email-ul sunt obligatorii.');
+            return;
+        }
+
+        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail);
+        if (!emailValid) {
+            setProfileFormError('Introdu o adresă de email validă.');
+            return;
+        }
+
+        const updatedProfileData = {
+            ...profileData,
+            firstName: nextFirstName,
+            lastName: nextLastName,
+            email: nextEmail,
+            phone: nextPhone || profileData.phone,
+            city: nextCity || profileData.city,
+        };
+
+        setProfileData(updatedProfileData);
+
+        const storedUserRaw = localStorage.getItem('eventHubUser');
+        if (storedUserRaw) {
+            try {
+                const storedUser = JSON.parse(storedUserRaw);
+                const nextStoredUser = {
+                    ...storedUser,
+                    firstName: updatedProfileData.firstName,
+                    lastName: updatedProfileData.lastName,
+                    email: updatedProfileData.email,
+                    phone: updatedProfileData.phone,
+                    city: updatedProfileData.city,
+                };
+                localStorage.setItem('eventHubUser', JSON.stringify(nextStoredUser));
+            } catch {
+            }
+        }
+
+        closeEditModal();
+    };
+
     if (!user || loading) {
         return null;
     }
@@ -347,17 +426,17 @@ const Profile = ({ user }) => {
                     <div className="profile-summary-card">
                         <div className="profile-summary-main">
                             <div className="avatar-circle">
-                                {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
+                                {profileData?.firstName?.[0] || 'U'}{profileData?.lastName?.[0] || ''}
                             </div>
                             <div className="user-meta">
                                 <div className="profile-summary-headline">
-                                    <h1>{user?.firstName} {user?.lastName}</h1>
-                                    <button className="profile-edit-link" type="button" onClick={() => navigate('/settings')}>
+                                    <h1>{profileData?.firstName} {profileData?.lastName}</h1>
+                                    <button className="profile-edit-link" type="button" onClick={openEditModal}>
                                         <FiEdit2 /> Editează
                                     </button>
                                 </div>
                                 <div className="profile-contact-list">
-                                    <div className="profile-contact-item"><FiMail /> <span>{user?.email}</span></div>
+                                    <div className="profile-contact-item"><FiMail /> <span>{profileData?.email}</span></div>
                                     <div className="profile-contact-item"><FiPhone /> <span>{profilePhone}</span></div>
                                     <div className="profile-contact-item"><FiMapPin /> <span>{profileCity}</span></div>
                                     <div className="profile-contact-item"><FiCalendar /> <span>Membru din {memberSince}</span></div>
@@ -672,6 +751,78 @@ const Profile = ({ user }) => {
 
                 </main>
             </div>
+
+            {isEditModalOpen ? (
+                <div className="profile-edit-modal-overlay" onClick={closeEditModal}>
+                    <div className="profile-edit-modal" onClick={(eventClick) => eventClick.stopPropagation()}>
+                        <button type="button" className="profile-edit-modal-close" onClick={closeEditModal} aria-label="Închide modalul">
+                            <FiX />
+                        </button>
+
+                        <div className="profile-edit-modal-head">
+                            <p>Editare profil</p>
+                            <h3>Actualizează detaliile tale</h3>
+                        </div>
+
+                        <form className="profile-edit-form" onSubmit={handleSaveProfile}>
+                            <label>
+                                <span>Prenume</span>
+                                <input
+                                    type="text"
+                                    value={profileForm.firstName}
+                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, firstName: eventChange.target.value }))}
+                                    required
+                                />
+                            </label>
+
+                            <label>
+                                <span>Nume</span>
+                                <input
+                                    type="text"
+                                    value={profileForm.lastName}
+                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, lastName: eventChange.target.value }))}
+                                    required
+                                />
+                            </label>
+
+                            <label>
+                                <span>Email</span>
+                                <input
+                                    type="email"
+                                    value={profileForm.email}
+                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, email: eventChange.target.value }))}
+                                    required
+                                />
+                            </label>
+
+                            <label>
+                                <span>Telefon</span>
+                                <input
+                                    type="text"
+                                    value={profileForm.phone}
+                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, phone: eventChange.target.value }))}
+                                />
+                            </label>
+
+                            <label className="full-width">
+                                <span>Oraș</span>
+                                <input
+                                    type="text"
+                                    value={profileForm.city}
+                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, city: eventChange.target.value }))}
+                                />
+                            </label>
+
+                            {profileFormError ? <p className="profile-edit-form-error">{profileFormError}</p> : null}
+
+                            <div className="profile-edit-actions">
+                                <button type="button" className="secondary" onClick={closeEditModal}>Anulează</button>
+                                <button type="submit" className="primary">Salvează</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            ) : null}
 
             {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}
         </div>
