@@ -51,6 +51,35 @@ const startServer = async () => {
     `);
     console.log('Constraint-ul unic participation_account_id_event_id_key a fost verificat/eliminat');
 
+    await sequelize.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'loyalty_wallet_pkey'
+        ) THEN
+          ALTER TABLE loyalty_wallet DROP CONSTRAINT loyalty_wallet_pkey;
+        END IF;
+
+        IF EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'loyalty_wallet_account_id_key'
+        ) THEN
+          ALTER TABLE loyalty_wallet DROP CONSTRAINT loyalty_wallet_account_id_key;
+        END IF;
+
+        ALTER TABLE loyalty_wallet
+          ALTER COLUMN account_id SET NOT NULL,
+          ALTER COLUMN org_id SET NOT NULL;
+
+        ALTER TABLE loyalty_wallet
+          ADD CONSTRAINT loyalty_wallet_pkey PRIMARY KEY (account_id, org_id);
+      END $$;
+    `);
+    console.log('Constraint-ul loyalty_wallet_pkey a fost setat pe (account_id, org_id)');
+
     
     app.listen(PORT, () => {
       console.log(`Serverul ruleaza pe port ${PORT}`);

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar, FiX } from 'react-icons/fi';
 import API, { API_BASE } from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
+import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
 import '../styles/Profile.css';
 
 const toEditableProfile = (sourceUser = {}) => ({
@@ -22,6 +21,7 @@ const Profile = ({ user }) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [profileForm, setProfileForm] = useState(() => toEditableProfile(user));
     const [profileFormError, setProfileFormError] = useState('');
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
     const [activeTab, setActiveTab] = useState('tickets'); 
     const [tickets, setTickets] = useState([]);
     const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || null);
@@ -290,48 +290,18 @@ const Profile = ({ user }) => {
         if (!ticketItems?.length || pdfDownloading) return;
 
         const payload = buildPdfPayload(ticketItems, eventTitleOverride);
-        setPdfPayload(payload);
         setPdfDownloading(true);
 
         try {
-            await new Promise((resolve) => setTimeout(resolve, 40));
-            if (!ticketPdfRef.current) return;
-
-            const canvas = await html2canvas(ticketPdfRef.current, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff'
+            await downloadTicketsPdf({
+                eventTitle: payload.eventTitle,
+                tickets: payload.tickets,
+                fileName: `bilete-${toSafeFileSlug(fileHint || payload.eventTitle)}`
             });
-
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 210;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= 297;
-
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= 297;
-            }
-
-            const fileBase = toSafeFileSlug(fileHint || payload.eventTitle);
-            pdf.save(`bilete-${fileBase}.pdf`);
         } catch (error) {
             console.error('Eroare la exportul PDF al biletelor:', error);
         } finally {
             setPdfDownloading(false);
-            setPdfPayload(null);
         }
     };
 
@@ -360,7 +330,7 @@ const Profile = ({ user }) => {
         setProfileFormError('');
     };
 
-    const handleSaveProfile = (eventSave) => {
+    const handleSaveProfile = async (eventSave) => {
         eventSave.preventDefault();
         const nextFirstName = String(profileForm.firstName || '').trim();
         const nextLastName = String(profileForm.lastName || '').trim();
@@ -379,35 +349,53 @@ const Profile = ({ user }) => {
             return;
         }
 
-        const updatedProfileData = {
-            ...profileData,
-            firstName: nextFirstName,
-            lastName: nextLastName,
-            email: nextEmail,
-            phone: nextPhone || profileData.phone,
-            city: nextCity || profileData.city,
-        };
+        try {
+            setIsSavingProfile(true);
+            setProfileFormError('');
 
-        setProfileData(updatedProfileData);
+            const response = await API.patch('/users/me', {
+                firstName: nextFirstName,
+                lastName: nextLastName,
+                email: nextEmail,
+                phone: nextPhone,
+                city: nextCity
+            });
 
-        const storedUserRaw = localStorage.getItem('eventHubUser');
-        if (storedUserRaw) {
-            try {
-                const storedUser = JSON.parse(storedUserRaw);
-                const nextStoredUser = {
-                    ...storedUser,
-                    firstName: updatedProfileData.firstName,
-                    lastName: updatedProfileData.lastName,
-                    email: updatedProfileData.email,
-                    phone: updatedProfileData.phone,
-                    city: updatedProfileData.city,
-                };
-                localStorage.setItem('eventHubUser', JSON.stringify(nextStoredUser));
-            } catch {
+            const backendProfile = response?.data?.profile || {};
+            const updatedProfileData = {
+                ...profileData,
+                firstName: backendProfile.firstName || nextFirstName,
+                lastName: backendProfile.lastName || nextLastName,
+                email: backendProfile.email || nextEmail,
+                phone: backendProfile.phone || nextPhone || profileData.phone,
+                city: backendProfile.city || nextCity || profileData.city,
+            };
+
+            setProfileData(updatedProfileData);
+
+            const storedUserRaw = localStorage.getItem('eventHubUser');
+            if (storedUserRaw) {
+                try {
+                    const storedUser = JSON.parse(storedUserRaw);
+                    const nextStoredUser = {
+                        ...storedUser,
+                        firstName: updatedProfileData.firstName,
+                        lastName: updatedProfileData.lastName,
+                        email: updatedProfileData.email,
+                        phone: updatedProfileData.phone,
+                        city: updatedProfileData.city,
+                    };
+                    localStorage.setItem('eventHubUser', JSON.stringify(nextStoredUser));
+                } catch {
+                }
             }
-        }
 
-        closeEditModal();
+            closeEditModal();
+        } catch (saveError) {
+            setProfileFormError(saveError?.response?.data?.message || 'Nu am putut salva modificările profilului.');
+        } finally {
+            setIsSavingProfile(false);
+        }
     };
 
     if (!user || loading) {
@@ -772,6 +760,7 @@ const Profile = ({ user }) => {
                                     value={profileForm.firstName}
                                     onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, firstName: eventChange.target.value }))}
                                     required
+                                    disabled={isSavingProfile}
                                 />
                             </label>
 
@@ -782,6 +771,7 @@ const Profile = ({ user }) => {
                                     value={profileForm.lastName}
                                     onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, lastName: eventChange.target.value }))}
                                     required
+                                    disabled={isSavingProfile}
                                 />
                             </label>
 
@@ -792,6 +782,7 @@ const Profile = ({ user }) => {
                                     value={profileForm.email}
                                     onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, email: eventChange.target.value }))}
                                     required
+                                    disabled={isSavingProfile}
                                 />
                             </label>
 
@@ -801,6 +792,7 @@ const Profile = ({ user }) => {
                                     type="text"
                                     value={profileForm.phone}
                                     onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, phone: eventChange.target.value }))}
+                                    disabled={isSavingProfile}
                                 />
                             </label>
 
@@ -810,14 +802,15 @@ const Profile = ({ user }) => {
                                     type="text"
                                     value={profileForm.city}
                                     onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, city: eventChange.target.value }))}
+                                    disabled={isSavingProfile}
                                 />
                             </label>
 
                             {profileFormError ? <p className="profile-edit-form-error">{profileFormError}</p> : null}
 
                             <div className="profile-edit-actions">
-                                <button type="button" className="secondary" onClick={closeEditModal}>Anulează</button>
-                                <button type="submit" className="primary">Salvează</button>
+                                <button type="button" className="secondary" onClick={closeEditModal} disabled={isSavingProfile}>Anulează</button>
+                                <button type="submit" className="primary" disabled={isSavingProfile}>{isSavingProfile ? 'Se salvează...' : 'Salvează'}</button>
                             </div>
                         </form>
                     </div>

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import PDFDocument from 'pdfkit';
+import { generateTicketsPdfBuffer, sanitizePdfFilename } from './TicketPdfService.js';
 
 const configureEmailClient = () => {
   const emailPassword = process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS;
@@ -32,138 +32,6 @@ const configureEmailClient = () => {
 
 const transporter = configureEmailClient();
 
-const formatDate = (value) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('ro-RO', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-const sanitizeFilename = (value) => {
-  const text = (value || 'bilete').toString();
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9-_ ]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .toLowerCase() || 'bilete';
-};
-
-const fetchQrImageBuffer = async (qrUrl) => {
-  if (!qrUrl) return null;
-  try {
-    const response = await fetch(qrUrl);
-    if (!response.ok) return null;
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-  } catch {
-    return null;
-  }
-};
-
-const generateTicketsPdfBuffer = async ({ buyerName, eventTitle, eventDate, eventLocation, tickets, quantity, totalPrice }) => {
-  const doc = new PDFDocument({ size: 'A4', margin: 40 });
-  const chunks = [];
-
-  doc.on('data', (chunk) => chunks.push(chunk));
-
-  for (let index = 0; index < tickets.length; index += 1) {
-    const ticket = tickets[index];
-    if (index > 0) {
-      doc.addPage();
-    }
-
-    const qrBuffer = await fetchQrImageBuffer(ticket.qr);
-    const margin = 40;
-    const pageWidth = doc.page.width;
-    const pageHeight = doc.page.height;
-    const contentWidth = pageWidth - (margin * 2);
-
-    const headerY = 36;
-    const cardY = 110;
-    const cardHeight = 560;
-    const qrBoxSize = 200;
-    const qrX = pageWidth - margin - qrBoxSize - 26;
-    const qrY = cardY + 72;
-    const leftX = margin + 24;
-    const leftWidth = (qrX - leftX) - 24;
-
-    doc.save();
-    doc.rect(0, 0, pageWidth, pageHeight).fill('#f4f5f7');
-    doc.restore();
-
-    doc.roundedRect(margin, headerY, contentWidth, 58, 12).fill('#111827');
-    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20).text('EventHub - Bilet de acces', margin, headerY + 18, {
-      width: contentWidth,
-      align: 'center'
-    });
-
-    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 16).fill('#ffffff');
-    doc.roundedRect(margin, cardY, contentWidth, cardHeight, 16).lineWidth(1).stroke('#e5e7eb');
-
-    doc.fillColor('#6b7280').font('Helvetica').fontSize(11).text(`Ticket ${index + 1} / ${tickets.length}`, margin, cardY + 16, {
-      width: contentWidth,
-      align: 'center'
-    });
-
-    let currentY = cardY + 58;
-    const addField = (label, value) => {
-      const textValue = `${label}: ${value || '-'}`;
-      doc.fillColor('#111827').font('Helvetica').fontSize(12);
-      const textHeight = doc.heightOfString(textValue, { width: leftWidth, lineGap: 2 });
-      doc.text(textValue, leftX, currentY, { width: leftWidth, lineGap: 2 });
-      currentY += textHeight + 12;
-    };
-
-    addField('Cumparator', buyerName || '-');
-    addField('Eveniment', eventTitle || '-');
-    addField('Data', formatDate(eventDate));
-    addField('Locatie', eventLocation || '-');
-    addField('Cod bilet', ticket.code || '-');
-    addField('Pret bilet', `${Number(ticket.price || 0).toFixed(2)} lei`);
-
-    doc.roundedRect(qrX, qrY, qrBoxSize, qrBoxSize, 12).fill('#f9fafb');
-    doc.roundedRect(qrX, qrY, qrBoxSize, qrBoxSize, 12).lineWidth(1).stroke('#d1d5db');
-
-    if (qrBuffer) {
-      doc.image(qrBuffer, qrX + 18, qrY + 18, { fit: [qrBoxSize - 36, qrBoxSize - 36], align: 'center', valign: 'center' });
-    } else {
-      doc.fillColor('#b91c1c').font('Helvetica').fontSize(10).text('QR indisponibil', qrX, qrY + 92, {
-        width: qrBoxSize,
-        align: 'center'
-      });
-    }
-
-    doc.fillColor('#6b7280').font('Helvetica').fontSize(10).text('Scaneaza codul la intrare', qrX, qrY + qrBoxSize + 12, {
-      width: qrBoxSize,
-      align: 'center'
-    });
-
-    const footerY = cardY + cardHeight - 72;
-    doc.moveTo(margin + 18, footerY).lineTo(pageWidth - margin - 18, footerY).lineWidth(1).stroke('#e5e7eb');
-    doc.fillColor('#374151').font('Helvetica').fontSize(10).text(`Total comanda: ${Number(totalPrice || 0).toFixed(2)} lei (${quantity} bilet(e))`, margin, footerY + 14, {
-      width: contentWidth,
-      align: 'center'
-    });
-    doc.fillColor('#9ca3af').font('Helvetica').fontSize(10).text('Suport: support@eventhub.ro', margin, footerY + 32, {
-      width: contentWidth,
-      align: 'center'
-    });
-  }
-
-  doc.end();
-
-  return await new Promise((resolve, reject) => {
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
-  });
-};
-
 const generateTicketEmailHTML = (buyerName, eventTitle, eventDate, eventLocation, quantity, totalPrice) => {
   const eventDateFormatted = new Date(eventDate).toLocaleDateString('ro-RO', {
     weekday: 'long',
@@ -195,33 +63,33 @@ const generateTicketEmailHTML = (buyerName, eventTitle, eventDate, eventLocation
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Biletele Tale!</h1>
-          <p>Cumpărare confirmată • EventHub</p>
+          <h1>Biletele Tale</h1>
+          <p>Cumparare confirmata • EventHub</p>
         </div>
 
         <div class="content">
-          <p>Bună, <strong>${buyerName}</strong>!</p>
-          <p>Mulțumim pentru cumpărarea biletelor tale. PDF-ul cu biletele și codurile QR este atașat acestui email.</p>
+          <p>Buna, <strong>${buyerName}</strong>!</p>
+          <p>Multumim pentru cumpararea biletelor tale. PDF-ul atasat are acelasi format ca biletul descarcabil din contul tau.</p>
 
           <div class="event-info">
             <p><strong>Eveniment:</strong> ${eventTitle}</p>
             <p><strong>Data:</strong> ${eventDateFormatted}</p>
-            <p><strong>Locație:</strong> ${eventLocation}</p>
+            <p><strong>Locatie:</strong> ${eventLocation}</p>
           </div>
 
           <div class="summary">
-            <p><strong>Numărul de bilete:</strong> ${quantity}</p>
-            <p><strong>Total plătit:</strong> ${Number(totalPrice || 0).toFixed(2)} lei</p>
+            <p><strong>Numarul de bilete:</strong> ${quantity}</p>
+            <p><strong>Total platit:</strong> ${Number(totalPrice || 0).toFixed(2)} lei</p>
           </div>
 
           <p style="color: #999; font-size: 14px;">
-            📱 <strong>Cum intri la eveniment?</strong><br>
-            Deschide PDF-ul atașat și prezintă codul QR la intrare.
+            <strong>Cum intri la eveniment?</strong><br>
+            Deschide PDF-ul atasat si prezinta codul QR la intrare.
           </p>
 
           <p style="color: #999; font-size: 14px;">
-            ❓ <strong>Întrebări?</strong><br>
-            Contactează-ne pe support@eventhub.ro sau vizitează eventhub.ro
+            <strong>Intrebari?</strong><br>
+            Contacteaza-ne pe support@eventhub.ro sau viziteaza eventhub.ro
           </p>
         </div>
 
@@ -278,7 +146,7 @@ export const sendTicketEmail = async (emailData) => {
       html: htmlContent,
       attachments: [
         {
-          filename: `${sanitizeFilename(eventTitle)}-bilete.pdf`,
+          filename: `${sanitizePdfFilename(eventTitle)}-bilete.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf'
         }

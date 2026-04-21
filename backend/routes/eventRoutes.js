@@ -16,6 +16,7 @@ import { getMyTickets, joinEvent } from '../controllers/ParticipationController.
 import {
 	confirmCheckoutSession,
 	createCheckoutSession,
+	generateTicketsPdf,
 	getPurchaseQuote,
 	sendTicketsByEmail
 } from '../controllers/BookingController.js';
@@ -48,6 +49,7 @@ router.get('/purchase/quote', optionalAuthenticateToken, getPurchaseQuote);
 router.post('/purchase/checkout-session', optionalAuthenticateToken, createCheckoutSession);
 router.post('/purchase/confirm-session', confirmCheckoutSession);
 router.post('/tickets/send-email', sendTicketsByEmail);
+router.post('/tickets/pdf', generateTicketsPdf);
 
 router.get('/:eventId/ticket-types', getTicketTypesForEvent);
 router.post('/:eventId/ticket-types', authenticateToken, createTicketType);

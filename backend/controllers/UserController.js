@@ -1,4 +1,7 @@
 import { Account, Category, Event, LoyaltyTransaction, LoyaltyWallet, Organization } from '../models/relationships.js';
+import { Op } from 'sequelize';
+
+const hasAccountColumn = (columnName) => Boolean(Account.rawAttributes?.[columnName]);
 
 export const getUserProfile = async (req, res) => {
   try {
@@ -94,6 +97,86 @@ export const getMyLoyaltySummary = async (req, res) => {
         eventTitle: transaction.Event?.title || 'Eveniment',
         createdAt: transaction.createdAt
       }))
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateMyProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Neautorizat' });
+    }
+
+    const account = await Account.findByPk(userId);
+    if (!account) {
+      return res.status(404).json({ message: 'Utilizator negăsit' });
+    }
+
+    const nextFirstName = String(req.body?.firstName || '').trim();
+    const nextLastName = String(req.body?.lastName || '').trim();
+    const nextEmail = String(req.body?.email || '').trim().toLowerCase();
+    const nextPhone = String(req.body?.phone || '').trim();
+    const nextCity = String(req.body?.city || '').trim();
+
+    if (!nextFirstName || !nextLastName || !nextEmail) {
+      return res.status(400).json({ message: 'Prenumele, numele și email-ul sunt obligatorii.' });
+    }
+
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail);
+    if (!emailValid) {
+      return res.status(400).json({ message: 'Email invalid.' });
+    }
+
+    const duplicateEmail = await Account.findOne({
+      where: {
+        email: nextEmail,
+        id: { [Op.ne]: userId }
+      }
+    });
+
+    if (duplicateEmail) {
+      return res.status(409).json({ message: 'Există deja un cont cu acest email.' });
+    }
+
+    const updatePayload = {
+      first_name: nextFirstName,
+      last_name: nextLastName,
+      email: nextEmail
+    };
+
+    if (nextPhone) {
+      if (hasAccountColumn('phone')) updatePayload.phone = nextPhone;
+      if (hasAccountColumn('phone_number')) updatePayload.phone_number = nextPhone;
+    }
+
+    if (nextCity) {
+      if (hasAccountColumn('city')) updatePayload.city = nextCity;
+      if (hasAccountColumn('location')) updatePayload.location = nextCity;
+    }
+
+    await account.update(updatePayload);
+
+    const cityValue = hasAccountColumn('city')
+      ? account.city
+      : (hasAccountColumn('location') ? account.location : null);
+    const phoneValue = hasAccountColumn('phone')
+      ? account.phone
+      : (hasAccountColumn('phone_number') ? account.phone_number : null);
+
+    return res.status(200).json({
+      message: 'Profil actualizat cu succes.',
+      profile: {
+        id: account.id,
+        firstName: account.first_name,
+        lastName: account.last_name,
+        email: account.email,
+        city: cityValue,
+        phone: phoneValue
+      }
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });

@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { FiArrowLeft, FiCheckCircle, FiDownload, FiMail } from 'react-icons/fi';
 import API from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
+import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
 import '../styles/TicketsDownloadPage.css';
 
 const PurchaseConfirmationPage = () => {
@@ -102,52 +101,18 @@ const PurchaseConfirmationPage = () => {
     setDownloading(true);
     try {
       const payload = buildPdfPayload();
-      setPdfPayload(payload);
-
-      await new Promise((resolve) => setTimeout(resolve, 40));
-      if (!ticketPdfRef.current) {
-        setError('Nu am putut genera continutul PDF.');
-        return;
-      }
-
-      const canvas = await html2canvas(ticketPdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
+      await downloadTicketsPdf({
+        eventTitle: payload.eventTitle,
+        tickets: payload.tickets,
+        fileName: `bilete-${String(eventData?.title || eventData?.id || 'eveniment')
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '') || 'eveniment'}`
       });
-
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= 297;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-      }
-
-      const fileHint = String(eventData?.title || eventData?.id || 'eveniment')
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '') || 'eveniment';
-      pdf.save(`bilete-${fileHint}.pdf`);
     } catch (err) {
       console.error('PDF generation error:', err);
       setError('Eroare la generarea PDF-ului.');
     } finally {
-      setPdfPayload(null);
       setDownloading(false);
     }
   };

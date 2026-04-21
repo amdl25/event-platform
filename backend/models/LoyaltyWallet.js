@@ -5,11 +5,13 @@ const LoyaltyWallet = sequelize.define('LoyaltyWallet', {
   account_id: { 
     type: DataTypes.UUID, 
     primaryKey: true,
+    allowNull: false,
     references: { model: 'account', key: 'id' }
   },
   org_id: { 
     type: DataTypes.UUID, 
-    primary_key: true,
+    primaryKey: true,
+    allowNull: false,
     references: { model: 'organization', key: 'id' }
   },
   points_balance: { type: DataTypes.INTEGER, defaultValue: 0 }

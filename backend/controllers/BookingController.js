@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import Stripe from 'stripe';
 import sequelize from '../config/database.js';
-import { Event, LoyaltyTransaction, LoyaltyWallet, Participation, TicketType } from '../models/relationships.js';
+import { Event, LoyaltyTransaction, LoyaltyWallet, Organization, Participation, TicketType } from '../models/relationships.js';
 import { sendTicketEmail } from '../services/EmailService.js';
+import { generateTicketsPdfBuffer, sanitizePdfFilename } from '../services/TicketPdfService.js';
 
 const generateTicketCode = () => `TKT-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
 const POINTS_PER_RON = Number(process.env.LOYALTY_POINTS_PER_RON || 10);
@@ -78,8 +79,32 @@ const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCo
 	eventLocation: event.location,
 	buyerName: buyerName || participation.buyer_name,
 	buyerEmail: buyerEmail || participation.buyer_email,
-	price: Number(event.price) || 0
+	price: Number(event.price) || 0,
+	points: Number(event.points_value || 0),
+	organizationName: event.organization?.name || event.organizationName || event.orgName || 'Organizator'
 });
+
+const loadEventForUpdate = async ({ eventId, transaction }) => {
+	const event = await Event.findByPk(eventId, {
+		transaction,
+		lock: transaction.LOCK.UPDATE
+	});
+
+	if (!event) return null;
+
+	if (event.org_id) {
+		const organization = await Organization.findByPk(event.org_id, {
+			attributes: ['name'],
+			transaction
+		});
+
+		if (organization?.name) {
+			event.setDataValue('organizationName', organization.name);
+		}
+	}
+
+	return event;
+};
 
 const createParticipations = async ({
 	transaction,
@@ -123,10 +148,7 @@ const completePurchase = async ({
 	transaction: existingTransaction = null
 }) => {
 	const executePurchase = async (transaction) => {
-		const event = await Event.findByPk(eventId, {
-			transaction,
-			lock: transaction.LOCK.UPDATE
-		});
+		const event = await loadEventForUpdate({ eventId, transaction });
 
 		if (!event) {
 			throw new Error('Evenimentul nu a fost găsit');
@@ -303,6 +325,33 @@ export const sendTicketsByEmail = async (req, res) => {
 		console.error('Send Email Error:', error);
 		return res.status(500).json({
 			message: 'Error sending email',
+			error: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+		});
+	}
+};
+
+export const generateTicketsPdf = async (req, res) => {
+	const { eventTitle, tickets, fileName } = req.body;
+
+	if (!eventTitle || !Array.isArray(tickets) || tickets.length === 0) {
+		return res.status(400).json({ message: 'Missing required fields' });
+	}
+
+	try {
+		const pdfBuffer = await generateTicketsPdfBuffer({
+			eventTitle,
+			tickets
+		});
+
+		const safeFileName = sanitizePdfFilename(fileName || eventTitle);
+		res.setHeader('Content-Type', 'application/pdf');
+		res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}.pdf"`);
+		return res.status(200).send(pdfBuffer);
+	} catch (error) {
+		console.error('Generate Tickets PDF Error:', error);
+		return res.status(500).json({
+			message: 'Error generating PDF',
 			error: error.message,
 			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
 		});
@@ -543,10 +592,7 @@ export const confirmCheckoutSession = async (req, res) => {
 		const quantity = clamp(toPositiveInteger(metadata.quantity, 1), 1, 20);
 
 		const result = await sequelize.transaction(async (transaction) => {
-			const event = await Event.findByPk(eventId, {
-				transaction,
-				lock: transaction.LOCK.UPDATE
-			});
+			const event = await loadEventForUpdate({ eventId, transaction });
 
 			if (!event) {
 				throw new Error('Evenimentul nu a fost găsit');

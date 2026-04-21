@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import QRCode from 'react-qr-code';
 import Hero from '../components/Hero';
 import DiscoveryFeed from '../components/DiscoveryFeed';
@@ -13,6 +11,7 @@ import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin
 import { FaTicketAlt } from 'react-icons/fa';
 import { PiConfetti } from 'react-icons/pi';
 import { getRecentCategoryClickCounts } from '../utils/recommendationSignals';
+import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
 import '../styles/Home.css';
 
 const NEXT_TICKET_CACHE_KEY = 'homeNextTicket';
@@ -576,45 +575,14 @@ const Home = ({ user }) => {
     setDownloadingPdf(true);
     try {
       const payload = buildPdfPayload();
-      setPdfPayload(payload);
-
-      await new Promise((resolve) => setTimeout(resolve, 40));
-      if (!ticketPdfRef.current) return;
-
-      const canvas = await html2canvas(ticketPdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
+      await downloadTicketsPdf({
+        eventTitle: payload.eventTitle,
+        tickets: payload.tickets,
+        fileName: `bilet-${toSafeFileSlug(primaryStackEvent.event?.title || primaryStackEvent.ticketCode || 'eveniment')}`
       });
-
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= 297;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-      }
-
-      const fileBase = toSafeFileSlug(primaryStackEvent.event?.title || primaryStackEvent.ticketCode || 'eveniment');
-      pdf.save(`bilet-${fileBase}.pdf`);
     } catch (error) {
       console.error('Eroare la exportul PDF al biletului:', error);
     } finally {
-      setPdfPayload(null);
       setDownloadingPdf(false);
     }
   };
