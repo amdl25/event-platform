@@ -87,10 +87,11 @@ const PurchaseConfirmationPage = () => {
         number: index + 1,
         code: ticket.code || `TK-${String(index + 1).padStart(3, '0')}`,
         qrValue: ticket.qr || ticket.code || `ticket-${index + 1}`,
+        eventId: ticket.eventId || eventData.id || null,
         date: ticket.eventDate || eventData.start_date,
         location: ticket.eventLocation || eventData.location || 'Locatie nespecificata',
         points: Number(eventData.points_value || 0),
-        organizationName: eventData.organizationName || 'Organizator'
+        organizationName: ticket.organizationName || eventData.organizationName || 'Organizator'
       }))
     };
   }, [eventData, ticketData]);

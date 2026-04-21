@@ -278,10 +278,11 @@ const Profile = ({ user }) => {
                 number: index + 1,
                 code: ticket.ticketCode || `TK-${String(ticket.id).slice(0, 8).toUpperCase()}`,
                 qrValue: ticket.ticketQr || ticket.ticketCode || ticket.id,
+                eventId: ticket.event?.id || ticket.eventId || null,
                 date: ticket.event?.startDate,
                 location: ticket.event?.location || 'Locație nespecificată',
                 points: Number(ticket.event?.pointsValue || 0),
-                organizationName: ticket.event?.organizationName || 'Organizator'
+                organizationName: ticket.organizationName || ticket.event?.organizationName || 'Organizator'
             }))
         };
     };
@@ -296,7 +297,8 @@ const Profile = ({ user }) => {
             await downloadTicketsPdf({
                 eventTitle: payload.eventTitle,
                 tickets: payload.tickets,
-                fileName: `bilete-${toSafeFileSlug(fileHint || payload.eventTitle)}`
+                fileName: `bilete-${toSafeFileSlug(fileHint || payload.eventTitle)}`,
+                layoutMode: 'stack'
             });
         } catch (error) {
             console.error('Eroare la exportul PDF al biletelor:', error);

@@ -561,6 +561,7 @@ const Home = ({ user }) => {
         number: 1,
         code: primaryStackEvent.ticketCode || 'TK-UNKNOWN',
         qrValue: nextTicketQrValue || primaryStackEvent.ticketCode || 'ticket',
+        eventId: primaryStackEvent.event?.id || null,
         date: primaryStackEvent.startDate,
         location: primaryStackEvent.event?.location || 'Locație nespecificată',
         points: Number(primaryStackEvent.event?.pointsValue || 0),

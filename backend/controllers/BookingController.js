@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import Stripe from 'stripe';
+import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 import { Event, LoyaltyTransaction, LoyaltyWallet, Organization, Participation, TicketType } from '../models/relationships.js';
 import { sendTicketEmail } from '../services/EmailService.js';
@@ -72,6 +73,7 @@ const extractTicketCodeFromQr = (qrUrl) => {
 
 const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCode }) => ({
 	participationId: participation.id,
+	eventId: event.id,
 	code: ticketCode || extractTicketCodeFromQr(participation.ticket_qr) || 'TKT-UNKNOWN',
 	qr: participation.ticket_qr,
 	eventTitle: event.title,
@@ -83,6 +85,45 @@ const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCo
 	points: Number(event.points_value || 0),
 	organizationName: event.organization?.name || event.organizationName || event.orgName || 'Organizator'
 });
+
+const enrichTicketsWithOrganizationName = async (tickets = []) => {
+	if (!Array.isArray(tickets) || tickets.length === 0) return tickets;
+
+	const eventIds = [...new Set(
+		tickets
+			.map((ticket) => ticket?.eventId || null)
+			.filter(Boolean)
+	)];
+
+	if (eventIds.length === 0) return tickets;
+
+	const events = await Event.findAll({
+		where: { id: { [Op.in]: eventIds } },
+		attributes: ['id'],
+		include: [{ association: 'organization', attributes: ['name'] }]
+	});
+
+	const organizerByEventId = new Map(
+		events.map((event) => [event.id, event.organization?.name || null])
+	);
+
+	return tickets.map((ticket) => {
+		if (!ticket) return ticket;
+
+		const currentName = String(ticket.organizationName || '').trim();
+		if (currentName && currentName.toLowerCase() !== 'organizator') {
+			return ticket;
+		}
+
+		const organizerName = organizerByEventId.get(ticket.eventId);
+		if (!organizerName) return ticket;
+
+		return {
+			...ticket,
+			organizationName: organizerName
+		};
+	});
+};
 
 const loadEventForUpdate = async ({ eventId, transaction }) => {
 	const event = await Event.findByPk(eventId, {
@@ -271,13 +312,15 @@ const sendPurchaseEmailSafely = async ({ event, buyerName, buyerEmail, tickets, 
 	}
 
 	try {
+		const enrichedTickets = await enrichTicketsWithOrganizationName(tickets);
+
 		const result = await sendTicketEmail({
 			buyerEmail,
 			buyerName: buyerName || 'Participant',
 			eventTitle: event?.title || tickets[0]?.eventTitle || 'Eveniment',
 			eventDate: event?.start_date || tickets[0]?.eventDate || new Date().toISOString(),
 			eventLocation: event?.location || tickets[0]?.eventLocation || 'Locatie nespecificata',
-			tickets,
+			tickets: enrichedTickets,
 			quantity: toPositiveInteger(quantity, tickets.length),
 			totalPrice: Number(totalPrice || 0)
 		});
@@ -297,13 +340,15 @@ export const sendTicketsByEmail = async (req, res) => {
 	}
 
 	try {
+		const enrichedTickets = await enrichTicketsWithOrganizationName(tickets);
+
 		const result = await sendTicketEmail({
 			buyerEmail,
 			buyerName,
 			eventTitle,
 			eventDate: eventDate || new Date().toISOString(),
 			eventLocation: eventLocation || 'Locatie nespecificata',
-			tickets,
+			tickets: enrichedTickets,
 			quantity,
 			totalPrice
 		});
@@ -332,16 +377,19 @@ export const sendTicketsByEmail = async (req, res) => {
 };
 
 export const generateTicketsPdf = async (req, res) => {
-	const { eventTitle, tickets, fileName } = req.body;
+	const { eventTitle, tickets, fileName, layoutMode } = req.body;
 
 	if (!eventTitle || !Array.isArray(tickets) || tickets.length === 0) {
 		return res.status(400).json({ message: 'Missing required fields' });
 	}
 
 	try {
+		const enrichedTickets = await enrichTicketsWithOrganizationName(tickets);
+
 		const pdfBuffer = await generateTicketsPdfBuffer({
 			eventTitle,
-			tickets
+			tickets: enrichedTickets,
+			layoutMode: layoutMode === 'stack' ? 'stack' : 'single'
 		});
 
 		const safeFileName = sanitizePdfFilename(fileName || eventTitle);

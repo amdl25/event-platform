@@ -8,11 +8,12 @@ const toSafeFileSlug = (value) => {
     .slice(0, 42) || 'eveniment';
 };
 
-export const downloadTicketsPdf = async ({ eventTitle, tickets, fileName }) => {
+export const downloadTicketsPdf = async ({ eventTitle, tickets, fileName, layoutMode }) => {
   const response = await API.post('/events/tickets/pdf', {
     eventTitle,
     tickets,
-    fileName: fileName || eventTitle
+    fileName: fileName || eventTitle,
+    layoutMode: layoutMode || 'single'
   }, {
     responseType: 'blob'
   });
