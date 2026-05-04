@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -64,7 +65,10 @@ const ExplorePage = () => {
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
-  const publicEvents = useMemo(() => allEvents.filter((event) => Boolean(event.org_id)), [allEvents]);
+  const location = useLocation();
+  const orgIdParam = useMemo(() => new URLSearchParams(location.search).get('orgId'), [location.search]);
+
+  const publicEvents = useMemo(() => allEvents.filter((event) => Boolean(event.org_id) && (!orgIdParam || String(event.org_id) === String(orgIdParam))), [allEvents, orgIdParam]);
 
   const getVisuals = (name) => {
     const normalizedName = name?.toLowerCase()?.trim();

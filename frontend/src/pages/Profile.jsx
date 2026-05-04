@@ -59,25 +59,34 @@ const Profile = ({ user }) => {
     const ticketPdfRef = useRef(null);
     const rewardsCompanies = useMemo(() => {
         const accents = ['blue', 'purple', 'green', 'red'];
-        return [...(loyaltySummary.companies || [])]
-            .sort((a, b) => b.points - a.points)
-            .map((item, index) => {
-                const initials = item.name
-                    .split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((part) => part[0])
-                    .join('')
-                    .toUpperCase() || 'EV';
+        const companies = (loyaltySummary.companies || []).slice().sort((a, b) => Number(b.points || 0) - Number(a.points || 0));
 
-                return {
-                    initials,
-                    name: item.name,
-                    subtitle: 'Disponibile pentru reduceri',
-                    points: item.points,
-                    accent: accents[index % accents.length]
-                };
-            });
+        return companies.map((item, index) => {
+            const initials = (item.name || 'EV')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join('')
+                .toUpperCase();
+
+            const expiringSoonPoints = Number(item.expiringSoonPoints || 0);
+            const nearestExpiryAt = item.nearestExpiryAt ? new Date(item.nearestExpiryAt) : null;
+            const daysUntil = nearestExpiryAt ? Math.ceil((nearestExpiryAt - new Date()) / (1000 * 60 * 60 * 24)) : null;
+            const expiryLabel = nearestExpiryAt ? (daysUntil <= 0 ? 'astăzi' : `${daysUntil} ${daysUntil === 1 ? 'zi' : 'zile'}`) : null;
+
+            return {
+                orgId: item.orgId || item.org_id || null,
+                initials,
+                name: item.name,
+                subtitle: 'Disponibile pentru reduceri',
+                points: Number(item.points || 0),
+                accent: accents[index % accents.length],
+                expiringSoonPoints,
+                nearestExpiryAt,
+                expiryLabel
+            };
+        });
     }, [loyaltySummary.companies]);
 
     const rewardsHistory = useMemo(() => {
@@ -736,32 +745,93 @@ const Profile = ({ user }) => {
                             <div className="rewards-grid">
                                 <section className="rewards-column">
                                     <h3 className="rewards-column-title">PUNCTE PE COMPANIE</h3>
+                                    <article className="rewards-tip-card">
+                                        <p className="rewards-tip-title"><FiGift /> SFAT</p>
+                                        <p className="rewards-tip-copy">Folosește punctele pentru reduceri la următorul eveniment de la aceeași companie.</p>
+                                    </article>
+
+                                    <article className="rewards-company-card demo-preview">
+                                        <div className="rewards-company-top">
+                                            <div className={`rewards-company-avatar accent-blue`}>
+                                                TC
+                                            </div>
+
+                                            <div className="rewards-company-info">
+                                                <strong>The Coffee Hub</strong>
+                                                <span>Disponibile pentru reduceri</span>
+
+                                                <div className="company-expiry-line">
+                                                    <span className="company-expiry-dot">●</span>
+                                                    <span className="company-expiry-text">353 pct expiră în 12 zile</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="rewards-company-points">
+                                                <strong>353</strong>
+                                            </div>
+                                        </div>
+
+                                        <div className="rewards-company-footer">
+                                            <div className="rewards-company-actions">
+                                                <button
+                                                    type="button"
+                                                    className="btn-link-compact"
+                                                    onClick={() => navigate('/explore?orgId=demo')}
+                                                >
+                                                    Vezi evenimente <FiArrowUpRight className="btn-link-icon" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </article>
+
                                     <div className="rewards-company-list">
                                         {rewardsCompanies.length === 0 ? (
                                             <div className="empty-state-card">
                                                 <p className="empty-state-text">Nu există puncte acumulate încă.</p>
                                             </div>
-                                        ) : rewardsCompanies.map((company) => (
-                                            <article key={company.name} className="rewards-company-card">
-                                                <div className={`rewards-company-avatar accent-${company.accent}`}>
-                                                    {company.initials}
-                                                </div>
-                                                <div className="rewards-company-info">
-                                                    <strong>{company.name}</strong>
-                                                    <span>{company.subtitle}</span>
-                                                </div>
-                                                <div className="rewards-company-points">
-                                                    <strong>{company.points}</strong>
-                                                    <FiArrowUpRight />
-                                                </div>
-                                            </article>
-                                        ))}
-                                    </div>
+                                        ) : rewardsCompanies.map((company) => {
+                                            const targetPath = company.orgId ? `/explore?orgId=${company.orgId}` : '/explore';
+                                            return (
+                                                <article key={company.name} className="rewards-company-card">
+                                                    <div className="rewards-company-top">
+                                                        <div className={`rewards-company-avatar accent-${company.accent}`}>
+                                                            {company.initials}
+                                                        </div>
 
-                                    <article className="rewards-tip-card">
-                                        <p className="rewards-tip-title"><FiGift /> SFAT</p>
-                                        <p className="rewards-tip-copy">Folosește punctele pentru reduceri la următorul eveniment de la aceeași companie.</p>
-                                    </article>
+                                                        <div className="rewards-company-info">
+                                                            <strong>{company.name}</strong>
+                                                            <span>{company.subtitle}</span>
+
+                                                            {company.expiringSoonPoints > 0 ? (
+                                                                <div className="company-expiry-line">
+                                                                    <span className="company-expiry-dot">●</span>
+                                                                    <span className="company-expiry-text">{company.expiringSoonPoints} pct expiră {company.expiryLabel ? `în ${company.expiryLabel}` : 'curând'}</span>
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
+
+                                                        <div className="rewards-company-points">
+                                                            <strong>{company.points}</strong>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="rewards-company-footer">
+                                                        <div className="rewards-company-footer-left" />
+
+                                                        <div className="rewards-company-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="btn-link-compact"
+                                                                onClick={() => navigate(targetPath)}
+                                                            >
+                                                                Vezi evenimente <FiArrowUpRight className="btn-link-icon" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </article>
+                                            );
+                                        })}
+                                    </div>
                                 </section>
 
                                 <section className="rewards-column rewards-history-column">

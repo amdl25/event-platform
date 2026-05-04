@@ -934,11 +934,12 @@
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 12px;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    min-height: 0;
 }
 
 .rewards-company-avatar {
@@ -976,13 +977,112 @@
     font-size: 0.86rem;
 }
 
-.rewards-company-points {
+.company-expiry-line {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #92400e;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.company-expiry-dot {
+    color: #f59e0b;
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.company-expiry-text {
+    color: #92400e;
+    font-weight: 700;
+}
+
+.rewards-company-actions {
     display: flex;
     align-items: center;
+    gap: 8px;
+}
+
+.btn-link-compact {
+    background: transparent;
+    border: none;
+    color: #f15c2a;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-link-compact:hover {
+    background: rgba(241,92,42,0.06);
+}
+
+.rewards-company-points {
+    display: flex;
+    align-items: flex-start;
     gap: 8px;
     color: var(--primary);
     font-weight: 700;
     font-size: 0.96rem;
+    flex-shrink: 0;
+}
+
+.rewards-company-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.rewards-company-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 4px;
+    gap: 8px;
+}
+
+.rewards-company-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rewards-company-arrow {
+    background: transparent;
+    border: none;
+    color: #f15c2a;
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.rewards-company-arrow:hover {
+    background: rgba(241,92,42,0.06);
+}
+
+.btn-link-icon {
+    display: inline-block;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.rewards-company-card.demo-preview .company-expiry-dot {
+    color: #f97316;
+}
+
+.rewards-company-card.demo-preview .company-expiry-text {
+    color: #f97316;
+    font-weight: 800;
 }
 
 .rewards-history-column {
