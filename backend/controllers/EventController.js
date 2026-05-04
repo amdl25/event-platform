@@ -6,6 +6,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
 
 const createInviteToken = () => crypto.randomBytes(18).toString('hex');
 
+const isArchivedEvent = (event) => {
+  const referenceDate = event?.end_date || event?.start_date;
+  if (!referenceDate) return false;
+
+  const eventDate = new Date(referenceDate);
+  if (Number.isNaN(eventDate.getTime())) return false;
+
+  return eventDate < new Date();
+};
+
 const parseTicketTypesInput = (value) => {
   if (!value) return [];
 
@@ -145,6 +155,8 @@ export const getAllEvents = async (req, res) => {
       }
     }
 
+    const includeArchived = String(req.query.includeArchived || '').toLowerCase() === 'true' && (requesterRole === 'admin' || requesterRole === 'organizer');
+
     const events = await Event.findAll({
       include: [
         { model: Organization, as: 'organization', attributes: ['name', 'verification_status'] },
@@ -159,6 +171,10 @@ export const getAllEvents = async (req, res) => {
     });
 
     const visibleEvents = events.filter((event) => {
+      if (!includeArchived && isArchivedEvent(event)) {
+        return false;
+      }
+
       if (event.moderation_status === 'hidden') {
         return requesterRole === 'admin' || (requesterId && event.creator_id === requesterId);
       }
@@ -248,6 +264,10 @@ export const getEventById = async (req, res) => {
     });
 
     if (!event) {
+      return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
+    }
+
+    if (isArchivedEvent(event) && requesterRole !== 'admin' && event.creator_id !== requesterId) {
       return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
     }
 
@@ -557,7 +577,7 @@ export const createEvent = async (req, res) => {
 
 export const getMyPrivateEvents = async (req, res) => {
   try {
-    const accountId = req.user?.id;
+    const accountId = req.user?.id || String(req.query?.userId || '').trim();
     if (!accountId) {
       return res.status(401).json({ message: 'Neautorizat.' });
     }
@@ -655,6 +675,11 @@ export const getMyPrivateEvents = async (req, res) => {
       .map((participation) => {
         const event = participation.Event;
         if (!event || event.creator_id === accountId) {
+          return null;
+        }
+
+        const startDate = event.start_date ? new Date(event.start_date) : null;
+        if (!startDate || Number.isNaN(startDate.getTime()) || startDate < new Date()) {
           return null;
         }
 

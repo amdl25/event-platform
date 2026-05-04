@@ -34,6 +34,19 @@ const Profile = ({ user }) => {
     const [verificationMessage, setVerificationMessage] = useState('');
     const [verificationError, setVerificationError] = useState('');
     const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+    const [verificationTouched, setVerificationTouched] = useState({
+        companyName: false,
+        companyCui: false,
+        registeredAddress: false,
+        officialPhone: false
+    });
+    const [profileTouched, setProfileTouched] = useState({
+        firstName: false,
+        lastName: false,
+        email: false,
+        phone: false,
+        city: false
+    });
 
     const [pdfDownloading, setPdfDownloading] = useState(false);
     const [pdfPayload, setPdfPayload] = useState(null);
@@ -108,15 +121,55 @@ const Profile = ({ user }) => {
 
     const hiddenRewardsCount = Math.max(filteredRewardsHistory.length - visibleRewardsHistory.length, 0);
 
+    const getVerificationFieldErrors = (values) => {
+        const companyName = String(values?.companyName || '').trim();
+        const companyCui = String(values?.companyCui || '').trim().toUpperCase();
+        const registeredAddress = String(values?.registeredAddress || '').trim();
+        const officialPhone = String(values?.officialPhone || '').trim();
+
+        return {
+            companyName: !companyName
+                ? 'Numele firmei este obligatoriu.'
+                : (companyName.length < 2 || companyName.length > 120 ? '2-120 caractere.' : ''),
+            companyCui: !companyCui
+                ? 'CUI/CIF este obligatoriu.'
+                : (!/^(RO)?[0-9]{2,12}$/.test(companyCui) ? 'Format invalid (ex: RO12345678).' : ''),
+            registeredAddress: !registeredAddress
+                ? 'Adresa sediului este obligatorie.'
+                : (registeredAddress.length < 6 ? 'Adresa este prea scurtă.' : ''),
+            officialPhone: !officialPhone
+                ? 'Telefonul oficial este obligatoriu.'
+                : (!/^[0-9+()\-\s]{7,20}$/.test(officialPhone) ? 'Telefon invalid.' : '')
+        };
+    };
+
+    const getProfileFieldErrors = (values) => {
+        const firstName = String(values?.firstName || '').trim();
+        const lastName = String(values?.lastName || '').trim();
+        const email = String(values?.email || '').trim();
+        const phone = String(values?.phone || '').trim();
+        const city = String(values?.city || '').trim();
+
+        return {
+            firstName: !firstName ? 'Prenumele este obligatoriu.' : (firstName.length < 2 ? 'Minim 2 caractere.' : ''),
+            lastName: !lastName ? 'Numele este obligatoriu.' : (lastName.length < 2 ? 'Minim 2 caractere.' : ''),
+            email: !email
+                ? 'Email-ul este obligatoriu.'
+                : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Format email invalid.' : ''),
+            phone: phone && !/^[0-9+()\-\s]{7,20}$/.test(phone) ? 'Telefon invalid.' : '',
+            city: city.length > 80 ? 'Orașul este prea lung.' : ''
+        };
+    };
+
+    const verificationFieldErrors = getVerificationFieldErrors(verificationForm);
+    const profileFieldErrors = getProfileFieldErrors(profileForm);
+
     useEffect(() => {
         setProfileData(toEditableProfile(user));
         setProfileForm(toEditableProfile(user));
     }, [user]);
 
     const totalPoints = Number(loyaltySummary.totalPoints || 0);
-    const memberSince = profileData?.createdAt
-        ? new Date(profileData.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
-        : 'Ianuarie 2024';
     const profileCity = profileData?.city || 'București';
     const profilePhone = profileData?.phone || '+40 721 234 567';
     const greetingName = profileData?.firstName || 'prietene';
@@ -230,20 +283,32 @@ const Profile = ({ user }) => {
         e.preventDefault();
         setVerificationError('');
         setVerificationMessage('');
+        setVerificationTouched({
+            companyName: true,
+            companyCui: true,
+            registeredAddress: true,
+            officialPhone: true
+        });
 
-        if (!verificationForm.companyName.trim() || !verificationForm.companyCui.trim() || !verificationForm.registeredAddress.trim() || !verificationForm.officialPhone.trim()) {
-            setVerificationError('Completează toate câmpurile profilului business.');
+        const firstVerificationError = Object.values(getVerificationFieldErrors(verificationForm)).find(Boolean);
+        if (firstVerificationError) {
+            setVerificationError(firstVerificationError);
             return;
         }
+
+        const companyName = verificationForm.companyName.trim();
+        const companyCui = verificationForm.companyCui.trim().toUpperCase();
+        const registeredAddress = verificationForm.registeredAddress.trim();
+        const officialPhone = verificationForm.officialPhone.trim();
 
         try {
             setIsSubmittingVerification(true);
             const payload = {
                 account_id: user.id,
-                company_name: verificationForm.companyName.trim(),
-                company_cui: verificationForm.companyCui.trim(),
-                registered_address: verificationForm.registeredAddress.trim(),
-                official_phone: verificationForm.officialPhone.trim()
+                company_name: companyName,
+                company_cui: companyCui,
+                registered_address: registeredAddress,
+                official_phone: officialPhone
             };
 
             const response = await API.post('/auth/organizer/verification', payload, {
@@ -324,6 +389,13 @@ const Profile = ({ user }) => {
     const openEditModal = () => {
         setProfileForm(toEditableProfile(profileData));
         setProfileFormError('');
+        setProfileTouched({
+            firstName: false,
+            lastName: false,
+            email: false,
+            phone: false,
+            city: false
+        });
         setIsEditModalOpen(true);
     };
 
@@ -334,22 +406,25 @@ const Profile = ({ user }) => {
 
     const handleSaveProfile = async (eventSave) => {
         eventSave.preventDefault();
+        setProfileTouched({
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            city: true
+        });
+
+        const firstProfileError = Object.values(getProfileFieldErrors(profileForm)).find(Boolean);
+        if (firstProfileError) {
+            setProfileFormError(firstProfileError);
+            return;
+        }
+
         const nextFirstName = String(profileForm.firstName || '').trim();
         const nextLastName = String(profileForm.lastName || '').trim();
         const nextEmail = String(profileForm.email || '').trim();
         const nextPhone = String(profileForm.phone || '').trim();
         const nextCity = String(profileForm.city || '').trim();
-
-        if (!nextFirstName || !nextLastName || !nextEmail) {
-            setProfileFormError('Prenumele, numele și email-ul sunt obligatorii.');
-            return;
-        }
-
-        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail);
-        if (!emailValid) {
-            setProfileFormError('Introdu o adresă de email validă.');
-            return;
-        }
 
         try {
             setIsSavingProfile(true);
@@ -429,7 +504,6 @@ const Profile = ({ user }) => {
                                     <div className="profile-contact-item"><FiMail /> <span>{profileData?.email}</span></div>
                                     <div className="profile-contact-item"><FiPhone /> <span>{profilePhone}</span></div>
                                     <div className="profile-contact-item"><FiMapPin /> <span>{profileCity}</span></div>
-                                    <div className="profile-contact-item"><FiCalendar /> <span>Membru din {memberSince}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -470,37 +544,61 @@ const Profile = ({ user }) => {
                                     type="text"
                                     placeholder="Nume firmă (ex: Jazz Society S.R.L.)"
                                     value={verificationForm.companyName}
-                                    onChange={(event) => setVerificationForm({ ...verificationForm, companyName: event.target.value })}
+                                    className={verificationTouched.companyName && verificationFieldErrors.companyName ? 'profile-input-invalid' : ''}
+                                    onChange={(event) => {
+                                        setVerificationForm({ ...verificationForm, companyName: event.target.value });
+                                        if (verificationError) setVerificationError('');
+                                    }}
+                                    onBlur={() => setVerificationTouched((prev) => ({ ...prev, companyName: true }))}
                                     required
                                     disabled={isSubmittingVerification}
                                 />
+                                {verificationTouched.companyName && verificationFieldErrors.companyName ? <p className="profile-field-error">{verificationFieldErrors.companyName}</p> : null}
 
                                 <input
                                     type="text"
                                     placeholder="CUI / CIF (ex: RO12345678)"
                                     value={verificationForm.companyCui}
-                                    onChange={(event) => setVerificationForm({ ...verificationForm, companyCui: event.target.value })}
+                                    className={verificationTouched.companyCui && verificationFieldErrors.companyCui ? 'profile-input-invalid' : ''}
+                                    onChange={(event) => {
+                                        setVerificationForm({ ...verificationForm, companyCui: event.target.value });
+                                        if (verificationError) setVerificationError('');
+                                    }}
+                                    onBlur={() => setVerificationTouched((prev) => ({ ...prev, companyCui: true }))}
                                     required
                                     disabled={isSubmittingVerification}
                                 />
+                                {verificationTouched.companyCui && verificationFieldErrors.companyCui ? <p className="profile-field-error">{verificationFieldErrors.companyCui}</p> : null}
 
                                 <input
                                     type="text"
                                     placeholder="Adresă sediu social"
                                     value={verificationForm.registeredAddress}
-                                    onChange={(event) => setVerificationForm({ ...verificationForm, registeredAddress: event.target.value })}
+                                    className={verificationTouched.registeredAddress && verificationFieldErrors.registeredAddress ? 'profile-input-invalid' : ''}
+                                    onChange={(event) => {
+                                        setVerificationForm({ ...verificationForm, registeredAddress: event.target.value });
+                                        if (verificationError) setVerificationError('');
+                                    }}
+                                    onBlur={() => setVerificationTouched((prev) => ({ ...prev, registeredAddress: true }))}
                                     required
                                     disabled={isSubmittingVerification}
                                 />
+                                {verificationTouched.registeredAddress && verificationFieldErrors.registeredAddress ? <p className="profile-field-error">{verificationFieldErrors.registeredAddress}</p> : null}
 
                                 <input
                                     type="tel"
                                     placeholder="Număr de telefon oficial"
                                     value={verificationForm.officialPhone}
-                                    onChange={(event) => setVerificationForm({ ...verificationForm, officialPhone: event.target.value })}
+                                    className={verificationTouched.officialPhone && verificationFieldErrors.officialPhone ? 'profile-input-invalid' : ''}
+                                    onChange={(event) => {
+                                        setVerificationForm({ ...verificationForm, officialPhone: event.target.value });
+                                        if (verificationError) setVerificationError('');
+                                    }}
+                                    onBlur={() => setVerificationTouched((prev) => ({ ...prev, officialPhone: true }))}
                                     required
                                     disabled={isSubmittingVerification}
                                 />
+                                {verificationTouched.officialPhone && verificationFieldErrors.officialPhone ? <p className="profile-field-error">{verificationFieldErrors.officialPhone}</p> : null}
 
                                 {verificationError ? <p className="organizer-verification-error">{verificationError}</p> : null}
                                 {verificationMessage ? <p className="organizer-verification-success">{verificationMessage}</p> : null}
@@ -760,10 +858,16 @@ const Profile = ({ user }) => {
                                 <input
                                     type="text"
                                     value={profileForm.firstName}
-                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, firstName: eventChange.target.value }))}
+                                    className={profileTouched.firstName && profileFieldErrors.firstName ? 'profile-input-invalid' : ''}
+                                    onChange={(eventChange) => {
+                                        setProfileForm((prev) => ({ ...prev, firstName: eventChange.target.value }));
+                                        if (profileFormError) setProfileFormError('');
+                                    }}
+                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, firstName: true }))}
                                     required
                                     disabled={isSavingProfile}
                                 />
+                                {profileTouched.firstName && profileFieldErrors.firstName ? <p className="profile-field-error">{profileFieldErrors.firstName}</p> : null}
                             </label>
 
                             <label>
@@ -771,10 +875,16 @@ const Profile = ({ user }) => {
                                 <input
                                     type="text"
                                     value={profileForm.lastName}
-                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, lastName: eventChange.target.value }))}
+                                    className={profileTouched.lastName && profileFieldErrors.lastName ? 'profile-input-invalid' : ''}
+                                    onChange={(eventChange) => {
+                                        setProfileForm((prev) => ({ ...prev, lastName: eventChange.target.value }));
+                                        if (profileFormError) setProfileFormError('');
+                                    }}
+                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, lastName: true }))}
                                     required
                                     disabled={isSavingProfile}
                                 />
+                                {profileTouched.lastName && profileFieldErrors.lastName ? <p className="profile-field-error">{profileFieldErrors.lastName}</p> : null}
                             </label>
 
                             <label>
@@ -782,10 +892,16 @@ const Profile = ({ user }) => {
                                 <input
                                     type="email"
                                     value={profileForm.email}
-                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, email: eventChange.target.value }))}
+                                    className={profileTouched.email && profileFieldErrors.email ? 'profile-input-invalid' : ''}
+                                    onChange={(eventChange) => {
+                                        setProfileForm((prev) => ({ ...prev, email: eventChange.target.value }));
+                                        if (profileFormError) setProfileFormError('');
+                                    }}
+                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, email: true }))}
                                     required
                                     disabled={isSavingProfile}
                                 />
+                                {profileTouched.email && profileFieldErrors.email ? <p className="profile-field-error">{profileFieldErrors.email}</p> : null}
                             </label>
 
                             <label>
@@ -793,9 +909,15 @@ const Profile = ({ user }) => {
                                 <input
                                     type="text"
                                     value={profileForm.phone}
-                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, phone: eventChange.target.value }))}
+                                    className={profileTouched.phone && profileFieldErrors.phone ? 'profile-input-invalid' : ''}
+                                    onChange={(eventChange) => {
+                                        setProfileForm((prev) => ({ ...prev, phone: eventChange.target.value }));
+                                        if (profileFormError) setProfileFormError('');
+                                    }}
+                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, phone: true }))}
                                     disabled={isSavingProfile}
                                 />
+                                {profileTouched.phone && profileFieldErrors.phone ? <p className="profile-field-error">{profileFieldErrors.phone}</p> : null}
                             </label>
 
                             <label className="full-width">
@@ -803,9 +925,15 @@ const Profile = ({ user }) => {
                                 <input
                                     type="text"
                                     value={profileForm.city}
-                                    onChange={(eventChange) => setProfileForm((prev) => ({ ...prev, city: eventChange.target.value }))}
+                                    className={profileTouched.city && profileFieldErrors.city ? 'profile-input-invalid' : ''}
+                                    onChange={(eventChange) => {
+                                        setProfileForm((prev) => ({ ...prev, city: eventChange.target.value }));
+                                        if (profileFormError) setProfileFormError('');
+                                    }}
+                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, city: true }))}
                                     disabled={isSavingProfile}
                                 />
+                                {profileTouched.city && profileFieldErrors.city ? <p className="profile-field-error">{profileFieldErrors.city}</p> : null}
                             </label>
 
                             {profileFormError ? <p className="profile-edit-form-error">{profileFormError}</p> : null}

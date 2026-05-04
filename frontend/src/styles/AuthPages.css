@@ -64,6 +64,19 @@
   box-shadow: 0 0 0 1px var(--primary);
 }
 
+.auth-form input.auth-input-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+}
+
+.auth-field-error {
+  margin-top: -12px;
+  margin-bottom: -2px;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .auth-form input::placeholder {
   color: #999;
 }

@@ -227,22 +227,66 @@ const EventDetailsModal = ({
     submitEvent.preventDefault();
     setError('');
 
+    const cleanTitle = String(form.title || '').trim();
+    const cleanLocation = String(form.location || '').trim();
+    const cleanDescription = String(form.description || '').trim();
+    const cleanGuestNotes = String(form.guestNotes || '').trim();
+    const cleanImageUrl = String(form.imageUrl || '').trim();
+    const numericMaxCapacity = Number(form.maxCapacity || 0);
+    const numericPrice = Number(form.price || 0);
+    const numericPointsValue = Number(form.pointsValue || 0);
+
+    if (!cleanTitle || cleanTitle.length < 3 || cleanTitle.length > 120) {
+      setError('Titlul trebuie să aibă între 3 și 120 de caractere.');
+      return;
+    }
+
+    if (!cleanLocation || cleanLocation.length < 5 || cleanLocation.length > 180) {
+      setError('Locația trebuie să aibă între 5 și 180 de caractere.');
+      return;
+    }
+
+    if (cleanDescription.length > 2000) {
+      setError('Descrierea este prea lungă.');
+      return;
+    }
+
+    if (cleanGuestNotes.length > 500) {
+      setError('Detaliile pentru invitați sunt prea lungi.');
+      return;
+    }
+
+    if (!Number.isFinite(numericMaxCapacity) || numericMaxCapacity < 0) {
+      setError('Capacitatea maximă trebuie să fie un număr valid.');
+      return;
+    }
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      setError('Prețul trebuie să fie un număr valid.');
+      return;
+    }
+
+    if (!Number.isFinite(numericPointsValue) || numericPointsValue < 0) {
+      setError('Punctele trebuie să fie un număr valid.');
+      return;
+    }
+
     const startDateTime = new Date(`${form.startDate}T${form.startTime}`);
     if (Number.isNaN(startDateTime.getTime())) {
       setError('Completează corect data și ora evenimentului.');
       return;
     }
 
-    const endDateTime = form.endTime
-      ? new Date(`${form.endDate || form.startDate}T${form.endTime}`)
-      : startDateTime;
+    const resolvedEndDate = form.endDate || form.startDate;
+    const resolvedEndTime = form.endTime || form.startTime;
+    const endDateTime = new Date(`${resolvedEndDate}T${resolvedEndTime}`);
 
-    if (form.endTime && Number.isNaN(endDateTime.getTime())) {
+    if (Number.isNaN(endDateTime.getTime())) {
       setError('Completează corect data și ora de final.');
       return;
     }
 
-    if (form.endTime && endDateTime <= startDateTime) {
+    if (endDateTime < startDateTime) {
       setError('Data/ora de final trebuie să fie după start.');
       return;
     }
@@ -250,20 +294,25 @@ const EventDetailsModal = ({
     try {
       setSaving(true);
       const payload = new FormData();
-      payload.append('title', form.title.trim());
-      payload.append('description', form.description.trim());
-      payload.append('location', form.location.trim());
-      payload.append('guest_notes', form.guestNotes.trim());
+      payload.append('title', cleanTitle);
+      payload.append('description', cleanDescription);
+      payload.append('location', cleanLocation);
+      payload.append('guest_notes', cleanGuestNotes);
       payload.append('start_date', startDateTime.toISOString());
       payload.append('end_date', endDateTime.toISOString());
-      payload.append('max_capacity', String(Number(form.maxCapacity || 0)));
-      payload.append('price', String(Number(form.price || 0)));
-      payload.append('points_value', String(Number(form.pointsValue || 0)));
+      payload.append('max_capacity', String(numericMaxCapacity));
+      payload.append('price', String(numericPrice));
+      payload.append('points_value', String(numericPointsValue));
+
+      if (cleanImageUrl && !/^https?:\/\//i.test(cleanImageUrl) && !cleanImageUrl.startsWith('data:') && !cleanImageUrl.startsWith('/uploads/')) {
+        setError('Link-ul imaginii trebuie să fie un URL valid sau o cale încărcată.');
+        return;
+      }
 
       if (form.imageFile instanceof File) {
         payload.append('image', form.imageFile);
       } else {
-        payload.append('image_url', form.imageUrl.trim());
+        payload.append('image_url', cleanImageUrl);
       }
 
       const response = await API.patch(`/events/${event.id}`, payload, {
@@ -310,15 +359,15 @@ const EventDetailsModal = ({
               <div className="event-modal-form-grid">
                 <label className="event-modal-field">
                   <span>Titlu</span>
-                  <input value={form.title} onChange={(eventChange) => handleChange('title', eventChange.target.value)} required />
+                  <input value={form.title} onChange={(eventChange) => handleChange('title', eventChange.target.value)} required minLength={3} maxLength={120} />
                 </label>
                 <label className="event-modal-field full-width">
                   <span>Descriere</span>
-                  <textarea rows="4" value={form.description} onChange={(eventChange) => handleChange('description', eventChange.target.value)} />
+                  <textarea rows="4" value={form.description} onChange={(eventChange) => handleChange('description', eventChange.target.value)} maxLength={2000} />
                 </label>
                 <label className="event-modal-field full-width">
                   <span>Locație</span>
-                  <input value={form.location} onChange={(eventChange) => handleChange('location', eventChange.target.value)} required />
+                  <input value={form.location} onChange={(eventChange) => handleChange('location', eventChange.target.value)} required minLength={5} maxLength={180} />
                 </label>
 
                 <label className="event-modal-field full-width">
@@ -328,6 +377,7 @@ const EventDetailsModal = ({
                     value={form.imageUrl}
                     onChange={(eventChange) => handleChange('imageUrl', eventChange.target.value)}
                     placeholder="https://..."
+                    maxLength={2048}
                   />
                 </label>
 
@@ -350,6 +400,7 @@ const EventDetailsModal = ({
                     value={form.guestNotes}
                     onChange={(eventChange) => handleChange('guestNotes', eventChange.target.value)}
                     placeholder="Adaugă informații utile pentru invitați"
+                    maxLength={500}
                   />
                 </label>
 
@@ -393,8 +444,7 @@ const EventDetailsModal = ({
                         type="date"
                         value={form.endDate}
                         onChange={(eventChange) => handleChange('endDate', eventChange.target.value)}
-                        required={Boolean(form.endTime)}
-                        disabled={!form.endTime}
+                        required
                       />
                       <div className="event-modal-time-select-wrap" ref={endMenuRef}>
                         <button
@@ -534,8 +584,6 @@ const EventDetailsModal = ({
                       {guestListMeta.showGuestList ? 'Vizibilă invitaților' : 'Ascunsă invitaților'}
                     </span>
                   </div>
-
-                  {guestListMeta.guestNotes ? <p className="event-modal-guest-notes">{guestListMeta.guestNotes}</p> : null}
 
                   {!guestListLoading && guestListError ? <p className="event-modal-guest-state error">{guestListError}</p> : null}
                   {!guestListLoading && !guestListError && guestList.length === 0 ? (

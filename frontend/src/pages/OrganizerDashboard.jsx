@@ -197,7 +197,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     const loadData = async () => {
       try {
         const [eventsRes, statusRes, categoriesRes, dashboardRes] = await Promise.all([
-          API.get('/events'),
+          API.get('/events', { params: { includeArchived: true } }),
           API.get(`/auth/organizer/status/${user.id}`),
           API.get('/categories'),
           API.get('/organizer/dashboard')

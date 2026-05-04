@@ -564,17 +564,48 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 64px 16px 16px;
+  padding: 44px 16px 28px;
   background: rgba(10, 12, 18, 0.72);
 }
 
 .home-ticket-modal {
   width: min(520px, 100%);
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 72px);
   border-radius: 22px;
   overflow: hidden;
   background: #f7f5f2;
   box-shadow: 0 26px 80px rgba(10, 12, 18, 0.42);
+}
+
+.home-ticket-modal-public .home-ticket-modal-header {
+  padding: 24px 22px 16px;
+}
+
+.home-ticket-modal-public .home-ticket-modal-header h2 {
+  margin: 10px 0 10px;
+  font-size: clamp(1.45rem, 2.9vw, 2rem);
+}
+
+.home-ticket-modal-public .home-ticket-modal-body {
+  padding: 14px 18px 24px;
+}
+
+.home-ticket-modal-public .home-ticket-modal-perforation {
+  margin-bottom: 14px;
+}
+
+.home-ticket-modal-public .home-ticket-modal-qr-shell {
+  gap: 6px;
+  padding: 8px 6px 4px;
+}
+
+.home-ticket-modal-public .home-ticket-modal-qr-card {
+  width: min(100%, 230px);
+}
+
+.home-ticket-modal-public .home-ticket-modal-action {
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
 .home-ticket-modal-header {
@@ -650,7 +681,7 @@
 
 .home-ticket-modal-body {
   position: relative;
-  padding: 16px 20px 20px;
+  padding: 16px 20px 30px;
   background: #faf9f7;
 }
 
@@ -737,7 +768,8 @@
   width: auto;
   min-width: 158px;
   padding: 0 20px;
-  margin-top: 16px;
+  margin-top: 12px;
+  margin-bottom: 10px;
   border: 0;
   border-radius: 999px;
   background: #f26735;

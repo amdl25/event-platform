@@ -239,6 +239,18 @@
   box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.15);
 }
 
+.checkout-input.checkout-input-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
+}
+
+.checkout-field-error {
+  margin: -10px 0 12px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .checkout-input:disabled {
   opacity: 0.65;
 }

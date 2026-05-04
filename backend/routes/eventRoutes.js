@@ -36,7 +36,7 @@ const router = express.Router();
 router.get('/', getAllEvents);
 router.get('/calendar/:userId', authenticateToken, getUserCalendarEvents);
 router.get('/tickets/mine', authenticateToken, getMyTickets);
-router.get('/private/mine', authenticateToken, getMyPrivateEvents);
+router.get('/private/mine', optionalAuthenticateToken, getMyPrivateEvents);
 router.patch('/private/invitations/:participationId', authenticateToken, respondToPrivateInvitation);
 router.delete('/private/:eventId', authenticateToken, deletePrivateEvent);
 router.post('/private/:eventId/regenerate-link', authenticateToken, regeneratePrivateInviteLink);

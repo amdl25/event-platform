@@ -278,13 +278,6 @@
   border-color: #fcd34d;
 }
 
-.event-modal-guest-notes {
-  margin-top: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #475569;
-}
-
 .event-modal-guest-state {
   margin: 8px 0 0;
   font-size: 13px;
@@ -304,14 +297,14 @@
 }
 
 .event-modal-guest-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
 }
 
 .event-modal-guest-item strong {

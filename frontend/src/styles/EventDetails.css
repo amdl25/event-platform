@@ -19,18 +19,6 @@
   min-width: 0;
 }
 
-.event-stage-pill {
-  display: inline-block;
-  background: #f26a35;
-  color: #ffffff;
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
 .event-main-title {
   margin: 0 0 16px;
   font-family: var(--font-display);
@@ -149,31 +137,6 @@
   height: 280px;
   border: 0;
   display: block;
-}
-
-.event-trust-row {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.event-trust-row div {
-  border: 1px solid #e6dad1;
-  border-radius: 12px;
-  height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #5b4e45;
-  font-size: 0.86rem;
-  font-weight: 600;
-  background: #fffdfa;
-}
-
-.event-trust-row svg {
-  color: #f26a35;
 }
 
 .event-booking-column {
@@ -424,8 +387,7 @@
     font-size: clamp(2rem, 9vw, 3rem);
   }
 
-  .event-meta-grid,
-  .event-trust-row {
+  .event-meta-grid {
     grid-template-columns: 1fr;
   }
 

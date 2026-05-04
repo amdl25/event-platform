@@ -295,6 +295,18 @@
     border-color: #f15c2a;
 }
 
+.profile-input-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
+}
+
+.profile-field-error {
+    margin: -2px 0 0;
+    color: #dc2626;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
 .profile-edit-form-error {
     grid-column: 1 / -1;
     margin: 0;
@@ -368,6 +380,10 @@
     border-radius: 10px;
     padding: 10px 12px;
     font-size: 0.9rem;
+}
+
+.organizer-verification-form .profile-field-error {
+    margin-top: -6px;
 }
 
 .organizer-verification-error {

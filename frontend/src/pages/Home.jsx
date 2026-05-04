@@ -937,7 +937,7 @@ const Home = ({ user }) => {
                   onClick={() => setIsTicketModalOpen(false)}
                 >
                   <div
-                    className="home-ticket-modal"
+                    className="home-ticket-modal home-ticket-modal-public"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="home-ticket-modal-title"

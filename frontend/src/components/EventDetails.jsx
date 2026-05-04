@@ -59,7 +59,6 @@ const EventDetails = ({ event, user }) => {
       <div className="event-details-wrapper">
         <div className="event-details-shell">
           <main className="event-content-column">
-            <span className="event-stage-pill">EXCLUSIVE CENTER STAGE</span>
             <h1 className="event-main-title">{event.title}</h1>
 
             <div className="event-image-frame">
@@ -116,12 +115,6 @@ const EventDetails = ({ event, user }) => {
               </div>
             </section>
 
-            <section className="event-trust-row">
-              <div><FiStar /> <span>4,9 Rating</span></div>
-              <div><FiUsers /> <span>200+ Participanti</span></div>
-              <div><FiHeart /> <span>95% Recomanda</span></div>
-              <div><FiShield /> <span>Plata Securizata</span></div>
-            </section>
           </main>
 
           <aside className="event-booking-column">

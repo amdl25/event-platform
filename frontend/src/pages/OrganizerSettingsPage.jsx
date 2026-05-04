@@ -26,6 +26,28 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
   const [submitError, setSubmitError] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [touched, setTouched] = useState({
+    companyName: false,
+    companyCui: false,
+    registeredAddress: false,
+    officialPhone: false
+  });
+
+  const getVerificationFieldErrors = (values) => {
+    const companyName = String(values?.companyName || '').trim();
+    const companyCui = String(values?.companyCui || '').trim().toUpperCase();
+    const registeredAddress = String(values?.registeredAddress || '').trim();
+    const officialPhone = String(values?.officialPhone || '').trim();
+
+    return {
+      companyName: !companyName ? 'Numele firmei este obligatoriu.' : (companyName.length < 2 || companyName.length > 120 ? '2-120 caractere.' : ''),
+      companyCui: !companyCui ? 'CUI/CIF este obligatoriu.' : (!/^(RO)?[0-9]{2,12}$/.test(companyCui) ? 'Format invalid (ex: RO12345678).' : ''),
+      registeredAddress: !registeredAddress ? 'Adresa sediului este obligatorie.' : (registeredAddress.length < 6 ? 'Adresa este prea scurtă.' : ''),
+      officialPhone: !officialPhone ? 'Telefonul oficial este obligatoriu.' : (!/^[0-9+()\-\s]{7,20}$/.test(officialPhone) ? 'Telefon invalid.' : '')
+    };
+  };
+
+  const fieldErrors = getVerificationFieldErrors(verificationForm);
 
   useEffect(() => {
 
@@ -59,20 +81,32 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
     event.preventDefault();
     setSubmitError('');
     setSubmitMessage('');
+    setTouched({
+      companyName: true,
+      companyCui: true,
+      registeredAddress: true,
+      officialPhone: true
+    });
 
-    if (!verificationForm.companyCui.trim() || !verificationForm.registeredAddress.trim() || !verificationForm.officialPhone.trim()) {
-      setSubmitError('Te rugăm să completezi toate câmpurile obligatorii.');
+    const firstFieldError = Object.values(getVerificationFieldErrors(verificationForm)).find(Boolean);
+    if (firstFieldError) {
+      setSubmitError(firstFieldError);
       return;
     }
+
+    const companyName = verificationForm.companyName.trim();
+    const companyCui = verificationForm.companyCui.trim().toUpperCase();
+    const registeredAddress = verificationForm.registeredAddress.trim();
+    const officialPhone = verificationForm.officialPhone.trim();
 
     try {
       setIsSubmitting(true);
       const payload = {
         account_id: user.id,
-        company_name: verificationForm.companyName.trim() || user?.organizationName,
-        company_cui: verificationForm.companyCui.trim(),
-        registered_address: verificationForm.registeredAddress.trim(),
-        official_phone: verificationForm.officialPhone.trim()
+        company_name: companyName || user?.organizationName,
+        company_cui: companyCui,
+        registered_address: registeredAddress,
+        official_phone: officialPhone
       };
 
       const response = await API.post('/auth/organizer/verification', payload);
@@ -113,9 +147,18 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
             <input
               type="text"
               value={verificationForm.companyName}
-              onChange={(e) => setVerificationForm({ ...verificationForm, companyName: e.target.value })}
+              className={touched.companyName && fieldErrors.companyName ? 'settings-input-invalid' : ''}
+              onChange={(e) => {
+                setVerificationForm({ ...verificationForm, companyName: e.target.value });
+                if (submitError) setSubmitError('');
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, companyName: true }))}
               disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              minLength={2}
+              maxLength={120}
+              required
             />
+            {touched.companyName && fieldErrors.companyName ? <p className="settings-field-error">{fieldErrors.companyName}</p> : null}
           </div>
 
           <div className="form-group">
@@ -124,10 +167,17 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
               type="text"
               placeholder="ex: RO12345678"
               value={verificationForm.companyCui}
-              onChange={(e) => setVerificationForm({ ...verificationForm, companyCui: e.target.value })}
+              className={touched.companyCui && fieldErrors.companyCui ? 'settings-input-invalid' : ''}
+              onChange={(e) => {
+                setVerificationForm({ ...verificationForm, companyCui: e.target.value });
+                if (submitError) setSubmitError('');
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, companyCui: true }))}
               disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              pattern="^(RO)?[0-9]{2,12}$"
               required
             />
+            {touched.companyCui && fieldErrors.companyCui ? <p className="settings-field-error">{fieldErrors.companyCui}</p> : null}
           </div>
 
           <div className="form-group">
@@ -136,10 +186,17 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
               type="text"
               placeholder="Oraș, Strada, Număr"
               value={verificationForm.registeredAddress}
-              onChange={(e) => setVerificationForm({ ...verificationForm, registeredAddress: e.target.value })}
+              className={touched.registeredAddress && fieldErrors.registeredAddress ? 'settings-input-invalid' : ''}
+              onChange={(e) => {
+                setVerificationForm({ ...verificationForm, registeredAddress: e.target.value });
+                if (submitError) setSubmitError('');
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, registeredAddress: true }))}
               disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              minLength={6}
               required
             />
+            {touched.registeredAddress && fieldErrors.registeredAddress ? <p className="settings-field-error">{fieldErrors.registeredAddress}</p> : null}
           </div>
 
           <div className="form-group">
@@ -148,10 +205,17 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
               type="tel"
               placeholder="07xx xxx xxx"
               value={verificationForm.officialPhone}
-              onChange={(e) => setVerificationForm({ ...verificationForm, officialPhone: e.target.value })}
+              className={touched.officialPhone && fieldErrors.officialPhone ? 'settings-input-invalid' : ''}
+              onChange={(e) => {
+                setVerificationForm({ ...verificationForm, officialPhone: e.target.value });
+                if (submitError) setSubmitError('');
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, officialPhone: true }))}
               disabled={organizerStatus === 'pending' || organizerStatus === 'verified'}
+              pattern="[0-9+()\-\s]{7,20}"
               required
             />
+            {touched.officialPhone && fieldErrors.officialPhone ? <p className="settings-field-error">{fieldErrors.officialPhone}</p> : null}
           </div>
 
           {submitError && (

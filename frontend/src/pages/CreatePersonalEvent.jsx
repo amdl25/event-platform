@@ -105,9 +105,16 @@ const CreatePersonalEvent = ({ user }) => {
 
     const cleanTitle = title.trim();
     const cleanLocation = location.trim();
+    const cleanDescription = description.trim();
+    const cleanGuestNotes = guestNotes.trim();
 
     if (!cleanTitle) {
       setSubmitError('Titlul evenimentului este obligatoriu.');
+      return;
+    }
+
+    if (cleanTitle.length < 3 || cleanTitle.length > 120) {
+      setSubmitError('Titlul evenimentului trebuie să aibă între 3 și 120 de caractere.');
       return;
     }
 
@@ -116,10 +123,30 @@ const CreatePersonalEvent = ({ user }) => {
       return;
     }
 
+    if (cleanLocation.length < 5 || cleanLocation.length > 180) {
+      setSubmitError('Locația trebuie să aibă între 5 și 180 de caractere.');
+      return;
+    }
+
+    if (cleanDescription.length > 2000) {
+      setSubmitError('Descrierea este prea lungă.');
+      return;
+    }
+
+    if (cleanGuestNotes.length > 500) {
+      setSubmitError('Notițele pentru invitați sunt prea lungi.');
+      return;
+    }
+
     const startDateTime = combineDateAndTime(startDate, startTime);
     const endDateTime = endTime ? combineDateAndTime(endDate, endTime) : startDateTime;
 
-    if (endTime && endDateTime <= startDateTime) {
+    if (Number.isNaN(startDateTime.getTime()) || Number.isNaN(endDateTime.getTime())) {
+      setSubmitError('Completează corect data și ora evenimentului.');
+      return;
+    }
+
+    if (endDateTime < startDateTime) {
       setSubmitError('Ora de final trebuie să fie după ora de start.');
       return;
     }
@@ -130,7 +157,7 @@ const CreatePersonalEvent = ({ user }) => {
     try {
       const response = await API.post('/events', {
         title: cleanTitle,
-        description: description.trim() || null,
+        description: cleanDescription || null,
         location: cleanLocation,
         start_date: startDateTime.toISOString(),
         end_date: endDateTime.toISOString(),
@@ -139,7 +166,7 @@ const CreatePersonalEvent = ({ user }) => {
         price: 0,
         max_capacity: 0,
         show_guest_list: showGuestList,
-        guest_notes: guestNotes.trim() || null,
+        guest_notes: cleanGuestNotes || null,
       });
 
       const newEventId = response.data?.id;
@@ -214,6 +241,7 @@ const CreatePersonalEvent = ({ user }) => {
                 className="input-title-large" 
                 placeholder="Nume eveniment" 
                value={title}
+               maxLength={120}
                onChange={(event) => setTitle(event.target.value)}
              />
           </div>
@@ -305,6 +333,7 @@ const CreatePersonalEvent = ({ user }) => {
                 className="input-transparent"
                 placeholder="Adaugă locația..."
                 value={location}
+                maxLength={180}
                 onChange={(event) => setLocation(event.target.value)}
               />
             </div>
@@ -316,6 +345,7 @@ const CreatePersonalEvent = ({ user }) => {
                 placeholder="Adaugă o descriere..."
                 rows="1"
                 value={description}
+                maxLength={2000}
                 onChange={(event) => setDescription(event.target.value)}
               ></textarea>
             </div>
@@ -348,6 +378,7 @@ const CreatePersonalEvent = ({ user }) => {
                       placeholder='Alte detalii'
                       rows="2"
                       value={guestNotes}
+                      maxLength={500}
                       onChange={(e) => setGuestNotes(e.target.value)}
                     ></textarea>
                  </div>

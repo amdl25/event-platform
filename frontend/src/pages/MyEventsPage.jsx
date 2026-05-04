@@ -68,7 +68,7 @@ const MyEventsPage = ({ user }) => {
     try {
       setLoading(true);
       setError('');
-      const response = await API.get('/events/private/mine');
+      const response = await API.get('/events/private/mine', { params: { userId: user?.id } });
       setCreatedEvents(response.data?.created || []);
       setInvitedEvents(response.data?.invited || []);
     } catch (requestError) {

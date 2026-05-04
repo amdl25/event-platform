@@ -27,9 +27,14 @@ const TicketPurchasePage = ({ user }) => {
   const [pointsToUse, setPointsToUse] = useState(0);
   const [pricing, setPricing] = useState(null);
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState(null);
+  const [touched, setTouched] = useState({ buyerEmail: false, buyerName: false, pointsToUse: false });
   const canUsePoints = Boolean(mode === 'user' && user?.id);
   const confirmedSessionRef = useRef('');
   const redirectTimeoutRef = useRef(null);
+  const emailError = touched.buyerEmail && (!String(buyerEmail || '').trim() ? 'Email-ul este obligatoriu.' : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(buyerEmail || '').trim()) ? 'Format email invalid.' : ''));
+  const nameError = touched.buyerName && (!String(buyerName || '').trim() ? 'Numele este obligatoriu.' : (String(buyerName || '').trim().length < 2 ? 'Minim 2 caractere.' : ''));
+  const numericPoints = Number(pointsToUse || 0);
+  const pointsError = canUsePoints && usePoints && touched.pointsToUse && (!Number.isInteger(numericPoints) || numericPoints < 0 ? 'Introdu un număr valid de puncte.' : '');
 
   const saveLastPurchaseContext = (successData, eventData) => {
     try {
@@ -183,17 +188,34 @@ const TicketPurchasePage = ({ user }) => {
   }, []);
 
   const handlePurchase = async () => {
+    setTouched((prev) => ({ ...prev, buyerEmail: true, buyerName: true, pointsToUse: true }));
     const nameToSend = buyerName.trim();
     const emailToSend = buyerEmail.trim();
     const qty = Number(quantity);
+    const pointsAmount = Number(pointsToUse || 0);
 
     if (!nameToSend || !emailToSend) {
       setError('Numele și email-ul sunt obligatorii.');
       return;
     }
 
+    if (nameToSend.length < 2) {
+      setError('Numele cumpărătorului trebuie să aibă cel puțin 2 caractere.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToSend)) {
+      setError('Introdu o adresă de email validă.');
+      return;
+    }
+
     if (!Number.isInteger(qty) || qty < 1 || qty > 20) {
       setError('Numărul de bilete trebuie să fie între 1 și 20.');
+      return;
+    }
+
+    if (usePoints && (!Number.isInteger(pointsAmount) || pointsAmount < 0)) {
+      setError('Punctele folosite trebuie să fie un număr valid.');
       return;
     }
 
@@ -208,7 +230,7 @@ const TicketPurchasePage = ({ user }) => {
         buyer_email: emailToSend,
         quantity: qty,
         use_points: mode === 'user' ? usePoints : false,
-        points_to_use: mode === 'user' && usePoints ? Number(pointsToUse || 0) : 0
+        points_to_use: mode === 'user' && usePoints ? pointsAmount : 0
       };
 
       const response = await API.post('/events/purchase/checkout-session', payload);
@@ -341,10 +363,15 @@ const TicketPurchasePage = ({ user }) => {
               min="0"
               max={Number(pricing?.maxPointsUsable || 0)}
               value={pointsToUse}
-              onChange={(e) => setPointsToUse(e.target.value)}
+              onChange={(e) => {
+                setPointsToUse(e.target.value);
+                if (error) setError('');
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, pointsToUse: true }))}
               disabled={loadingPurchase || confirmingPayment}
               placeholder="Ex: 250"
             />
+            {pointsError ? <p className="checkout-field-error">{pointsError}</p> : null}
           </section>
         ) : null}
 
@@ -357,19 +384,34 @@ const TicketPurchasePage = ({ user }) => {
             type="email"
             placeholder="adresa@email.com"
             value={buyerEmail}
-            onChange={(e) => setBuyerEmail(e.target.value)}
+            onChange={(e) => {
+              setBuyerEmail(e.target.value);
+              if (error) setError('');
+            }}
+            onBlur={() => setTouched((prev) => ({ ...prev, buyerEmail: true }))}
+            autoComplete="email"
+            className={`checkout-input${emailError ? ' checkout-input-invalid' : ''}`}
             disabled={loadingPurchase || confirmingPayment}
           />
+          {emailError ? <p className="checkout-field-error">{emailError}</p> : null}
 
           <label className="checkout-field-label">Nume cumpărător</label>
           <input
-            className="checkout-input"
+            className={`checkout-input${nameError ? ' checkout-input-invalid' : ''}`}
             type="text"
             placeholder="Ion Popescu"
             value={buyerName}
-            onChange={(e) => setBuyerName(e.target.value)}
+            onChange={(e) => {
+              setBuyerName(e.target.value);
+              if (error) setError('');
+            }}
+            onBlur={() => setTouched((prev) => ({ ...prev, buyerName: true }))}
+            minLength={2}
+            maxLength={120}
+            autoComplete="name"
             disabled={loadingPurchase || confirmingPayment}
           />
+          {nameError ? <p className="checkout-field-error">{nameError}</p> : null}
 
           <p className="checkout-stripe-hint">Datele cardului se introduc securizat pe pagina Stripe după apăsarea butonului de plată.</p>
         </section>
