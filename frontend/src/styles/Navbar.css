@@ -159,26 +159,292 @@
 }
 
 .navbar-mobile-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: white;
-  padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  position: fixed;
+  top: 66px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 250, 248, 0.98) 100%);
+  backdrop-filter: blur(18px);
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  z-index: 1200;
+}
+
+.navbar-mobile-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+}
+
+.navbar-mobile-search .search-icon {
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.navbar-mobile-search .navbar-search-input {
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.navbar-mobile-link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #1e293b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.navbar-mobile-link:hover {
+  transform: translateX(2px);
+  border-color: #d8e1ef;
+  background: #fcfdff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.navbar-mobile-account {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  margin-top: 2px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.navbar-mobile-account-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.navbar-mobile-account-link,
+.navbar-mobile-account-logout {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 12px;
 }
 
 @media (max-width: 1024px) {
-  .navbar-container { padding: 0 20px; }
-  .navbar-logo { margin-right: 24px; }
-  .navbar-search { width: 40px; padding: 0; justify-content: center; }
-  .navbar-search-input { display: none; }
+  .navbar-container { 
+    padding: 0 20px; 
+  }
+  
+  .navbar-logo { 
+    margin-right: 24px;
+    font-size: 1rem;
+  }
+  
+  .navbar-links {
+    gap: 6px;
+  }
+  
+  .navbar-link {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+  
+  .navbar-search { 
+    width: 160px;
+  }
+  
+  .navbar-search-input {
+    font-size: 0.8rem;
+  }
+  
+  .navbar-btn-secondary,
+  .navbar-btn-primary {
+    font-size: 0.7rem;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 850px) {
-  .navbar-links, .navbar-actions { display: none; }
-  .navbar-mobile-toggle { display: block; margin-left: auto; }
+  .navbar-links, 
+  .navbar-search { 
+    display: none; 
+  }
+  
+  .navbar-mobile-toggle { 
+    display: block; 
+    margin-left: auto;
+  }
+  
+  .navbar-actions {
+    gap: 8px;
+  }
+  
+  .navbar-btn-secondary,
+  .navbar-btn-primary {
+    display: none;
+  }
+
+  .navbar-mobile-menu .navbar-btn-secondary,
+  .navbar-mobile-menu .navbar-btn-primary,
+  .navbar-mobile-menu .navbar-mobile-account-link,
+  .navbar-mobile-menu .navbar-mobile-account-logout {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: 60px;
+  }
+  
+  .navbar--scrolled {
+    height: 56px;
+  }
+  
+  .navbar-container {
+    padding: 0 16px;
+  }
+  
+  .navbar-logo {
+    margin-right: 16px;
+    font-size: 0.95rem;
+  }
+  
+  .navbar-actions {
+    gap: 6px;
+  }
+  
+  .navbar-btn-profile {
+    font-size: 1rem;
+  }
+
+  .navbar-mobile-account {
+    gap: 8px;
+  }
+
+  .navbar-mobile-menu .navbar-mobile-account-link,
+  .navbar-mobile-menu .navbar-mobile-account-logout {
+    width: 100%;
+  }
+
+  .navbar-mobile-menu {
+    top: 60px;
+    left: 10px;
+    right: 10px;
+    max-height: calc(100vh - 76px);
+    padding: 16px;
+    border-radius: 0 0 20px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-container {
+    padding: 0 12px;
+  }
+  
+  .navbar-logo {
+    margin-right: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .navbar-actions {
+    gap: 4px;
+  }
+  
+  .navbar-mobile-toggle {
+    margin-left: 12px;
+  }
+
+  .navbar-mobile-menu {
+    top: 60px;
+    left: 8px;
+    right: 8px;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .navbar-mobile-link {
+    min-height: 46px;
+    font-size: 0.92rem;
+  }
+
+  .navbar-mobile-account {
+    padding: 12px;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    height: 56px;
+  }
+  
+  .navbar-container {
+    padding: 0 12px;
+  }
+  
+  .navbar-logo {
+    margin-right: 8px;
+    font-size: 0.85rem;
+  }
+  
+  .navbar-logo-icon {
+    display: inline-block;
+  }
+
+  .navbar-logo span {
+    display: inline;
+  }
+  
+  .navbar-actions {
+    gap: 3px;
+  }
+  
+  .navbar-btn-profile {
+    font-size: 0.9rem;
+  }
+
+  .navbar-mobile-menu {
+    top: 56px;
+    left: 8px;
+    right: 8px;
+    padding: 12px;
+    max-height: calc(100vh - 68px);
+  }
+
+  .navbar-mobile-search {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .navbar-mobile-link {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 0.9rem;
+  }
+
+  .navbar-mobile-account-label {
+    font-size: 0.68rem;
+  }
 }

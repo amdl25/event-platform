@@ -298,6 +298,207 @@
   border-color: #e2d5cc;
 }
 
+@media (max-width: 768px) {
+  .tickets-download-page {
+    padding: 8px 0;
+  }
+
+  .tickets-container {
+    padding: 0 16px;
+  }
+
+  .tickets-header h1 {
+    font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+  }
+
+  .tickets-header .tickets-subtitle {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .tickets-ticket-card {
+    padding: 18px 18px 12px;
+    border-radius: 18px;
+  }
+
+  .tickets-ticket-grid {
+    grid-template-columns: 1fr 140px;
+    gap: 12px;
+  }
+
+  .tickets-qr-shell {
+    width: 140px;
+    min-height: 168px;
+  }
+
+  .tickets-qr-large {
+    width: 100px;
+    height: 100px;
+  }
+
+  .tickets-footer-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tickets-actions {
+    gap: 10px;
+  }
+
+  .btn-action {
+    font-size: 0.85rem;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tickets-container {
+    padding: 0 12px;
+  }
+
+  .tickets-header {
+    margin-bottom: 12px;
+  }
+
+  .tickets-header h1 {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+  }
+
+  .success-badge {
+    font-size: 0.75rem;
+  }
+
+  .tickets-ticket-card {
+    padding: 14px 14px 10px;
+    margin: 8px auto 6px;
+    max-width: 100%;
+  }
+
+  .tickets-ticket-grid {
+    grid-template-columns: 1fr 120px;
+    gap: 10px;
+  }
+
+  .tickets-event-title {
+    font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+  }
+
+  .tickets-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tickets-qr-shell {
+    width: 120px;
+    min-height: 150px;
+  }
+
+  .tickets-qr-large {
+    width: 90px;
+    height: 90px;
+  }
+
+  .tickets-qr-shell span {
+    margin-top: 8px;
+    font-size: 0.5rem;
+  }
+
+  .tickets-footer-info {
+    gap: 10px;
+  }
+
+  .tickets-footer-info span {
+    font-size: 0.6rem;
+  }
+
+  .tickets-footer-info strong {
+    font-size: 0.75rem;
+  }
+
+  .tickets-actions {
+    gap: 8px;
+  }
+
+  .btn-action {
+    font-size: 0.8rem;
+    min-height: 30px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tickets-download-page {
+    height: auto;
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+  }
+
+  .tickets-container {
+    padding: 0 10px;
+  }
+
+  .tickets-header h1 {
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    line-height: 0.9;
+  }
+
+  .tickets-ticket-card {
+    padding: 12px 12px 8px;
+    margin: 6px auto 4px;
+  }
+
+  .tickets-ticket-grid {
+    grid-template-columns: 1fr 100px;
+    gap: 8px;
+  }
+
+  .tickets-event-title {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+  }
+
+  .tickets-event-location {
+    font-size: 0.8rem;
+    margin: 2px 0 10px;
+  }
+
+  .tickets-meta-item strong {
+    font-size: 0.85rem;
+  }
+
+  .tickets-qr-shell {
+    width: 100px;
+    min-height: 130px;
+    padding: 10px 10px 8px;
+  }
+
+  .tickets-qr-large {
+    width: 80px;
+    height: 80px;
+  }
+
+  .tickets-footer-info {
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .tickets-actions {
+    flex-direction: column;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .btn-action {
+    flex: 1;
+    font-size: 0.75rem;
+    min-height: 28px;
+    padding: 0 8px;
+  }
+
+  .download-btn,
+  .email-btn {
+    flex: 1;
+  }
+}
+
 .btn-action:disabled {
   opacity: 0.7;
   cursor: not-allowed;

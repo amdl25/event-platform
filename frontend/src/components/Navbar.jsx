@@ -25,6 +25,19 @@ const Navbar = ({ user, handleLogout }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 850) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <nav className={`navbar${scrolled ? ' navbar--scrolled' : ''}`}>
       <div className="navbar-container">
@@ -123,16 +136,18 @@ const Navbar = ({ user, handleLogout }) => {
           {user && (
             <Link to="/create-event" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Creează</Link>
           )}
-          <div className="navbar-mobile-actions">
+          <div className="navbar-mobile-account">
             {user ? (
               <>
-                <Link to="/profile" className="navbar-btn-secondary navbar-btn-profile" onClick={() => setMobileMenuOpen(false)}>Profil</Link>
-                <button className="navbar-btn-primary" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>Logout</button>
+                <p className="navbar-mobile-account-label">Contul tău</p>
+                <Link to="/profile" className="navbar-btn-secondary navbar-btn-profile navbar-mobile-account-link" onClick={() => setMobileMenuOpen(false)}>Profil</Link>
+                <button className="navbar-btn-primary navbar-mobile-account-logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>Logout</button>
               </>
             ) : (
               <>
-                <Link to="/login" className="navbar-btn-secondary" onClick={() => setMobileMenuOpen(false)}>Intră în cont</Link>
-                <Link to="/register" className="navbar-btn-primary" onClick={() => setMobileMenuOpen(false)}>Înregistrare</Link>
+                <p className="navbar-mobile-account-label">Autentificare</p>
+                <Link to="/login" className="navbar-btn-secondary navbar-mobile-account-link" onClick={() => setMobileMenuOpen(false)}>Intră în cont</Link>
+                <Link to="/register" className="navbar-btn-primary navbar-mobile-account-logout" onClick={() => setMobileMenuOpen(false)}>Înregistrare</Link>
               </>
             )}
           </div>

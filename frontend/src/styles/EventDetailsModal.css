@@ -584,3 +584,57 @@
   }
 }
 
+@media (max-width: 600px) {
+  .event-modal-backdrop {
+    padding: 12px;
+  }
+
+  .event-modal-panel {
+    border-radius: 18px;
+    max-height: calc(100vh - 24px);
+  }
+
+  .event-modal-content {
+    padding: 14px;
+  }
+
+  .event-modal-hero-placeholder {
+    min-height: 140px;
+    font-size: 18px;
+  }
+
+  .event-modal-header-row h2 {
+    font-size: 18px;
+  }
+
+  .event-modal-kicker {
+    font-size: 11px;
+  }
+
+  .event-modal-button-group {
+    flex-direction: column;
+  }
+
+  .event-modal-footer {
+    padding: 10px 14px 12px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-modal-header-row h2 {
+    font-size: 16px;
+  }
+
+  .event-modal-hero-placeholder {
+    min-height: 120px;
+    font-size: 16px;
+  }
+
+  .event-modal-field input,
+  .event-modal-field select,
+  .event-modal-field textarea {
+    font-size: 12px;
+  }
+}
+

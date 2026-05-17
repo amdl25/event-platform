@@ -137,3 +137,174 @@
     color: #d1d5db;
     font-size: 2rem;
 }
+
+@media (max-width: 1024px) {
+  .card-image-container {
+    height: 150px;
+  }
+
+  .card-content-premium {
+    padding: 14px;
+  }
+
+  .card-date-label {
+    font-size: 0.68rem;
+    margin-bottom: 1px;
+  }
+
+  .card-title-premium {
+    font-size: 0.85rem;
+    min-height: 2.3em;
+  }
+
+  .card-location-premium {
+    font-size: 0.72rem;
+  }
+
+  .card-points-premium {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .event-card.compact {
+    border-radius: 16px;
+  }
+
+  .card-image-container {
+    height: 140px;
+    border-radius: 14px;
+  }
+
+  .card-content-premium {
+    padding: 12px;
+  }
+
+  .card-date-label {
+    font-size: 0.65rem;
+  }
+
+  .card-title-premium {
+    font-size: 0.82rem;
+    line-height: 1.2;
+    min-height: 2.2em;
+  }
+
+  .card-location-premium {
+    font-size: 0.7rem;
+    gap: 3px;
+  }
+
+  .card-points-premium {
+    font-size: 0.7rem;
+  }
+
+  .status-badge {
+    top: 8px;
+    left: 8px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .event-card.compact {
+    border-radius: 14px;
+  }
+
+  .card-image-container {
+    height: 130px;
+    border-radius: 12px;
+  }
+
+  .card-content-premium {
+    padding: 10px;
+    gap: 2px;
+  }
+
+  .card-date-label {
+    font-size: 0.62rem;
+    margin-bottom: 1px;
+  }
+
+  .card-title-premium {
+    font-size: 0.78rem;
+    line-height: 1.15;
+    min-height: 2em;
+  }
+
+  .card-location-premium {
+    font-size: 0.68rem;
+    gap: 2px;
+  }
+
+  .card-points-premium {
+    font-size: 0.68rem;
+    gap: 3px;
+  }
+
+  .card-points-star {
+    font-size: 0.75rem;
+  }
+
+  .status-badge {
+    top: 6px;
+    left: 6px;
+    padding: 2px 8px;
+    font-size: 0.65rem;
+    border-radius: 6px;
+  }
+
+  .event-card.compact:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 480px) {
+  .event-card.compact {
+    border-radius: 12px;
+  }
+
+  .card-image-container {
+    height: 120px;
+    border-radius: 10px;
+  }
+
+  .card-content-premium {
+    padding: 8px;
+  }
+
+  .card-date-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3px;
+  }
+
+  .card-title-premium {
+    font-size: 0.75rem;
+    line-height: 1.1;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    min-height: 1.8em;
+  }
+
+  .card-location-premium {
+    font-size: 0.65rem;
+  }
+
+  .card-points-premium {
+    font-size: 0.65rem;
+  }
+
+  .status-badge {
+    top: 4px;
+    left: 4px;
+    padding: 2px 6px;
+    font-size: 0.6rem;
+  }
+
+  .event-card.compact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  }
+}

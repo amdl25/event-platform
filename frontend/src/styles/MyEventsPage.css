@@ -318,6 +318,151 @@
   cursor: pointer;
 }
 
+@media (max-width: 1024px) {
+  .my-events-container {
+    padding: 0 20px;
+  }
+
+  .my-events-header {
+    gap: 16px;
+  }
+
+  .my-events-header h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .my-events-shell {
+    padding: 30px 0 40px;
+  }
+
+  .my-events-container {
+    padding: 0 16px;
+  }
+
+  .my-events-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .my-events-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .my-events-new-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .my-events-tabs {
+    width: 100%;
+  }
+
+  .my-events-tabs button {
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+
+  .private-event-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .private-event-left {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .my-events-shell {
+    padding: 20px 0 30px;
+  }
+
+  .my-events-container {
+    padding: 0 12px;
+  }
+
+  .my-events-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .my-events-header p {
+    font-size: 0.85rem;
+  }
+
+  .my-events-new-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .my-events-tabs button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .private-event-title-row h3 {
+    font-size: 15px;
+  }
+
+  .private-status {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .private-meta-row {
+    gap: 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-events-header h1 {
+    font-size: 1rem;
+  }
+
+  .my-events-new-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .my-events-tabs button {
+    font-size: 11px;
+    padding: 7px 8px;
+  }
+
+  .private-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .private-event-title-row h3 {
+    font-size: 13px;
+  }
+
+  .private-event-title-row {
+    gap: 6px;
+  }
+
+  .private-meta-row {
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .private-link-pill {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .invite-actions button {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
 .invite-actions .accept {
   background: #22c55e;
   color: #fff;

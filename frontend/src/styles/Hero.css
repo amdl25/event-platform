@@ -99,30 +99,156 @@
   box-shadow: 0 4px 12px rgba(233, 91, 60, 0.3);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .hero {
+    padding: 20px 20px 12px;
+  }
+  
+  .hero-image-wrapper {
+    height: 380px;
+    border-radius: 20px;
+  }
+  
+  .hero-content {
+    bottom: 40px;
+    left: 40px;
+  }
+  
+  .hero-title {
+    font-size: 2.8rem;
+  }
+  
+  .hero-cta-card {
+    bottom: 40px;
+    right: 40px;
+    padding: 18px 22px;
+  }
+}
+
+@media (max-width: 770px) {
   .hero {
     padding: 16px;
   }
 
   .hero-image-wrapper {
-    height: 360px;
+    height: 320px;
+    border-radius: 18px;
   }
 
   .hero-content {
-    bottom: 24px;
+    bottom: 30px;
     left: 24px;
   }
 
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
+    line-height: 1.15;
+  }
+
+  .hero-subtitle {
+    font-size: 0.68rem;
   }
 
   .hero-cta-card {
-    position: relative;
-    bottom: auto;
-    right: auto;
-    margin: -60px 16px 0;
-    width: calc(100% - 32px);
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    margin: 0;
+    width: min(240px, calc(100% - 36px));
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  
+  .hero-cta-button {
+    padding: 9px 14px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 12px;
+  }
+
+  .hero-image-wrapper {
+    height: 280px;
+    border-radius: 16px;
+  }
+
+  .hero-content {
+    bottom: 20px;
+    left: 16px;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .hero-cta-card {
+    bottom: 14px;
+    right: 14px;
+    width: min(220px, calc(100% - 28px));
+    padding: 10px 12px;
+  }
+  
+  .hero-cta-label {
+    font-size: 0.62rem;
+  }
+  
+  .hero-cta-button {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 10px;
+  }
+
+  .hero-image-wrapper {
+    height: 240px;
+    border-radius: 14px;
+  }
+
+  .hero-content {
+    bottom: 16px;
+    left: 12px;
+  }
+
+  .hero-title {
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .hero-subtitle {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+
+  .hero-cta-card {
+    bottom: 12px;
+    right: 12px;
+    width: min(190px, calc(100% - 24px));
+    padding: 9px 10px;
+    gap: 6px;
+  }
+  
+  .hero-cta-label {
+    font-size: 0.58rem;
+  }
+  
+  .hero-cta-button {
+    padding: 7px 10px;
+    font-size: 0.7rem;
+    gap: 4px;
   }
 }
 

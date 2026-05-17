@@ -337,6 +337,13 @@
   text-align: center;
 }
 
+.home-private-side-col-empty {
+  justify-content: center;
+  border-radius: 18px;
+  border: 1px dashed #d8e1ef;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
 .home-private-side-title {
   margin: 0;
   font-size: 0.78rem;
@@ -393,6 +400,13 @@
 .home-private-side-count span {
   color: #64748b;
   font-size: 0.95rem;
+}
+
+.home-private-side-empty-copy {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .home-private-organizer-line.in-modal {
@@ -843,6 +857,11 @@
   white-space: pre-wrap;
 }
 
+.home-private-details-block-empty {
+  border-style: dashed;
+  background: #f8fafc;
+}
+
 .home-private-modal-guests-list {
   list-style: none;
   margin: 10px 0 0;
@@ -1139,6 +1158,40 @@
   border-color: var(--primary-dark);
 }
 
+@media (max-width: 1024px) {
+  .home-member-zone {
+    padding: 8px 20px 16px;
+  }
+
+  .home-member-greeting {
+    font-size: 1.8rem;
+  }
+
+  .home-member-subtitle {
+    font-size: 1rem;
+  }
+
+  .home-member-pair {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .home-member-card-ticket.has-ticket {
+    max-width: none;
+    justify-self: stretch;
+    height: auto;
+  }
+
+  .home-loyalty-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .home-points-total {
+    font-size: 2.5rem;
+  }
+}
+
 @media (max-width: 900px) {
   .home-member-head {
     flex-direction: column;
@@ -1201,6 +1254,10 @@
     padding-top: 12px;
   }
 
+  .home-private-side-col-empty {
+    padding: 14px 16px;
+  }
+
   .home-ticket-qr-col {
     border-left: none;
     border-top: 1px dashed #e2e8f0;
@@ -1238,6 +1295,243 @@
 
   .home-ticket-modal-note {
     font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-member-zone {
+    padding: 6px 16px 14px;
+  }
+
+  .home-member-shell {
+    gap: 16px;
+  }
+
+  .home-member-greeting {
+    font-size: 1.5rem;
+  }
+
+  .home-member-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .home-member-card {
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .home-member-card-loyalty {
+    padding: 18px;
+  }
+
+  .home-points-total {
+    font-size: 2rem;
+  }
+
+  .home-monthly-activity {
+    padding: 10px 12px;
+  }
+
+  .home-ticket-actions-row {
+    gap: 8px;
+  }
+
+  .home-ticket-primary-btn {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+
+  .home-ticket-modal {
+    width: min(95vw, 100%);
+  }
+
+  .home-private-invite-modal {
+    width: min(95vw, 100%);
+  }
+
+  .home-ticket-modal-header h2 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-member-zone {
+    padding: 4px 14px 12px;
+  }
+
+  .home-member-greeting {
+    font-size: 1.3rem;
+  }
+
+  .home-member-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .home-member-card {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .home-member-card-loyalty {
+    padding: 16px;
+  }
+
+  .home-member-card h2,
+  .home-member-card h3 {
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+  }
+
+  .home-points-total {
+    font-size: 1.6rem;
+  }
+
+  .home-loyalty-row strong {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+  }
+
+  .home-ticket-meta-block {
+    margin-bottom: 8px;
+  }
+
+  .home-private-modal-guests-list li {
+    min-height: 26px;
+  }
+
+  .home-private-side-empty-copy {
+    font-size: 0.85rem;
+  }
+
+  .home-private-details-block-empty {
+    padding: 10px 12px;
+  }
+
+  .home-ticket-modal-header {
+    padding: 20px 16px 14px;
+  }
+
+  .home-ticket-modal-body {
+    padding: 12px 14px 16px;
+  }
+
+  .home-ticket-modal-header h2 {
+    font-size: 1.2rem;
+    margin: 10px 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-member-zone {
+    padding: 2px 12px 10px;
+  }
+
+  .home-member-greeting {
+    font-size: 1.1rem;
+  }
+
+  .home-member-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .home-member-card {
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .home-member-card-loyalty {
+    padding: 14px;
+  }
+
+  .home-member-card h2,
+  .home-member-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .home-member-eyebrow {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    gap: 5px;
+  }
+
+  .home-member-copy {
+    font-size: 0.85rem;
+  }
+
+  .home-points-total {
+    font-size: 1.3rem;
+  }
+
+  .home-level-chip {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+
+  .home-loyalty-row strong {
+    font-size: 1rem;
+  }
+
+  .home-loyalty-cta {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .home-monthly-activity {
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+
+  .home-monthly-activity-head p {
+    font-size: 0.7rem;
+  }
+
+  .home-monthly-activity-head strong {
+    font-size: 0.9rem;
+  }
+
+  .home-ticket-action {
+    font-size: 0.8rem;
+    padding: 10px 14px;
+  }
+
+  .home-ticket-calendar-btn {
+    font-size: 0.8rem;
+    padding: 7px 12px;
+  }
+
+  .home-ticket-modal-header {
+    padding: 16px 12px 10px;
+  }
+
+  .home-ticket-modal-body {
+    padding: 10px 12px 12px;
+  }
+
+  .home-ticket-modal-close {
+    width: 30px;
+    height: 30px;
+  }
+
+  .home-ticket-modal-header h2 {
+    font-size: 1rem;
+    margin: 8px 0 8px;
+  }
+
+  .home-ticket-modal-qr-card {
+    width: min(100%, 180px);
+    padding: 10px;
+  }
+
+  .home-private-description {
+    font-size: 0.85rem;
+  }
+
+  .home-private-details-copy {
+    font-size: 0.85rem;
+  }
+
+  .home-private-modal-guests-list li strong {
+    font-size: 0.85rem;
   }
 }
 

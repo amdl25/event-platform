@@ -65,3 +65,54 @@
   display: flex;
   justify-content: flex-end;
 }
+
+@media (max-width: 768px) {
+  .ticket-pdf-render {
+    padding: 16px;
+  }
+
+  .ticket-pdf-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  .ticket-pdf-header h2 {
+    font-size: 16px;
+  }
+
+  .ticket-pdf-header p {
+    font-size: 0.85rem;
+  }
+
+  .ticket-pdf-card {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .ticket-pdf-top strong {
+    font-size: 12px;
+  }
+
+  .ticket-pdf-meta {
+    font-size: 11px;
+    gap: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticket-pdf-render {
+    padding: 12px;
+  }
+
+  .ticket-pdf-header h2 {
+    font-size: 14px;
+  }
+
+  .ticket-pdf-card {
+    padding: 8px;
+  }
+
+  .ticket-pdf-meta {
+    font-size: 10px;
+  }
+}

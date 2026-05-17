@@ -122,3 +122,115 @@
   font-size: 0.85rem;
   font-weight: 500;
 }
+
+@media (max-width: 1024px) {
+  .settings-container {
+    max-width: 100%;
+    padding: 32px;
+  }
+
+  .settings-header h1 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 14px;
+  }
+
+  .settings-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .settings-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .form-group input {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .submit-button {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .settings-container {
+    max-width: 100%;
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .settings-header h1 {
+    font-size: 1rem;
+  }
+
+  .settings-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .status-box {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  .form-group {
+    gap: 5px;
+  }
+
+  .form-group label {
+    font-size: 0.75rem;
+  }
+
+  .form-group input {
+    padding: 9px 10px;
+    font-size: 0.85rem;
+  }
+
+  .submit-button {
+    padding: 9px 12px;
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+
+  .error-msg,
+  .success-msg {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    max-width: 100%;
+    padding: 16px 12px;
+    border-radius: 10px;
+  }
+
+  .settings-header h1 {
+    font-size: 0.9rem;
+  }
+
+  .settings-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .form-group input {
+    padding: 8px 8px;
+    font-size: 0.8rem;
+  }
+
+  .submit-button {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+}

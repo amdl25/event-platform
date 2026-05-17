@@ -403,3 +403,122 @@
     font-size: 1.5rem;
   }
 }
+
+@media (max-width: 600px) {
+  .event-details-wrapper {
+    padding: 12px 0 32px;
+  }
+
+  .event-details-shell {
+    padding: 0 12px;
+    gap: 16px;
+  }
+
+  .event-main-title {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+  }
+
+  .event-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 16px;
+  }
+
+  .event-image-frame img {
+    height: 200px;
+  }
+
+  .event-about-section h2 {
+    font-size: 1.2rem;
+  }
+
+  .event-about-section p {
+    font-size: 0.9rem;
+  }
+
+  .event-map-frame iframe {
+    height: 200px;
+  }
+
+  .event-booking-card {
+    padding: 12px;
+  }
+
+  .event-booking-card h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .ticket-option {
+    padding: 9px 10px;
+    font-size: 0.85rem;
+  }
+
+  .booking-total strong {
+    font-size: 1.3rem;
+  }
+
+  .reserve-btn {
+    height: 40px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-details-shell {
+    padding: 0 10px;
+  }
+
+  .event-main-title {
+    font-size: 1.1rem;
+  }
+
+  .event-meta-grid {
+    gap: 12px;
+  }
+
+  .event-meta-card span {
+    font-size: 0.65rem;
+  }
+
+  .event-meta-card p {
+    font-size: 0.95rem;
+  }
+
+  .event-meta-card small {
+    font-size: 0.78rem;
+  }
+
+  .event-image-frame img {
+    height: 180px;
+  }
+
+  .event-booking-card {
+    padding: 10px;
+  }
+
+  .ticket-option {
+    padding: 8px 8px;
+    font-size: 0.8rem;
+  }
+
+  .qty-controls {
+    gap: 8px;
+  }
+
+  .qty-controls button {
+    width: 20px;
+    height: 20px;
+  }
+
+  .booking-total strong {
+    font-size: 1.1rem;
+  }
+
+  .reserve-btn {
+    height: 36px;
+    font-size: 0.8rem;
+  }
+}

@@ -783,7 +783,7 @@ const Home = ({ user }) => {
                             <>
                               <p className="home-ticket-kicker"><PiConfetti /> {isPrimaryHost ? 'EȘTI GAZDĂ' : 'EȘTI INVITAT LA'}</p>
 
-                              <div className={`home-private-card-grid${canViewGuestList ? '' : ' no-guest-list'}`}>
+                              <div className="home-private-card-grid">
                                 <div className="home-private-main-col">
                                   <h3>{primaryStackEvent.event?.title || 'Eveniment'}</h3>
 
@@ -812,24 +812,31 @@ const Home = ({ user }) => {
                                   </div>
                                 </div>
 
-                                {canViewGuestList ? (
-                                  <aside className="home-private-side-col">
-                                    <p className="home-private-side-title">INVITAȚI</p>
-                                    {visibleConfirmedGuests.length > 0 ? (
-                                      <div className="home-private-side-avatars" aria-hidden="true">
-                                        {visibleConfirmedGuests.map((guest, index) => {
-                                          const initials = getGuestInitials(guest) || '•';
-                                          return <span key={guest?.id || `${guest?.fullName || 'guest'}-${index}`}>{initials}</span>;
-                                        })}
-                                        {remainingConfirmedGuests > 0 ? <span className="more">+{remainingConfirmedGuests}</span> : null}
-                                      </div>
-                                    ) : null}
-                                    <p className="home-private-side-count">
-                                      <strong>{privateConfirmedCount}</strong>
-                                      <span>au confirmat</span>
-                                    </p>
-                                  </aside>
-                                ) : null}
+                                <aside className={`home-private-side-col${canViewGuestList ? '' : ' home-private-side-col-empty'}`}>
+                                  {canViewGuestList ? (
+                                    <>
+                                      <p className="home-private-side-title">INVITAȚI</p>
+                                      {visibleConfirmedGuests.length > 0 ? (
+                                        <div className="home-private-side-avatars" aria-hidden="true">
+                                          {visibleConfirmedGuests.map((guest, index) => {
+                                            const initials = getGuestInitials(guest) || '•';
+                                            return <span key={guest?.id || `${guest?.fullName || 'guest'}-${index}`}>{initials}</span>;
+                                          })}
+                                          {remainingConfirmedGuests > 0 ? <span className="more">+{remainingConfirmedGuests}</span> : null}
+                                        </div>
+                                      ) : null}
+                                      <p className="home-private-side-count">
+                                        <strong>{privateConfirmedCount}</strong>
+                                        <span>au confirmat</span>
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p className="home-private-side-title">INVITAȚI</p>
+                                      <p className="home-private-side-empty-copy">Lista invitaților este ascunsă de organizator.</p>
+                                    </>
+                                  )}
+                                </aside>
                               </div>
                             </>
                           )}
@@ -1077,7 +1084,12 @@ const Home = ({ user }) => {
                             <p className="home-private-details-copy">Nu există invitați încă.</p>
                           ) : null}
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="home-private-details-block home-private-details-block-empty">
+                          <p className="home-private-details-title">Lista invitaților</p>
+                          <p className="home-private-details-copy">Lista invitaților este ascunsă de organizator.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

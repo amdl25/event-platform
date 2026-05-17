@@ -30,3 +30,67 @@
 .style-guide-section .text-5xl {
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .style-guide-page {
+    padding: 16px;
+  }
+
+  .style-guide-shell {
+    max-width: 100%;
+    gap: 18px;
+  }
+
+  .style-guide-header,
+  .style-guide-section {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .style-guide-section .text-6xl {
+    font-size: 2rem !important;
+  }
+
+  .style-guide-section .text-5xl {
+    font-size: 1.5rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .style-guide-page {
+    padding: 12px;
+  }
+
+  .style-guide-shell {
+    gap: 14px;
+  }
+
+  .style-guide-header,
+  .style-guide-section {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .style-guide-section .text-6xl {
+    font-size: 1.6rem !important;
+  }
+
+  .style-guide-section .text-5xl {
+    font-size: 1.2rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .style-guide-page {
+    padding: 8px;
+  }
+
+  .style-guide-shell {
+    gap: 12px;
+  }
+
+  .style-guide-header,
+  .style-guide-section {
+    padding: 12px;
+  }
+}

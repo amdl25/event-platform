@@ -477,3 +477,116 @@
   border-color: #b8c5bf;
   box-shadow: 0 0 0 3px rgba(34, 109, 73, 0.1);
 }
+
+@media (max-width: 1024px) {
+  .create-grid {
+    gap: 24px;
+  }
+
+  .create-sidebar {
+    flex: 0 0 320px;
+  }
+
+  .create-form-area {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-grid {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .create-sidebar {
+    flex: none;
+    width: 100%;
+    position: static;
+    top: auto;
+  }
+
+  .input-title-large {
+    font-size: 1.8rem;
+  }
+
+  .create-form-area {
+    max-width: 100%;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .group-icon {
+    display: none;
+  }
+
+  .time-select-wrap {
+    width: 100%;
+  }
+
+  .time-select-trigger {
+    width: 100%;
+  }
+
+  .datepicker-custom {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .create-event-page {
+    padding: 16px 0;
+  }
+
+  .input-title-large {
+    font-size: 1.4rem;
+  }
+
+  .preview-image-icon {
+    font-size: 1.5rem;
+  }
+
+  .btn-submit-event {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .invite-share-actions {
+    flex-direction: column;
+  }
+
+  .invite-action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-title-large {
+    font-size: 1.1rem;
+  }
+
+  .badge-category {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+  }
+
+  .btn-submit-event {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
+  .input-seats {
+    width: 100%;
+  }
+
+  .invite-share-sheet {
+    padding: 10px;
+  }
+
+  .invite-link-box {
+    font-size: 0.7rem;
+  }
+}

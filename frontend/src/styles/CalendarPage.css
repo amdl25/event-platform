@@ -177,3 +177,205 @@
 .stat-val { font-size: 1.8rem; font-weight: 850; display: block; }
 .stat-item.red .stat-val { color: #f16f4d; }
 .stat-lab { font-size: 0.7rem; font-weight: 700; color: #94a3b8; }
+
+@media (max-width: 1024px) {
+  .calendar-dashboard-bg {
+    padding: 32px 16px;
+  }
+
+  .cal-dash-grid {
+    gap: 24px;
+  }
+
+  .cal-main-card {
+    padding: 32px;
+  }
+
+  .header-titles h1 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-dashboard-bg {
+    padding: 24px 12px;
+  }
+
+  .cal-dash-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .cal-dash-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .cal-main-card {
+    padding: 24px;
+  }
+
+  .header-titles h1 {
+    font-size: 1rem;
+  }
+
+  .react-calendar__tile {
+    padding: 12px 8px !important;
+    height: 70px;
+  }
+
+  .day-details-section {
+    padding-top: 20px;
+    margin-top: 24px;
+  }
+
+  .widget-card {
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 18px;
+  }
+
+  .upcoming-row {
+    gap: 10px;
+  }
+
+  .date-box {
+    width: 45px;
+    height: 50px;
+  }
+
+  .date-box .day {
+    font-size: 0.95rem;
+  }
+
+  .row-content h4 {
+    font-size: 0.85rem;
+  }
+
+  .stat-item {
+    padding: 15px 8px;
+  }
+
+  .stat-val {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .calendar-dashboard-bg {
+    padding: 16px 10px;
+  }
+
+  .cal-dash-header {
+    gap: 10px;
+  }
+
+  .header-titles h1 {
+    font-size: 0.95rem;
+  }
+
+  .header-titles p {
+    font-size: 0.8rem;
+  }
+
+  .btn-today-pill {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .cal-main-card {
+    padding: 16px;
+  }
+
+  .react-calendar__tile {
+    padding: 8px 4px !important;
+    height: 60px;
+  }
+
+  .react-calendar__navigation {
+    height: 40px;
+    margin-bottom: 1em;
+  }
+
+  .react-calendar__navigation button {
+    font-size: 1rem;
+  }
+
+  .details-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .event-detail-pill {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .pill-color-bar {
+    height: 25px;
+  }
+
+  .pill-info h4 {
+    font-size: 0.85rem;
+  }
+
+  .widget-card {
+    padding: 14px;
+  }
+
+  .widget-title {
+    font-size: 0.75rem;
+  }
+
+  .upcoming-row {
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 12px 6px;
+  }
+
+  .stat-val {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cal-dash-header {
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+
+  .header-titles h1 {
+    font-size: 0.85rem;
+  }
+
+  .cal-main-card {
+    padding: 12px;
+  }
+
+  .react-calendar__tile {
+    padding: 6px 2px !important;
+    height: 50px;
+  }
+
+  .react-calendar__month-view__weekdays__weekday {
+    font-size: 0.65rem;
+  }
+
+  .event-detail-pill {
+    padding: 8px 10px;
+  }
+
+  .stat-item {
+    padding: 10px 4px;
+  }
+
+  .stat-val {
+    font-size: 1rem;
+  }
+
+  .stat-lab {
+    font-size: 0.65rem;
+  }
+}

@@ -39,6 +39,12 @@ const AdminShell = ({ user, handleLogout, title, subtitle, children, actions = n
         </nav>
 
         <div className="admin-sidebar-footer">
+          <div className="admin-sidebar-account">
+            <div className="admin-sidebar-account-label">Cont</div>
+            <Link to="/profile" className="admin-sidebar-account-link">
+              Profilul meu
+            </Link>
+          </div>
           <button type="button" className="admin-sidebar-logout" onClick={handleLogout}>
             <FiLogOut />
             <span>Logout</span>

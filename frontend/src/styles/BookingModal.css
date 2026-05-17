@@ -150,6 +150,240 @@
   line-height: 1.4;
 }
 
+@media (max-width: 1024px) {
+  .booking-modal {
+    width: 95vw;
+    max-height: 85vh;
+  }
+
+  .booking-layout {
+    grid-template-columns: 1fr 1.1fr;
+  }
+
+  .booking-left-panel {
+    padding: 40px 28px;
+  }
+
+  .booking-left-panel h2 {
+    font-size: 42px;
+    margin-bottom: 16px;
+  }
+
+  .booking-left-title {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .booking-right-panel {
+    padding: 40px 32px;
+  }
+
+  .booking-main-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .booking-benefits-list {
+    font-size: 14px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-modal {
+    width: 97vw;
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .booking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-layout-single .booking-right-panel {
+    padding: 32px 24px;
+  }
+
+  .booking-left-panel {
+    padding: 32px 24px;
+    background: #f8f8f8;
+  }
+
+  .booking-left-panel h2 {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .booking-left-title {
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+
+  .booking-right-panel {
+    padding: 32px 24px;
+  }
+
+  .booking-main-title {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .booking-benefits-list {
+    font-size: 14px;
+    padding-left: 14px;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .booking-close {
+    top: 12px;
+    right: 12px;
+    font-size: 26px;
+  }
+
+  .booking-pill-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .booking-modal {
+    width: 100%;
+    max-height: calc(100vh - 40px);
+    border-radius: 10px;
+  }
+
+  .booking-left-panel {
+    padding: 24px 16px;
+  }
+
+  .booking-left-panel h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .booking-left-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .booking-right-panel {
+    padding: 24px 16px;
+  }
+
+  .booking-main-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .booking-benefits-list {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+  }
+
+  .booking-pill-btn {
+    padding: 12px 32px;
+    font-size: 14px;
+  }
+
+  .booking-guest-section h4 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .booking-guest-section p {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .booking-mode-btn {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .booking-guest-divider {
+    margin: 14px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .booking-left-panel,
+  .booking-right-panel {
+    padding: 18px 12px;
+  }
+
+  .booking-left-panel h2 {
+    font-size: 24px;
+  }
+
+  .booking-left-title {
+    font-size: 16px;
+  }
+
+  .booking-main-title {
+    font-size: 16px;
+  }
+
+  .booking-benefits-list {
+    font-size: 12px;
+    padding-left: 10px;
+  }
+
+  .booking-pill-btn {
+    padding: 10px 24px;
+    font-size: 12px;
+  }
+
+  .booking-guest-section h4 {
+    font-size: 18px;
+  }
+
+  .booking-guest-section p {
+    font-size: 12px;
+  }
+
+  .booking-mode-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .booking-close {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 360px) {
+  .booking-left-panel h2 {
+    font-size: 20px;
+  }
+
+  .booking-left-title {
+    font-size: 14px;
+  }
+
+  .booking-main-title {
+    font-size: 14px;
+  }
+
+  .booking-benefits-list {
+    font-size: 11px;
+  }
+
+  .booking-guest-section h4 {
+    font-size: 16px;
+  }
+
+  .booking-guest-section p {
+    font-size: 11px;
+  }
+}
+
 .booking-guest-btn {
   width: 100%;
 }

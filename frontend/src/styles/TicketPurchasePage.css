@@ -371,8 +371,33 @@
 }
 
 @media (max-width: 720px) {
+  .checkout-page {
+    padding-bottom: 32px;
+  }
+
+  .checkout-topbar {
+    height: 64px;
+  }
+
+  .checkout-topbar h1 {
+    font-size: 18px;
+  }
+
+  .checkout-shell {
+    margin: 16px auto 0;
+    gap: 18px;
+  }
+
+  .checkout-card {
+    padding: 20px 18px;
+  }
+
   .checkout-event-head h2 {
     font-size: 20px;
+  }
+
+  .checkout-ticket-row {
+    padding: 14px 12px;
   }
 
   .checkout-summary-total strong {
@@ -386,6 +411,131 @@
 
   .checkout-split-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkout-page {
+    padding-bottom: 24px;
+  }
+
+  .checkout-topbar h1 {
+    font-size: 16px;
+  }
+
+  .checkout-back {
+    left: 16px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .checkout-shell {
+    margin: 12px auto 0;
+    padding: 0 12px;
+    gap: 16px;
+  }
+
+  .checkout-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .checkout-event-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .checkout-event-head h2 {
+    font-size: 18px;
+  }
+
+  .checkout-event-head p {
+    font-size: 12px;
+  }
+
+  .checkout-ticket-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .checkout-ticket-row strong {
+    font-size: 16px;
+  }
+
+  .checkout-qty-controls {
+    align-self: flex-start;
+  }
+
+  .checkout-section-title {
+    font-size: 14px;
+  }
+
+  .checkout-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .checkout-summary-title {
+    font-size: 18px;
+  }
+
+  .checkout-summary-line {
+    font-size: 14px;
+  }
+
+  .checkout-summary-total strong {
+    font-size: 24px;
+  }
+
+  .checkout-pay-button {
+    font-size: 18px;
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-topbar h1 {
+    font-size: 14px;
+  }
+
+  .checkout-shell {
+    padding: 0 10px;
+  }
+
+  .checkout-card {
+    padding: 12px;
+  }
+
+  .checkout-event-head h2 {
+    font-size: 16px;
+  }
+
+  .checkout-qty-controls {
+    gap: 6px;
+  }
+
+  .checkout-qty-controls button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .checkout-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .checkout-summary-title {
+    font-size: 16px;
+  }
+
+  .checkout-summary-total strong {
+    font-size: 20px;
+  }
+
+  .checkout-pay-button {
+    font-size: 16px;
+    padding: 10px 12px;
   }
 }
 

@@ -194,3 +194,132 @@
   background: #0f766e;
   color: #ffffff;
 }
+
+@media (max-width: 768px) {
+  .invite-page {
+    padding: 16px;
+    min-height: calc(100vh - 60px);
+  }
+
+  .invite-card {
+    max-width: 100%;
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .invite-card h1 {
+    font-size: 1.4rem;
+  }
+
+  .invite-description {
+    font-size: 0.9rem;
+  }
+
+  .invite-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .invite-btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .invite-guests-list li {
+    padding: 8px 8px;
+  }
+
+  .invite-guests-toggle {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .invite-page {
+    padding: 12px;
+    min-height: calc(100vh - 60px);
+  }
+
+  .invite-card {
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .invite-badge {
+    font-size: 0.72rem;
+    padding: 5px 9px;
+  }
+
+  .invite-card h1 {
+    font-size: 1.2rem;
+  }
+
+  .invite-description {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .invite-meta-grid {
+    gap: 8px;
+  }
+
+  .invite-meta-item {
+    font-size: 0.85rem;
+  }
+
+  .invite-actions {
+    gap: 6px;
+  }
+
+  .invite-btn {
+    padding: 9px 10px;
+    font-size: 0.8rem;
+  }
+
+  .invite-guests-list li {
+    padding: 6px 8px;
+  }
+
+  .invite-guests-list li span {
+    font-size: 0.85rem;
+  }
+
+  .invite-guests-list li small {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .invite-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .invite-card h1 {
+    font-size: 1rem;
+  }
+
+  .invite-description {
+    font-size: 0.8rem;
+  }
+
+  .invite-badge {
+    font-size: 0.68rem;
+  }
+
+  .invite-btn {
+    padding: 8px 8px;
+    font-size: 0.75rem;
+  }
+
+  .invite-guests-list {
+    gap: 6px;
+  }
+
+  .invite-guests-toggle {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
