@@ -43,6 +43,19 @@ const parseTicketTypesInput = (value) => {
     .filter((ticketType) => ticketType.name.length > 0);
 };
 
+const serializeErrorMessage = (error) => {
+  if (!error) return 'Eroare necunoscută.';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error && typeof error.message === 'string') return error.message;
+  if (typeof error.message === 'string') return error.message;
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+};
+
 export const getUserCalendarEvents = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -285,6 +298,7 @@ export const getEventById = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('updateEvent: incoming content-type=', req.headers?.['content-type'] || 'unknown');
     const creatorId = req.user?.id;
 
     if (!creatorId) {
@@ -338,10 +352,12 @@ export const updateEvent = async (req, res) => {
       normalizedCategoryIds.push(category_id);
     }
 
-    const uploadedImageUrl = req.file ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`) : null;
+    const uploadedImageUrl = req.file ? (req.file.url || null) : null;
+    console.log('updateEvent: req.file=', req.file ? { filename: req.file.filename, url: req.file.url, originalname: req.file.originalname } : null);
     const hasImageUrlField = Object.prototype.hasOwnProperty.call(req.body, 'image_url');
     const normalizedBodyImageUrl = typeof req.body.image_url === 'string' ? req.body.image_url.trim() : '';
     const nextImageUrl = uploadedImageUrl || (hasImageUrlField ? (normalizedBodyImageUrl || null) : event.image_url);
+    console.log('updateEvent: uploadedImageUrl=', uploadedImageUrl, 'hasImageUrlField=', hasImageUrlField, 'normalizedBodyImageUrl=', normalizedBodyImageUrl, 'nextImageUrl=', nextImageUrl);
 
     await event.update({
       title: req.body.title,
@@ -390,7 +406,8 @@ export const updateEvent = async (req, res) => {
 
     return res.status(200).json(updatedEvent);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    console.error('updateEvent failed:', error);
+    return res.status(500).json({ message: serializeErrorMessage(error) });
   }
 };
 
@@ -443,9 +460,7 @@ export const deleteEvent = async (req, res) => {
 export const createEvent = async (req, res) => {
   try {
     const bodyImageUrl = typeof req.body.image_url === 'string' ? req.body.image_url.trim() : '';
-    const imageUrl = req.file
-      ? (req.file.url ? req.file.url : `/uploads/${req.file.filename}`)
-      : (bodyImageUrl || null);
+    const imageUrl = req.file ? (req.file.url || null) : (bodyImageUrl || null);
     const creator_id = req.user?.id;
     const { org_id, category_ids = [], category_id = null } = req.body;
     const requestedStatus = req.body.moderation_status;
@@ -571,7 +586,8 @@ export const createEvent = async (req, res) => {
 
     res.status(201).json(createdEvent || newEvent);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('createEvent failed:', error);
+    res.status(500).json({ message: serializeErrorMessage(error) });
   }
 };
 

@@ -5,9 +5,6 @@ export const AUTH_TOKEN_STORAGE_KEY = 'eventHubToken';
 
 const api = axios.create({
   baseURL: API_BASE,
-  headers: {
-    'Content-Type': 'application/json'
-  }
 });
 
 api.interceptors.request.use((config) => {

@@ -145,6 +145,19 @@ const hasCitySuffix = (locationValue) => {
   return city.length >= 2;
 };
 
+const formatErrorMessage = (error, fallback) => {
+  const value = error?.response?.data?.message ?? error?.message ?? error;
+
+  if (typeof value === 'string') return value;
+  if (value instanceof Error && typeof value.message === 'string') return value.message;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return fallback;
+  }
+};
+
 const OrganizerDashboard = ({ user, handleLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -174,21 +187,19 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
   const [activeTimeMenu, setActiveTimeMenu] = useState(null);
   const startMenuRef = useRef(null);
   const endMenuRef = useRef(null);
-  const [eventForm, setEventForm] = useState(() => {
-    return {
-      title: '',
-      description: '',
-      location: '',
-      startDate: '',
-      startTime: '',
-      endDate: '',
-      endTime: '',
-      maxCapacity: 50,
-      price: 0,
-      pointsValue: 0,
-      categoryId: ''
-    };
-  });
+  const [eventForm, setEventForm] = useState(() => ({
+    title: '',
+    description: '',
+    location: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: '',
+    maxCapacity: 50,
+    price: 0,
+    pointsValue: 0,
+    categoryId: ''
+  }));
 
   useEffect(() => {
     if (!user?.id) { navigate('/'); return; }
@@ -230,7 +241,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
         }
       } catch (error) {
         console.error('Eroare dashboard:', error);
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, [navigate, user]);
@@ -515,7 +528,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       await API.delete(`/events/${event.id}`);
       setEvents((prev) => prev.filter((item) => item.id !== event.id));
     } catch (error) {
-      setEventFormError(error.response?.data?.message || 'Nu am putut șterge evenimentul.');
+      setEventFormError(formatErrorMessage(error, 'Nu am putut șterge evenimentul.'));
     }
   };
 
@@ -630,7 +643,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       };
 
       let response;
-      if (!editingEventId && imageInputMode === 'upload' && eventImageFile) {
+      if (imageInputMode === 'upload' && eventImageFile) {
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
@@ -638,9 +651,9 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
           }
         });
         formData.append('image', eventImageFile);
-        response = await API.post('/events', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        response = editingEventId
+          ? await API.patch(`/events/${editingEventId}`, formData)
+          : await API.post('/events', formData);
       } else {
         response = editingEventId
           ? await API.patch(`/events/${editingEventId}`, payload)
@@ -679,7 +692,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       setEventImageUrl('');
       setImageInputMode('upload');
     } catch (error) {
-      setEventFormError(error.response?.data?.message || 'Nu am putut crea evenimentul.');
+      setEventFormError(formatErrorMessage(error, 'Nu am putut crea evenimentul.'));
     } finally {
       setIsSubmittingEvent(false);
     }

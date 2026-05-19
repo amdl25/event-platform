@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar, FiX } from 'react-icons/fi';
-import API, { API_BASE } from '../api';
+import API from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
 import '../styles/Profile.css';
@@ -392,7 +392,7 @@ const Profile = ({ user }) => {
     const getTicketImageUrl = (ticketGroup) => {
         const imageUrl = ticketGroup?.event?.image_url || ticketGroup?.event?.imageUrl || '';
         if (!imageUrl) return '';
-        return imageUrl.startsWith('http') || imageUrl.startsWith('data:') ? imageUrl : `${API_BASE}${imageUrl}`;
+        return imageUrl.startsWith('http') || imageUrl.startsWith('data:') ? imageUrl : '';
     };
 
     const openEditModal = () => {

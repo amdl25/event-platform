@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin } from 'react-icons/fi';
-import { API_BASE } from '../api';
 import '../styles/EventCard.css';
 
 const EventCard = ({ event, variant = 'default' }) => {
@@ -17,7 +16,7 @@ const EventCard = ({ event, variant = 'default' }) => {
   const cardImageSrc = event.image_url
     ? (event.image_url.startsWith('http') || event.image_url.startsWith('data:')
       ? event.image_url
-      : `${API_BASE}${event.image_url}`)
+      : '')
     : '';
 
   if (variant === 'compact') {

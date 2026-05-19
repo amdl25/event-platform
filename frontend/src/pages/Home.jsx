@@ -6,7 +6,7 @@ import DiscoveryFeed from '../components/DiscoveryFeed';
 import Benefits from '../components/Benefits';
 import RecommendationWizard from '../components/RecommendationWizard';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
-import API, { API_BASE } from '../api';
+import API from '../api';
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import { PiConfetti } from 'react-icons/pi';
@@ -672,7 +672,7 @@ const Home = ({ user }) => {
   const privateInviteImageUrl = primaryStackEvent?.event?.image_url
     ? (primaryStackEvent.event.image_url.startsWith('http') || primaryStackEvent.event.image_url.startsWith('data:')
       ? primaryStackEvent.event.image_url
-      : `${API_BASE}${primaryStackEvent.event.image_url}`)
+      : '')
     : '';
   const privateDescription = String(primaryStackEvent?.event?.description || '').trim();
   const privateGuestNotes = String(primaryStackEvent?.event?.guestNotes || '').trim();
@@ -731,9 +731,9 @@ const Home = ({ user }) => {
                       <div className={`home-ticket-layout${isPrimaryPublic ? '' : ' no-qr'}`}>
                         <div className="home-ticket-visual">
                           <span className="home-ticket-days-chip">{getDaysUntilLabel(primaryStackEvent.startDate)}</span>
-                          {primaryStackEvent.event?.image_url ? (
+                            {primaryStackEvent.event?.image_url ? (
                             <img
-                              src={primaryStackEvent.event.image_url?.startsWith('http') ? primaryStackEvent.event.image_url : `${API_BASE}${primaryStackEvent.event.image_url}`}
+                              src={primaryStackEvent.event.image_url?.startsWith('http') || primaryStackEvent.event.image_url?.startsWith('data:') ? primaryStackEvent.event.image_url : ''}
                               alt={primaryStackEvent.event?.title || 'Eveniment'}
                             />
                           ) : (
@@ -905,7 +905,7 @@ const Home = ({ user }) => {
                           >
                             {event.image_url ? (
                               <img
-                                src={event.image_url?.startsWith('http') ? event.image_url : `${API_BASE}${event.image_url || ''}`}
+                                src={event.image_url?.startsWith('http') || event.image_url?.startsWith('data:') ? event.image_url : ''}
                                 alt={event.title}
                               />
                             ) : null}

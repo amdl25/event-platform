@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FiCalendar, FiClock, FiEdit2, FiMapPin, FiUser, FiX } from 'react-icons/fi';
-import API, { API_BASE } from '../api';
+import API from '../api';
 import { getEventDateLabel, getEventTimeRangeLabel } from '../utils/eventDateTime';
 import '../styles/EventDetailsModal.css';
 
@@ -41,6 +41,19 @@ const formatTimeLabel = (timeValue) => {
   const period = hours >= 12 ? 'PM' : 'AM';
   const displayHour = hours % 12 === 0 ? 12 : hours % 12;
   return `${String(displayHour).padStart(2, '0')}:${rawMinutes} ${period}`;
+};
+
+const formatErrorMessage = (error, fallback) => {
+  const value = error?.response?.data?.message ?? error?.message ?? error;
+
+  if (typeof value === 'string') return value;
+  if (value instanceof Error && typeof value.message === 'string') return value.message;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return fallback;
+  }
 };
 
 const EventDetailsModal = ({
@@ -194,7 +207,7 @@ const EventDetailsModal = ({
     if (form.imageUrl) {
       return form.imageUrl.startsWith('http') || form.imageUrl.startsWith('data:')
         ? form.imageUrl
-        : `${API_BASE}${form.imageUrl}`;
+        : '';
     }
 
     return '';
@@ -210,11 +223,7 @@ const EventDetailsModal = ({
 
   if (!isOpen || !event) return null;
 
-  const eventImage = event.image_url
-    ? (event.image_url.startsWith('http') || event.image_url.startsWith('data:')
-      ? event.image_url
-      : `${API_BASE}${event.image_url}`)
-    : '';
+  const eventImage = event.image_url || '';
 
   const startLabel = event.start_date ? getEventDateLabel(event.start_date, 'ro-RO') : 'Data nespecificată';
   const timeRangeLabel = getEventTimeRangeLabel(event.start_date, event.end_date);
@@ -304,8 +313,8 @@ const EventDetailsModal = ({
       payload.append('price', String(numericPrice));
       payload.append('points_value', String(numericPointsValue));
 
-      if (cleanImageUrl && !/^https?:\/\//i.test(cleanImageUrl) && !cleanImageUrl.startsWith('data:') && !cleanImageUrl.startsWith('/uploads/')) {
-        setError('Link-ul imaginii trebuie să fie un URL valid sau o cale încărcată.');
+      if (cleanImageUrl && !/^https?:\/\//i.test(cleanImageUrl) && !cleanImageUrl.startsWith('data:')) {
+        setError('Link-ul imaginii trebuie să fie un URL absolut (https://) sau o data URL.');
         return;
       }
 
@@ -315,16 +324,24 @@ const EventDetailsModal = ({
         payload.append('image_url', cleanImageUrl);
       }
 
-      const response = await API.patch(`/events/${event.id}`, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      try {
+        const entries = [];
+        for (const pair of payload.entries()) {
+          entries.push([pair[0], pair[1] instanceof File ? `(File:${pair[1].name})` : String(pair[1]).slice(0, 100)]);
+        }
+        console.log('EventDetailsModal: FormData entries ->', entries);
+      } catch (e) {
+        console.log('EventDetailsModal: could not enumerate FormData', e);
+      }
+
+      const response = await API.patch(`/events/${event.id}`, payload);
 
       if (onSaved) {
         onSaved(response.data);
       }
       onClose();
     } catch (patchError) {
-      setError(patchError.response?.data?.message || 'Nu am putut salva modificările.');
+      setError(formatErrorMessage(patchError, 'Nu am putut salva modificările.'));
     } finally {
       setSaving(false);
     }

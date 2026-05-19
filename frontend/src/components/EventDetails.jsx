@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { API_BASE } from '../api';
+
 import BookingModal from './BookingModal';
 import { useNavigate } from 'react-router-dom';
 import { FiCalendar, FiClock, FiHeart, FiMapPin, FiShield, FiStar, FiUsers } from 'react-icons/fi';
@@ -63,9 +63,7 @@ const EventDetails = ({ event, user }) => {
 
             <div className="event-image-frame">
               <img
-                src={event.image_url?.startsWith('https')
-                  ? event.image_url
-                  : `${API_BASE}${event.image_url}`}
+                src={(event.image_url && (event.image_url.startsWith('http') || event.image_url.startsWith('data:'))) ? event.image_url : ''}
                 alt={event.title}
               />
             </div>
