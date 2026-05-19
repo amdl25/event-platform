@@ -131,7 +131,7 @@
   }
 
   .hero-image-wrapper {
-    height: 320px;
+    height: 260px;
     border-radius: 18px;
   }
 
@@ -151,12 +151,12 @@
 
   .hero-cta-card {
     position: absolute;
-    bottom: 18px;
-    right: 18px;
+    bottom: 12px;
+    right: 12px;
     margin: 0;
-    width: min(240px, calc(100% - 36px));
-    padding: 12px 14px;
-    gap: 8px;
+    width: min(220px, calc(100% - 28px));
+    padding: 10px 12px;
+    gap: 6px;
   }
   
   .hero-cta-button {
@@ -171,7 +171,7 @@
   }
 
   .hero-image-wrapper {
-    height: 280px;
+    height: 220px;
     border-radius: 16px;
   }
 
@@ -190,10 +190,10 @@
   }
 
   .hero-cta-card {
-    bottom: 14px;
-    right: 14px;
-    width: min(220px, calc(100% - 28px));
-    padding: 10px 12px;
+    bottom: 10px;
+    right: 10px;
+    width: min(200px, calc(100% - 24px));
+    padding: 8px 10px;
   }
   
   .hero-cta-label {
@@ -213,7 +213,7 @@
   }
 
   .hero-image-wrapper {
-    height: 240px;
+    height: 180px;
     border-radius: 14px;
   }
 
@@ -234,11 +234,11 @@
   }
 
   .hero-cta-card {
-    bottom: 12px;
-    right: 12px;
-    width: min(190px, calc(100% - 24px));
-    padding: 9px 10px;
-    gap: 6px;
+    bottom: 8px;
+    right: 8px;
+    width: min(170px, calc(100% - 20px));
+    padding: 7px 8px;
+    gap: 5px;
   }
   
   .hero-cta-label {

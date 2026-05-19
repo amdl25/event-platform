@@ -180,6 +180,7 @@ export const getOrganizerParticipants = async (req, res) => {
 
       return {
         id: participation.id,
+        eventId: event?.id,
         participantId: participation.account_id || participation.id,
         name: participation.buyer_name || formatPersonName(participation.Account?.first_name, participation.Account?.last_name),
         email: participation.buyer_email || participation.Account?.email || '',
@@ -192,6 +193,22 @@ export const getOrganizerParticipants = async (req, res) => {
         ticketPrice: Number(event?.price || 0)
       };
     });
+
+    const grouped = {};
+    participants.forEach((p) => {
+      const key = `${p.participantId}||${p.eventId || p.eventTitle}`;
+      if (!grouped[key]) {
+        grouped[key] = { ...p, ticketCount: 0, points: 0 };
+      }
+      grouped[key].ticketCount += 1;
+      grouped[key].points = (grouped[key].points || 0) + Number(p.points || 0);
+      grouped[key].checkIn = grouped[key].checkIn || p.checkIn;
+      if (new Date(p.registeredAt) > new Date(grouped[key].registeredAt)) {
+        grouped[key].registeredAt = p.registeredAt;
+      }
+    });
+
+    const aggregatedParticipants = Object.values(grouped);
 
     const uniqueParticipants = new Set(
       participants.map((item) => item.participantId || item.email || item.id)
@@ -221,7 +238,7 @@ export const getOrganizerParticipants = async (req, res) => {
         generatedRevenue,
         topEventTitle
       },
-      participants
+      participants: aggregatedParticipants
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });

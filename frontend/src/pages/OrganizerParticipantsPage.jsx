@@ -100,7 +100,7 @@ const OrganizerParticipantsPage = ({ user, handleLogout }) => {
           </thead>
           <tbody>
             {filteredParticipants.map((participant) => (
-              <tr key={participant.id}>
+              <tr key={`${participant.participantId}-${participant.eventId || participant.id}`}>
                 <td>
                   <div className="organizer-row-inline">
                     <div className="organizer-avatar-soft">{participant.name.slice(0, 2).toUpperCase()}</div>
@@ -110,7 +110,7 @@ const OrganizerParticipantsPage = ({ user, handleLogout }) => {
                     </div>
                   </div>
                 </td>
-                <td>{participant.eventTitle}</td>
+                <td>{participant.eventTitle}{participant.ticketCount && participant.ticketCount > 1 ? ` (x${participant.ticketCount})` : ''}</td>
                 <td><strong>{participant.points}</strong></td>
               </tr>
             ))}

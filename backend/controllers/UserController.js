@@ -13,6 +13,10 @@ export const getUserProfile = async (req, res) => {
       return res.status(401).json({ message: 'Neautorizat' });
     }
 
+    if (requesterRole === 'organizer') {
+      return res.status(403).json({ message: 'Acces interzis.' });
+    }
+
     if (requesterRole !== 'admin' && requesterId !== id) {
       return res.status(403).json({ message: 'Nu ai acces la acest profil.' });
     }
@@ -106,9 +110,14 @@ export const getMyLoyaltySummary = async (req, res) => {
 export const updateMyProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
+    const requesterRole = req.user?.role;
 
     if (!userId) {
       return res.status(401).json({ message: 'Neautorizat' });
+    }
+
+    if (requesterRole === 'organizer') {
+      return res.status(403).json({ message: 'Acces interzis.' });
     }
 
     const account = await Account.findByPk(userId);

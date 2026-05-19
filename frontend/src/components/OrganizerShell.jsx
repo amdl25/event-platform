@@ -35,12 +35,6 @@ const OrganizerShell = ({ user, handleLogout, title, subtitle, actions, children
         </nav>
 
         <div className="organizer-sidebar-footer">
-          <div className="organizer-sidebar-account">
-            <div className="organizer-sidebar-account-label">Cont</div>
-            <Link to="/profile" className="organizer-sidebar-account-link">
-              Profilul meu
-            </Link>
-          </div>
           <button type="button" className="organizer-sidebar-logout" onClick={handleLogout}>
             <FiLogOut />
             <span>Logout</span>

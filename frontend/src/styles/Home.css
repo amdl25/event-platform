@@ -1,5 +1,5 @@
 .home-member-zone {
-  padding: 10px 24px 18px;
+  padding: 6px 16px 10px;
 }
 
 .home-member-shell {
@@ -7,20 +7,20 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 8px;
 }
 
 .home-member-head {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  gap: 16px;
+  gap: 8px;
 }
 
 .home-member-greeting {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--type-h2);
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #0f172a;
@@ -32,7 +32,7 @@
 
 .home-member-subtitle {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -73,7 +73,7 @@
   max-width: 735px;
   width: 100%;
   justify-self: end;
-  height: 294px;
+  height: 220px;
 }
 
 .home-member-stack-card {
@@ -415,9 +415,9 @@
 }
 
 .home-member-card-ticket.has-ticket .home-ticket-main h3 {
-  margin-top: 20px;
-  font-size: 2.2rem;
-  line-height: 1.14;
+  margin-top: 12px;
+  font-size: 1.6rem;
+  line-height: 1.12;
   letter-spacing: -0.01em;
   color: #0f172a;
   font-weight: 800;
