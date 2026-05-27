@@ -16,6 +16,22 @@ const isArchivedEvent = (event) => {
   return eventDate < new Date();
 };
 
+const canRequesterAccessEvent = async (event, requesterId, requesterRole) => {
+  if (!event) return false;
+  if (requesterRole === 'admin') return true;
+  if (event.creator_id && event.creator_id === requesterId) return true;
+
+  if (requesterRole === 'organizer' && event.org_id && requesterId) {
+    const organization = await Organization.findByPk(event.org_id, {
+      attributes: ['owner_id']
+    });
+
+    return organization?.owner_id === requesterId;
+  }
+
+  return false;
+};
+
 const parseTicketTypesInput = (value) => {
   if (!value) return [];
 
@@ -280,11 +296,11 @@ export const getEventById = async (req, res) => {
       return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
     }
 
-    if (isArchivedEvent(event) && requesterRole !== 'admin' && event.creator_id !== requesterId) {
+    if (isArchivedEvent(event) && !(await canRequesterAccessEvent(event, requesterId, requesterRole))) {
       return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
     }
 
-    if (event.moderation_status === 'hidden' && requesterRole !== 'admin' && event.creator_id !== requesterId) {
+    if (event.moderation_status === 'hidden' && !(await canRequesterAccessEvent(event, requesterId, requesterRole))) {
       return res.status(404).json({ message: "Evenimentul nu a fost găsit" });
     }
 
@@ -371,7 +387,9 @@ export const updateEvent = async (req, res) => {
       image_url: nextImageUrl,
       show_guest_list: typeof req.body.show_guest_list === 'boolean' ? req.body.show_guest_list : event.show_guest_list,
       guest_notes: req.body.guest_notes !== undefined ? req.body.guest_notes : event.guest_notes,
-      moderation_status: requestedStatus || event.moderation_status
+      moderation_status: requestedStatus || event.moderation_status,
+      creator_id: event.org_id ? null : event.creator_id,
+      org_id: event.org_id || null
     });
 
     if (submittedTicketTypes.length > 0) {
@@ -530,7 +548,7 @@ export const createEvent = async (req, res) => {
       show_guest_list: Boolean(req.body.show_guest_list),
       guest_notes: req.body.guest_notes || null,
       moderation_status: requestedStatus || 'published',
-      creator_id,
+      creator_id: creator.role === 'user' ? creator_id : null,
       org_id: creator.role === 'user' ? null : org_id,
       image_url: imageUrl
     };

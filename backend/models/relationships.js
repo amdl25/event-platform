@@ -5,21 +5,16 @@ import Participation from './Participation.js';
 import Category from './Category.js';
 import LoyaltyWallet from './LoyaltyWallet.js';
 import LoyaltyTransaction from './LoyaltyTransaction.js';
-import AuditLog from './AuditLog.js';
-import PlatformSetting from './PlatformSetting.js';
 import TicketType from './TicketType.js';
 
 Account.hasMany(Organization, { foreignKey: 'owner_id', as: 'ownedOrganizations' });
 Organization.belongsTo(Account, { foreignKey: 'owner_id', as: 'owner' });
 
-Account.hasMany(AuditLog, { foreignKey: 'actor_id', as: 'auditLogs' });
-AuditLog.belongsTo(Account, { foreignKey: 'actor_id', as: 'actor' });
-
 Account.hasMany(Event, { foreignKey: 'creator_id', as: 'createdEvents' });
-Event.belongsTo(Account, { foreignKey: 'creator_id', as: 'creator' });
+Event.belongsTo(Account, { foreignKey: 'creator_id', as: 'creator', onDelete: 'RESTRICT', onUpdate: 'CASCADE' });
 
 Organization.hasMany(Event, { foreignKey: 'org_id', as: 'events' });
-Event.belongsTo(Organization, { foreignKey: 'org_id', as: 'organization' });
+Event.belongsTo(Organization, { foreignKey: 'org_id', as: 'organization', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
 
 Account.belongsToMany(Event, { 
@@ -67,19 +62,16 @@ Category.belongsToMany(Event, {
 
 
 Account.hasMany(LoyaltyWallet, { foreignKey: 'account_id', as: 'wallets' });
-LoyaltyWallet.belongsTo(Account, { foreignKey: 'account_id' });
+LoyaltyWallet.belongsTo(Account, { foreignKey: 'account_id', as: 'account', onDelete: 'RESTRICT', onUpdate: 'CASCADE' });
 
 Organization.hasMany(LoyaltyWallet, { foreignKey: 'org_id', as: 'loyaltyProgram' });
-LoyaltyWallet.belongsTo(Organization, { foreignKey: 'org_id' });
+LoyaltyWallet.belongsTo(Organization, { foreignKey: 'org_id', as: 'organization', onDelete: 'RESTRICT', onUpdate: 'CASCADE' });
 
-Account.hasMany(LoyaltyTransaction, { foreignKey: 'account_id' });
-LoyaltyTransaction.belongsTo(Account, { foreignKey: 'account_id' });
+LoyaltyWallet.hasMany(LoyaltyTransaction, { foreignKey: { name: 'wallet_id', allowNull: true }, as: 'transactions', constraints: false });
+LoyaltyTransaction.belongsTo(LoyaltyWallet, { foreignKey: { name: 'wallet_id', allowNull: true }, as: 'wallet', onDelete: 'RESTRICT', onUpdate: 'CASCADE', constraints: false });
 
-Organization.hasMany(LoyaltyTransaction, { foreignKey: 'org_id' });
-LoyaltyTransaction.belongsTo(Organization, { foreignKey: 'org_id' });
-
-Event.hasMany(LoyaltyTransaction, { foreignKey: 'event_id' });
-LoyaltyTransaction.belongsTo(Event, { foreignKey: 'event_id' });
+Event.hasMany(LoyaltyTransaction, { foreignKey: 'event_id', as: 'loyaltyTransactions' });
+LoyaltyTransaction.belongsTo(Event, { foreignKey: 'event_id', as: 'event', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
 
 
 Event.hasMany(TicketType, { foreignKey: 'event_id', as: 'ticketTypes' });
@@ -94,7 +86,5 @@ export {
   Category, 
   LoyaltyWallet, 
   LoyaltyTransaction,
-  AuditLog,
-  PlatformSetting,
   TicketType
 };

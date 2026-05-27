@@ -6,10 +6,15 @@ import {
   Participation,
   Category,
   LoyaltyWallet,
-  LoyaltyTransaction,
-  AuditLog,
-  PlatformSetting
+  LoyaltyTransaction
 } from '../models/relationships.js';
+import {
+  addAuditLogEntry,
+  getAuditLogs,
+  getPlatformSettings,
+  updatePlatformSetting,
+  setPlatformSettings
+} from '../utils/fileStorage.js';
 
 const DEFAULT_SETTINGS = {
   base_points_per_checkin: '10',
@@ -19,7 +24,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const createAuditEntry = async ({ actor, action, entityType, entityId = null, details = {} }) => {
-  await AuditLog.create({
+  addAuditLogEntry({
     actor_id: actor?.id || null,
     actor_role: actor?.role || null,
     action,
@@ -30,22 +35,16 @@ const createAuditEntry = async ({ actor, action, entityType, entityId = null, de
 };
 
 const ensureSettings = async () => {
-  const existing = await PlatformSetting.findAll();
-  const map = new Map(existing.map((item) => [item.key, item.value]));
+  let settings = getPlatformSettings();
+  const map = new Map(Object.entries(settings || {}));
   const missing = Object.entries(DEFAULT_SETTINGS).filter(([key]) => !map.has(key));
 
-  if (missing.length > 0) {
-    await PlatformSetting.bulkCreate(
-      missing.map(([key, value]) => ({ key, value })),
-      { ignoreDuplicates: true }
-    );
+  if (missing.length > 0 || !settings || Object.keys(settings).length === 0) {
+    settings = { ...DEFAULT_SETTINGS, ...settings };
+    setPlatformSettings(settings);
   }
 
-  const refreshed = await PlatformSetting.findAll({ order: [['key', 'ASC']] });
-  return refreshed.reduce((acc, item) => {
-    acc[item.key] = item.value;
-    return acc;
-  }, {});
+  return settings;
 };
 
 const toRomanianMonthLabel = (date) => {
@@ -76,7 +75,7 @@ export const getDashboardSummary = async (req, res) => {
     const previousMonthEnd = new Date(monthStart);
     previousMonthEnd.setMilliseconds(-1);
 
-    const [accounts, organizations, events, participations, categories, wallets, transactions, auditLogs] = await Promise.all([
+    const [accounts, organizations, events, participations, categories, wallets, transactions] = await Promise.all([
       Account.findAll({ attributes: ['id', 'createdAt', 'role', 'first_name', 'last_name'] }),
       Organization.findAll({
         include: [{ model: Account, as: 'owner', attributes: ['id', 'email', 'first_name', 'last_name'] }],
@@ -92,10 +91,23 @@ export const getDashboardSummary = async (req, res) => {
       }),
       Participation.findAll({ attributes: ['id', 'createdAt', 'event_id', 'account_id', 'status', 'invite_status'] }),
       Category.findAll({ attributes: ['id', 'name'] }),
-      LoyaltyWallet.findAll({ include: [{ model: Account, attributes: ['id', 'first_name', 'last_name', 'email'] }] }),
-      LoyaltyTransaction.findAll({ attributes: ['id', 'account_id', 'org_id', 'event_id', 'points_amount', 'type', 'createdAt'] }),
-      AuditLog.findAll({ include: [{ model: Account, as: 'actor', attributes: ['id', 'first_name', 'last_name'] }], order: [['createdAt', 'DESC']], limit: 12 })
+      LoyaltyWallet.findAll({ include: [{ model: Account, as: 'account', attributes: ['id', 'first_name', 'last_name', 'email'] }] }),
+      LoyaltyTransaction.findAll({
+        attributes: ['id', 'wallet_id', 'event_id', 'points_amount', 'type', 'createdAt'],
+        include: [
+          {
+            model: LoyaltyWallet,
+            as: 'wallet',
+            include: [
+              { model: Account, as: 'account', attributes: ['id', 'first_name', 'last_name', 'email'] },
+              { model: Organization, as: 'organization', attributes: ['id', 'name'] }
+            ]
+          },
+          { model: Event, as: 'event', attributes: ['id', 'title'] }
+        ]
+      })
     ]);
+    const auditLogs = getAuditLogs(12);
 
     const userAccounts = accounts.filter((account) => account.role === 'user');
     const organizerAccounts = accounts.filter((account) => account.role === 'organizer');
@@ -206,9 +218,9 @@ export const getDashboardSummary = async (req, res) => {
       .slice(0, 5)
       .map((wallet, index) => ({
         rank: index + 1,
-        id: wallet.Account?.id || wallet.account_id,
-        name: wallet.Account ? `${wallet.Account.first_name} ${wallet.Account.last_name}` : 'Utilizator',
-        email: wallet.Account?.email || '',
+        id: wallet.account?.id || wallet.account_id,
+        name: wallet.account ? `${wallet.account.first_name} ${wallet.account.last_name}` : 'Utilizator',
+        email: wallet.account?.email || '',
         points: Number(wallet.points_balance || 0)
       }));
 
@@ -393,7 +405,7 @@ export const getParticipantsAdmin = async (req, res) => {
       where: { role: 'user' },
       include: [
         { model: Participation, attributes: ['id', 'createdAt', 'status', 'invite_status', 'event_id'] },
-        { model: LoyaltyWallet, as: 'wallets', attributes: ['account_id', 'org_id', 'points_balance'] }
+        { model: LoyaltyWallet, as: 'wallets', include: [{ model: Account, as: 'account', attributes: ['id', 'first_name', 'last_name', 'email'] }], attributes: ['id', 'account_id', 'org_id', 'points_balance'] }
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -523,7 +535,7 @@ export const moderateEvent = async (req, res) => {
 
 export const getReportsAdmin = async (req, res) => {
   try {
-    const [events, logs, transactions] = await Promise.all([
+    const [events, transactions] = await Promise.all([
       Event.findAll({
         where: {
           [Op.or]: [
@@ -537,17 +549,23 @@ export const getReportsAdmin = async (req, res) => {
         ],
         order: [['report_count', 'DESC'], ['updatedAt', 'DESC']]
       }),
-      AuditLog.findAll({ include: [{ model: Account, as: 'actor', attributes: ['id', 'first_name', 'last_name'] }], order: [['createdAt', 'DESC']], limit: 25 }),
       LoyaltyTransaction.findAll({
         include: [
-          { model: Account, attributes: ['id', 'first_name', 'last_name', 'email'] },
-          { model: Organization, attributes: ['id', 'name'] },
-          { model: Event, attributes: ['id', 'title'] }
+          {
+            model: LoyaltyWallet,
+            as: 'wallet',
+            include: [
+              { model: Account, as: 'account', attributes: ['id', 'first_name', 'last_name', 'email'] },
+              { model: Organization, as: 'organization', attributes: ['id', 'name'] }
+            ]
+          },
+          { model: Event, as: 'event', attributes: ['id', 'title'] }
         ],
         order: [['createdAt', 'DESC']],
         limit: 25
       })
     ]);
+    const logs = getAuditLogs(25);
 
     const reportStats = {
       reportedEvents: events.length,
@@ -582,9 +600,9 @@ export const getReportsAdmin = async (req, res) => {
         id: transaction.id,
         type: transaction.type,
         points: transaction.points_amount,
-        account: transaction.Account ? `${transaction.Account.first_name} ${transaction.Account.last_name}`.trim() : 'Utilizator',
-        organization: transaction.Organization?.name || '',
-        event: transaction.Event?.title || '',
+        account: transaction.wallet?.account ? `${transaction.wallet.account.first_name} ${transaction.wallet.account.last_name}`.trim() : 'Utilizator',
+        organization: transaction.wallet?.organization?.name || '',
+        event: transaction.event?.title || '',
         createdAt: transaction.createdAt
       }))
     });
@@ -622,7 +640,7 @@ export const updateSettingsAdmin = async (req, res) => {
     }
 
     for (const [key, value] of entries) {
-      await PlatformSetting.upsert({ key, value: String(value) });
+      updatePlatformSetting(key, String(value));
     }
 
     await createAuditEntry({
@@ -716,17 +734,13 @@ export const deleteCategoryAdmin = async (req, res) => {
 
 export const getAuditLogAdmin = async (req, res) => {
   try {
-    const logs = await AuditLog.findAll({
-      include: [{ model: Account, as: 'actor', attributes: ['id', 'first_name', 'last_name', 'email'] }],
-      order: [['createdAt', 'DESC']],
-      limit: 50
-    });
+    const logs = getAuditLogs(50);
 
     return res.json({
       auditLog: logs.map((log) => ({
         id: log.id,
         action: log.action,
-        actor: log.actor ? `${log.actor.first_name} ${log.actor.last_name}`.trim() : 'System',
+        actor: log.actor_id ? `${log.actor?.first_name || ''} ${log.actor?.last_name || ''}`.trim() : 'System',
         actorEmail: log.actor?.email || '',
         entityType: log.entity_type,
         entityId: log.entity_id,

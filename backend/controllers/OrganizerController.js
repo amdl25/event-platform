@@ -1,4 +1,5 @@
-import { Account, Event, Organization, Participation } from '../models/relationships.js';
+import { Account, Event, Organization, Participation, LoyaltyWallet, LoyaltyTransaction } from '../models/relationships.js';
+import sequelize from '../config/database.js';
 
 const formatPersonName = (firstName, lastName, fallback = 'Utilizator') => `${firstName || ''} ${lastName || ''}`.trim() || fallback;
 
@@ -267,16 +268,57 @@ export const toggleParticipantCheckIn = async (req, res) => {
       return res.status(404).json({ message: 'Participarea nu a fost găsită.' });
     }
 
-    const nextStatus = participation.status === 'checked-in' ? 'going' : 'checked-in';
+    const previousStatus = participation.status;
+    const nextStatus = previousStatus === 'checked-in' ? 'going' : 'checked-in';
+
     await participation.update({ status: nextStatus });
 
     const awardedPoints = nextStatus === 'checked-in' ? Number(participation.Event?.points_value || 0) : 0;
 
-    return res.json({
-      message: 'Status actualizat.',
-      status: participation.status,
-      points: awardedPoints
-    });
+    try {
+      if (participation.account_id && participation.Event) {
+        const accountId = participation.account_id;
+        const orgId = participation.Event.org_id;
+
+        if (nextStatus === 'checked-in' && awardedPoints > 0) {
+          const [wallet] = await LoyaltyWallet.findOrCreate({
+            where: { account_id: accountId, org_id: orgId },
+            defaults: { points_balance: 0 }
+          });
+
+          await sequelize.transaction(async (t) => {
+            await wallet.increment('points_balance', { by: awardedPoints, transaction: t });
+            await LoyaltyTransaction.create({
+              wallet_id: wallet.id,
+              event_id: participation.event_id,
+              points_amount: awardedPoints,
+              type: 'earn'
+            }, { transaction: t });
+          });
+        }
+
+        if (previousStatus === 'checked-in' && nextStatus !== 'checked-in') {
+          const wallet = await LoyaltyWallet.findOne({ where: { account_id: participation.account_id, org_id: participation.Event.org_id } });
+          if (wallet) {
+            const trans = await LoyaltyTransaction.findOne({
+              where: { wallet_id: wallet.id, event_id: participation.event_id, type: 'earn' },
+              order: [['createdAt', 'DESC']]
+            });
+            if (trans) {
+              const pts = Number(trans.points_amount || 0);
+              await sequelize.transaction(async (t) => {
+                await wallet.decrement('points_balance', { by: pts, transaction: t });
+                await trans.destroy({ transaction: t });
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Loyalty update error:', err.message || err);
+    }
+
+    return res.json({ message: 'Status actualizat.', status: participation.status, points: awardedPoints });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

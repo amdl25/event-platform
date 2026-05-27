@@ -248,68 +248,69 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     loadData();
   }, [navigate, user]);
 
+  const loadEventForEditing = async (editEventId) => {
+    if (!editEventId) return;
+
+    try {
+      const response = await API.get(`/events/${editEventId}`);
+      const eventToEdit = response.data;
+      if (!eventToEdit) return;
+
+      const startDate = eventToEdit.start_date ? toLocalDateInput(new Date(eventToEdit.start_date)) : '';
+      const startTime = eventToEdit.start_date ? toLocalTimeInput(new Date(eventToEdit.start_date)) : '';
+      const endDate = eventToEdit.end_date ? toLocalDateInput(new Date(eventToEdit.end_date)) : '';
+      const endTime = eventToEdit.end_date ? toLocalTimeInput(new Date(eventToEdit.end_date)) : '';
+
+      setEditingEventId(eventToEdit.id);
+      setEventForm({
+        title: eventToEdit.title || '',
+        description: eventToEdit.description || '',
+        location: eventToEdit.location || '',
+        startDate,
+        startTime,
+        endDate,
+        endTime,
+        maxCapacity: Number(eventToEdit.max_capacity || 50),
+        price: Number(eventToEdit.price || 0),
+        pointsValue: Number(eventToEdit.points_value || 0),
+        categoryId: eventToEdit.categories?.[0]?.id || categories[0]?.id || ''
+      });
+      setTicketTypes(
+        eventToEdit.ticketTypes?.length > 0
+          ? eventToEdit.ticketTypes.map((ticketType, index) => createTicketTypeDraft({
+              id: ticketType.id,
+              name: ticketType.name || '',
+              description: ticketType.description || '',
+              price: Number(ticketType.price || 0),
+              quantity: Number(ticketType.quantity || 0),
+              points_reward: Number(ticketType.points_reward || 0),
+              display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
+              is_active: ticketType.is_active !== false
+            }))
+          : [createTicketTypeDraft({
+              name: eventToEdit.title ? `${eventToEdit.title} - General Access` : 'General Access',
+              price: Number(eventToEdit.price || 0),
+              quantity: Number(eventToEdit.max_capacity || 50),
+              points_reward: Number(eventToEdit.points_value || 0)
+            })]
+      );
+      setEventImagePreview(eventToEdit.image_url || '');
+      setEventImageName('');
+      setEventImageFile(null);
+      setEventImageUrl(eventToEdit.image_url || '');
+      setImageInputMode(eventToEdit.image_url ? 'url' : 'upload');
+      setEventFormError('');
+      setShowCreateModal(true);
+    } catch (error) {
+      console.error('Eroare la încărcarea evenimentului pentru editare:', error);
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const editEventId = params.get('editEvent');
     if (!editEventId) return;
-
-    const loadEventForEditing = async () => {
-      try {
-        const response = await API.get(`/events/${editEventId}`);
-        const eventToEdit = response.data;
-        if (!eventToEdit) return;
-
-        const startDate = eventToEdit.start_date ? toLocalDateInput(new Date(eventToEdit.start_date)) : '';
-        const startTime = eventToEdit.start_date ? toLocalTimeInput(new Date(eventToEdit.start_date)) : '';
-        const endDate = eventToEdit.end_date ? toLocalDateInput(new Date(eventToEdit.end_date)) : '';
-        const endTime = eventToEdit.end_date ? toLocalTimeInput(new Date(eventToEdit.end_date)) : '';
-
-        setEditingEventId(eventToEdit.id);
-        setEventForm({
-          title: eventToEdit.title || '',
-          description: eventToEdit.description || '',
-          location: eventToEdit.location || '',
-          startDate,
-          startTime,
-          endDate,
-          endTime,
-          maxCapacity: Number(eventToEdit.max_capacity || 50),
-          price: Number(eventToEdit.price || 0),
-          pointsValue: Number(eventToEdit.points_value || 0),
-          categoryId: eventToEdit.categories?.[0]?.id || categories[0]?.id || ''
-        });
-        setTicketTypes(
-          eventToEdit.ticketTypes?.length > 0
-            ? eventToEdit.ticketTypes.map((ticketType, index) => createTicketTypeDraft({
-                id: ticketType.id,
-                name: ticketType.name || '',
-                description: ticketType.description || '',
-                price: Number(ticketType.price || 0),
-                quantity: Number(ticketType.quantity || 0),
-                points_reward: Number(ticketType.points_reward || 0),
-                display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
-                is_active: ticketType.is_active !== false
-              }))
-            : [createTicketTypeDraft({
-                name: eventToEdit.title ? `${eventToEdit.title} - General Access` : 'General Access',
-                price: Number(eventToEdit.price || 0),
-                quantity: Number(eventToEdit.max_capacity || 50),
-                points_reward: Number(eventToEdit.points_value || 0)
-              })]
-        );
-        setEventImagePreview(eventToEdit.image_url || '');
-        setEventImageName('');
-        setEventImageFile(null);
-        setEventImageUrl(eventToEdit.image_url || '');
-        setImageInputMode(eventToEdit.image_url ? 'url' : 'upload');
-        setEventFormError('');
-        setShowCreateModal(true);
-      } catch (error) {
-        console.error('Eroare la încărcarea evenimentului pentru editare:', error);
-      }
-    };
-
-    loadEventForEditing();
+    loadEventForEditing(editEventId);
   }, [categories, location.search]);
 
   const handleCreateFormChange = (field, value) => {
@@ -512,12 +513,21 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
     setShowCreateModal(true);
   };
 
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+    setEditingEventId('');
+
+    if (new URLSearchParams(location.search).has('editEvent')) {
+      navigate('/organizer/events', { replace: true });
+    }
+  };
+
   const handleViewEvent = (eventId) => {
     navigate(`/event/${eventId}`);
   };
 
   const handleEditEvent = (eventId) => {
-    navigate(`/organizer/events?editEvent=${eventId}`);
+    loadEventForEditing(eventId);
   };
 
   const handleDeleteEvent = async (event) => {
@@ -830,11 +840,11 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
       </OrganizerShell>
 
       {showCreateModal ? (
-        <div className="organizer-create-modal-backdrop" onClick={() => setShowCreateModal(false)}>
+        <div className="organizer-create-modal-backdrop" onClick={handleCloseCreateModal}>
           <div className="organizer-create-modal" onClick={(event) => event.stopPropagation()}>
             <div className="organizer-create-modal-header">
               <h3>{editingEventId ? 'Editează eveniment' : 'Eveniment nou'}</h3>
-              <button type="button" className="organizer-create-close" onClick={() => setShowCreateModal(false)}>×</button>
+              <button type="button" className="organizer-create-close" onClick={handleCloseCreateModal}>×</button>
             </div>
 
             <form className="organizer-create-form" onSubmit={(event) => handleCreateEvent(event, 'published')}>
@@ -1113,7 +1123,7 @@ const OrganizerDashboard = ({ user, handleLogout }) => {
               </div>
 
               <div className="organizer-create-modal-footer">
-                <button type="button" className="organizer-create-cancel" onClick={() => setShowCreateModal(false)}>Anulează</button>
+                <button type="button" className="organizer-create-cancel" onClick={handleCloseCreateModal}>Anulează</button>
                 <button
                   type="button"
                   className="organizer-create-draft"

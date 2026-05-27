@@ -69,22 +69,27 @@ export const getMyLoyaltySummary = async (req, res) => {
     const [wallets, transactions] = await Promise.all([
       LoyaltyWallet.findAll({
         where: { account_id: userId },
-        include: [{ model: Organization, attributes: ['id', 'name'] }]
+        include: [{ model: Organization, as: 'organization', attributes: ['id', 'name'] }]
       }),
       LoyaltyTransaction.findAll({
-        where: { account_id: userId },
         order: [['createdAt', 'DESC']],
         limit: 20,
         include: [
-          { model: Organization, attributes: ['id', 'name'] },
-          { model: Event, attributes: ['id', 'title'] }
+          {
+            model: LoyaltyWallet,
+            as: 'wallet',
+            required: true,
+            where: { account_id: userId },
+            include: [{ model: Organization, as: 'organization', attributes: ['id', 'name'] }]
+          },
+          { model: Event, as: 'event', attributes: ['id', 'title'] }
         ]
       })
     ]);
 
     const companies = wallets.map((wallet) => ({
       orgId: wallet.org_id,
-      name: wallet.Organization?.name || 'Organizator',
+      name: wallet.organization?.name || 'Organizator',
       points: Number(wallet.points_balance || 0)
     }));
 
@@ -97,8 +102,8 @@ export const getMyLoyaltySummary = async (req, res) => {
         id: transaction.id,
         type: transaction.type,
         points: Number(transaction.points_amount || 0),
-        orgName: transaction.Organization?.name || 'Organizator',
-        eventTitle: transaction.Event?.title || 'Eveniment',
+        orgName: transaction.wallet?.organization?.name || 'Organizator',
+        eventTitle: transaction.event?.title || 'Eveniment',
         createdAt: transaction.createdAt
       }))
     });

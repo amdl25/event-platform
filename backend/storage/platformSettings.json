@@ -1,0 +1,6 @@
+{
+  "base_points_per_checkin": "10",
+  "points_expiry_months": "12",
+  "featured_events_limit": "6",
+  "max_pending_days": "3"
+}

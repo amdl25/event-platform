@@ -45,7 +45,7 @@ const seedDatabase = async () => {
       price: 50.00,
       points_value: 100,
       image_url:'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80',
-      creator_id: organizer.id,
+      creator_id: null,
       org_id: coffeeShop.id
     });
     await event1.addCategory(catCoffee);
@@ -77,7 +77,7 @@ const seedDatabase = async () => {
     price: 35.00,
     points_value: 150,
     image_url:'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1200&q=80',
-    creator_id: organizer.id,
+    creator_id: null,
     org_id: coffeeShop.id
     });
     await eventArt.addCategory(catArt);
@@ -93,7 +93,7 @@ const eventMusic = await Event.create({
   price: 65.00,
   points_value: 200, 
   image_url:'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=1200&q=80',
-  creator_id: organizer.id,
+  creator_id: null,
   org_id: coffeeShop.id
 });
 await eventMusic.addCategory(catMusic);
@@ -109,7 +109,7 @@ const eventWorkshop = await Event.create({
   price: 90.00,
   points_value: 120,
   image_url:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80',
-  creator_id: organizer.id,
+  creator_id: null,
   org_id: coffeeShop.id
 });
 await eventWorkshop.addCategory(catArt);

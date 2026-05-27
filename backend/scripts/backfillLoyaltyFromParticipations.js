@@ -73,23 +73,6 @@ const run = async () => {
     }
 
     await sequelize.transaction(async (transaction) => {
-      const existingTransaction = await LoyaltyTransaction.findOne({
-        where: {
-          account_id: accountId,
-          org_id: orgId,
-          event_id: eventId,
-          type: 'earn',
-          points_amount: points,
-          createdAt: participation.createdAt
-        },
-        transaction
-      });
-
-      if (existingTransaction) {
-        skippedExisting += 1;
-        return;
-      }
-
       const [wallet] = await LoyaltyWallet.findOrCreate({
         where: {
           account_id: accountId,
@@ -104,12 +87,27 @@ const run = async () => {
         lock: transaction.LOCK.UPDATE
       });
 
+      const existingTransaction = await LoyaltyTransaction.findOne({
+        where: {
+          wallet_id: wallet.id,
+          event_id: eventId,
+          type: 'earn',
+          points_amount: points,
+          createdAt: participation.createdAt
+        },
+        transaction
+      });
+
+      if (existingTransaction) {
+        skippedExisting += 1;
+        return;
+      }
+
       await wallet.increment('points_balance', { by: points, transaction });
       updatedWallets += 1;
 
       await LoyaltyTransaction.create({
-        account_id: accountId,
-        org_id: orgId,
+        wallet_id: wallet.id,
         event_id: eventId,
         points_amount: points,
         type: 'earn',

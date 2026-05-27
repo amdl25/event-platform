@@ -27,7 +27,7 @@ const getWalletPoints = async (accountId, orgId) => {
 
 	const wallet = await LoyaltyWallet.findOne({
 		where: { account_id: accountId, org_id: orgId },
-		attributes: ['points_balance']
+		attributes: ['id', 'points_balance']
 	});
 
 	return toPositiveInteger(wallet?.points_balance, 0);
@@ -228,6 +228,10 @@ const completePurchase = async ({
 				lock: transaction.LOCK.UPDATE
 			});
 
+			if (!wallet) {
+				throw new Error('Portofelul de loialitate nu a fost găsit.');
+			}
+
 			const currentBalance = toPositiveInteger(wallet?.points_balance, 0);
 			if (currentBalance < pointsUsed) {
 				throw new Error('Punctele disponibile nu mai acoperă reducerea selectată. Reîncearcă plata.');
@@ -235,8 +239,7 @@ const completePurchase = async ({
 
 			await wallet.decrement('points_balance', { by: pointsUsed, transaction });
 			await LoyaltyTransaction.create({
-				account_id: accountId,
-				org_id: event.org_id,
+				wallet_id: wallet.id,
 				event_id: event.id,
 				points_amount: pointsUsed,
 				type: 'redeem'
@@ -261,8 +264,7 @@ const completePurchase = async ({
 
 			await wallet.increment('points_balance', { by: pointsEarned, transaction });
 			await LoyaltyTransaction.create({
-				account_id: accountId,
-				org_id: event.org_id,
+				wallet_id: wallet.id,
 				event_id: event.id,
 				points_amount: pointsEarned,
 				type: 'earn'

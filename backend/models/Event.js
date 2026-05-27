@@ -41,7 +41,7 @@ const Event = sequelize.define('Event', {
   
   creator_id: { 
     type: DataTypes.UUID, 
-    allowNull: false,
+    allowNull: true,
     references: { model: 'account', key: 'id' }
   },
   org_id: { 
@@ -67,6 +67,18 @@ const Event = sequelize.define('Event', {
     type: DataTypes.DATE,
     allowNull: true
   }
-}, { tableName: 'event' });
+}, {
+  tableName: 'event',
+  validate: {
+    exactlyOneOwner() {
+      const hasCreator = this.creator_id !== null && this.creator_id !== undefined;
+      const hasOrganization = this.org_id !== null && this.org_id !== undefined;
+
+      if (hasCreator === hasOrganization) {
+        throw new Error('Evenimentul trebuie să aibă exact un proprietar: organizație sau creator.');
+      }
+    }
+  }
+});
 
 export default Event;
