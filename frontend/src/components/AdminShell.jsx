@@ -12,11 +12,7 @@ const navItems = [
   { to: '/admin/settings', label: 'Setări', icon: FiSettings }
 ];
 
-const AdminShell = ({ user, handleLogout, title, subtitle, children, actions = null, notificationsCount = 0 }) => {
-  const initials = user?.firstName
-    ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()
-    : 'AD';
-
+const AdminShell = ({ handleLogout, title, subtitle, children, actions = null, notificationsCount = 0 }) => {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -39,12 +35,6 @@ const AdminShell = ({ user, handleLogout, title, subtitle, children, actions = n
         </nav>
 
         <div className="admin-sidebar-footer">
-          <div className="admin-sidebar-account">
-            <div className="admin-sidebar-account-label">Cont</div>
-            <Link to="/profile" className="admin-sidebar-account-link">
-              Profilul meu
-            </Link>
-          </div>
           <button type="button" className="admin-sidebar-logout" onClick={handleLogout}>
             <FiLogOut />
             <span>Logout</span>
@@ -64,10 +54,6 @@ const AdminShell = ({ user, handleLogout, title, subtitle, children, actions = n
               <FiBell />
               {notificationsCount > 0 ? <span>{notificationsCount > 9 ? '9+' : notificationsCount}</span> : null}
             </button>
-            <div className="admin-user-chip">
-              <div className="admin-avatar">{initials}</div>
-              <span>{user?.firstName ? `${user.firstName} ${user.lastName}` : 'Administrator'}</span>
-            </div>
           </div>
         </header>
 

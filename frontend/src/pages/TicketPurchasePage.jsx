@@ -380,7 +380,6 @@ const TicketPurchasePage = ({ user }) => {
 
           <label className="checkout-field-label">Email</label>
           <input
-            className="checkout-input"
             type="email"
             placeholder="adresa@email.com"
             value={buyerEmail}

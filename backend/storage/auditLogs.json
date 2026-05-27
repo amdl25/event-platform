@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "dd432e5b-196d-4a18-9693-a7bd36f8a796",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_hidden",
+    "entity_type": "event",
+    "entity_id": "dbb18e9d-e8da-470b-a459-560e1e084328",
+    "details": {
+      "title": "Smoke Test Event",
+      "moderationStatus": "hidden"
+    },
+    "createdAt": "2026-05-27T18:24:46.966Z"
+  },
+  {
+    "id": "c0fbd42f-83df-4ab5-9f53-29e117997b44",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_hidden",
+    "entity_type": "event",
+    "entity_id": "748d22a7-de47-4f4f-aba5-ae5a97714f48",
+    "details": {
+      "title": "Smoke Test Event",
+      "moderationStatus": "hidden"
+    },
+    "createdAt": "2026-05-27T18:24:52.682Z"
+  }
+]

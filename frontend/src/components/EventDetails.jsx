@@ -70,19 +70,19 @@ const EventDetails = ({ event, user }) => {
 
             <section className="event-meta-grid">
               <article className="event-meta-card">
-                <span>DATA SI ORA</span>
+                <span>DATA ȘI ORA</span>
                 <p><FiCalendar /> {eventStart ? getEventDateLabel(eventStart, 'ro-RO') : '-'}</p>
                 <small><FiClock /> {eventTimeRange ? eventTimeRange : 'Ora nespecificata'}</small>
               </article>
               <article className="event-meta-card">
-                <span>LOCATIE</span>
+                <span>LOCAȚIE</span>
                 <p><FiMapPin /> {event.location || 'Locatie nespecificata'}</p>
                 <small>{event.city || 'Bucuresti'}</small>
               </article>
               <article className="event-meta-card">
                 <span>ORGANIZATOR</span>
                 <p><FiUsers /> {event.organization ? event.organization.name : 'Vibe Archive'}</p>
-                <small>Comunitate de Arta Urbana</small>
+                <small>Comunitate de Artă Urbană</small>
               </article>
             </section>
 
@@ -93,18 +93,18 @@ const EventDetails = ({ event, user }) => {
                   <p key={paragraph}>{paragraph}</p>
                 ))
               ) : (
-                <p>Evenimentul aduce o experienta urbana imersiva, cu muzica live si o productie vizuala atent curatoriata.</p>
+                <p>Evenimentul aduce o experiență urbană imersivă, cu muzică live.</p>
               )}
             </section>
 
             <section className="event-map-section">
               <div className="event-map-header">
-                <h3>Locatie</h3>
-                <p>{event.location || 'Locatie nespecificata'}</p>
+                <h3>Locație</h3>
+                <p>{event.location || 'Locație nespecificată'}</p>
               </div>
               <div className="event-map-frame">
                 <iframe
-                  title={`Harta locatie pentru ${event.title}`}
+                  title={`Harta locație pentru ${event.title}`}
                   src={mapEmbedSrc}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -117,7 +117,7 @@ const EventDetails = ({ event, user }) => {
 
           <aside className="event-booking-column">
             <div className="event-booking-card">
-              <h3>Selecteaza Bilete</h3>
+              <h3>Selectează Bilete</h3>
 
               {ticketTypes.length > 0 ? (
                 <>
@@ -138,7 +138,7 @@ const EventDetails = ({ event, user }) => {
                   ))}
                 </>
               ) : (
-                <p>Nu sunt tipuri de bilete disponibile.</p>
+                <p>Nu sunt bilete disponibile.</p>
               )}
 
               <div className="qty-wrap">
@@ -153,12 +153,12 @@ const EventDetails = ({ event, user }) => {
               {earnedPoints > 0 ? (
                 <div className="loyalty-banner">
                   <span>BENEFICIU LOIALITATE</span>
-                  <p>Castigi +{earnedPoints} puncte cu aceasta achizitie pentru reduceri viitoare.</p>
+                  <p>Câștigi +{earnedPoints} puncte cu această achiziție pentru reduceri viitoare.</p>
                 </div>
               ) : null}
 
               <div className="booking-total">
-                <span>Total de plata</span>
+                <span>Total de plată</span>
                 <strong>{totalPrice.toFixed(2)} RON</strong>
               </div>
 
@@ -166,13 +166,13 @@ const EventDetails = ({ event, user }) => {
                 {isSoldOut ? 'SOLD OUT' : 'REZERVA LOCUL ACUM'}
               </button>
 
-              <p className="booking-safe-note">PLATA SECURIZATA · CONFIRMARE INSTANTA</p>
+              <p className="booking-safe-note">PLATĂ SECURIZATĂ · CONFIRMARE INSTANTĂ</p>
             </div>
 
             {remainingTickets !== null && remainingTickets > 0 && remainingTickets < 100 ? (
               <div className="scarcity-card">
                 <span>!</span>
-                <p>Doar {remainingTickets} bilete ramase la acest pret. Asigura-ti prezenta in centrul actiunii.</p>
+                <p>Doar {remainingTickets} bilete rămase la acest pret. Asigură-ți prezența în centrul acțiunii.</p>
               </div>
             ) : null}
           </aside>
