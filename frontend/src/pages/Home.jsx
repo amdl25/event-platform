@@ -372,7 +372,6 @@ const Home = ({ user }) => {
           return accumulator;
         }, {});
 
-        const userCity = String(user?.city || user?.location || '').toLowerCase();
         const tomorrowLocalDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
         const tomorrowLocalKey = toLocalDateKey(tomorrowLocalDate);
 
@@ -402,13 +401,6 @@ const Home = ({ user }) => {
             const reasons = [];
             const contributions = [];
             const urgencyBoost = getUrgencyBoost(eventStart, now);
-
-            if (userCity && String(event.location || '').toLowerCase().includes(userCity)) {
-              const points = 3;
-              score += points;
-              contributions.push({ label: 'Oraș', points, detail: `Locație compatibilă: ${event.location || 'fără locație'}` });
-              reasons.push(`Match pe oraș (+3): ${event.location || 'fără locație'}`);
-            }
 
             if (onboardingInterestMatches > 0) {
               const points = 10;
@@ -457,13 +449,6 @@ const Home = ({ user }) => {
               reasons.push(`Urgență temporală (+${urgencyBoost})`);
             }
 
-            if (Number(event.price || 0) === 0) {
-              const points = 1;
-              score += points;
-              contributions.push({ label: 'Preț', points, detail: 'Eveniment gratuit' });
-              reasons.push('Eveniment gratuit (+1)');
-            }
-
             return {
               event,
               score,
@@ -474,7 +459,6 @@ const Home = ({ user }) => {
                 onboardingInterestMatches,
                 purchaseSignalScore,
                 recentClickSignalScore,
-                userCity,
               },
             };
           })
