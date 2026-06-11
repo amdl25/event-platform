@@ -50,7 +50,7 @@ const DiscoveryFeed = () => {
                 setEvents(Array.isArray(response.data) ? response.data : []);
             })
             .catch((err) => {
-                console.error("Eroare la încărcarea evenimentelor:", err);
+                console.error("Eroare la încarcarea evenimentelor:", err);
             })
             .finally(() => setLoading(false));
     }, []);
@@ -129,7 +129,6 @@ const DiscoveryFeed = () => {
                     <div className="filters-header-row">
                         <h2>Evenimente viitoare</h2>
                         <div className="filters-row">
-                            
                             <div className="filter-pill-container">
                                 <CustomDropdown
                                     value={filters.weekday}
@@ -143,7 +142,6 @@ const DiscoveryFeed = () => {
                                     ariaLabel="Filtru dată"
                                 />
                             </div>
-
                             <div className="filter-pill-container">
                                 <CustomDropdown
                                     value={filters.category}
@@ -157,7 +155,6 @@ const DiscoveryFeed = () => {
                                     ariaLabel="Filtru categorie"
                                 />
                             </div>
-
                             <div className="filter-pill-container">
                                 <CustomDropdown
                                     value={filters.price}

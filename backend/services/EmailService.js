@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import { generateTicketsPdfBuffer, sanitizePdfFilename } from './TicketPdfService.js';
 
 const configureEmailClient = () => {
-  const emailPassword = process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS;
+  const emailPassword = process.env.EMAIL_PASS;
 
   if (process.env.EMAIL_USER && emailPassword) {
     return nodemailer.createTransport({
@@ -10,18 +10,6 @@ const configureEmailClient = () => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: emailPassword,
-      },
-    });
-  }
-
-  if (process.env.SMTP_HOST) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
       },
     });
   }

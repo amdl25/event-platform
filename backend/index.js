@@ -31,12 +31,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/events', eventRoutes);
-console.log("Rutele de Auth sunt încărcate la /auth");
 app.use('/auth', authRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/organizer', organizerRoutes);
+
 
 app.use((error, req, res, next) => {
   console.error('Unhandled backend error:', error);
@@ -49,12 +49,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('Conectare reusita la baza de date');
 
-    await sequelize.query(`DROP TABLE IF EXISTS audit_log CASCADE;`);
-    console.log('Tabelul audit_log a fost eliminat (acum în fișiere)');
-    
-    await sequelize.query(`DROP TABLE IF EXISTS platform_setting CASCADE;`);
-    console.log('Tabelul platform_setting a fost eliminat (acum în fișiere)');
+  
 
+    
     const [walletIdExists] = await sequelize.query(`
       SELECT column_name FROM information_schema.columns 
       WHERE table_name = 'loyalty_wallet' AND column_name = 'id' LIMIT 1;

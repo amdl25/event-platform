@@ -41,7 +41,6 @@ export const recordEventCategoryClick = (event) => {
   );
 
   if (categories.length === 0) return;
-
   const history = safeParse(storage.getItem(RECENT_CATEGORY_CLICKS_KEY)).filter(isValidEntry);
   history.push({
     eventId: event?.id || null,

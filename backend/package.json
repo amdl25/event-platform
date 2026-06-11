@@ -27,6 +27,7 @@
     "pdfkit": "^0.18.0",
     "pg": "^8.19.0",
     "pg-hstore": "^2.3.4",
+    "redis": "^6.0.0",
     "sequelize": "^6.37.7",
     "streamifier": "^0.1.1",
     "stripe": "^22.0.1"

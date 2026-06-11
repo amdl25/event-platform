@@ -1,10 +1,9 @@
 import { Link, NavLink } from 'react-router-dom';
-import { FiBell, FiCalendar, FiLogOut, FiSearch, FiSettings, FiUsers } from 'react-icons/fi';
+import { FiBell, FiCalendar, FiLogOut, FiSearch, FiSettings } from 'react-icons/fi';
 import '../styles/OrganizerDashboard.css';
 
 const navItems = [
   { to: '/organizer/events', label: 'Evenimentele mele', icon: FiCalendar },
-  { to: '/organizer/participants', label: 'Participanți', icon: FiUsers },
   { to: '/organizer/settings', label: 'Setări', icon: FiSettings }
 ];
 

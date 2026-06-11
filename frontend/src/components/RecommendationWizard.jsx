@@ -285,24 +285,18 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
 
     const { results, fallbackType, fallbackMessage } = payload;
 
-    sessionStorage.setItem('recommendationResults', JSON.stringify(results));
-    sessionStorage.setItem('recommendationFilters', JSON.stringify({
-      city: selectedCity,
-      categories: selectedCategoryIds,
-      budget: selectedBudget,
-      when: activeWhen
-    }));
-    sessionStorage.setItem('recommendationFallback', JSON.stringify({
-      type: fallbackType,
-      message: fallbackMessage
-    }));
-
     onClose();
     navigate('/recommendations', {
       state: {
         results,
         fallbackType,
-        fallbackMessage
+        fallbackMessage,
+        filters: {
+          city: selectedCity,
+          categories: selectedCategoryIds,
+          budget: selectedBudget,
+          when: activeWhen
+        }
       }
     });
   };

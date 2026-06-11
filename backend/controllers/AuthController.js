@@ -52,7 +52,7 @@ export const register = async (req, res) => {
 
     const existingUser = await Account.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(409).json({ message: 'Există deja un cont cu acest email.' });
+      return res.status(409).json({ message: 'Exista deja un cont cu acest email.' });
     }
 
     const salt = await bcrypt.genSalt(10);

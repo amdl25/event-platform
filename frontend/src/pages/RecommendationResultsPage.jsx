@@ -97,32 +97,11 @@ const RecommendationResultsPage = () => {
     const navigate = useNavigate();
 
     const stateResults = Array.isArray(location.state?.results) ? location.state.results : [];
-    const fallbackType = location.state?.fallbackType || (() => {
-        try {
-            const raw = sessionStorage.getItem('recommendationFallback');
-            return raw ? JSON.parse(raw)?.type || 'strict' : 'strict';
-        } catch {
-            return 'strict';
-        }
-    })();
-    const fallbackMessage = location.state?.fallbackMessage || (() => {
-        try {
-            const raw = sessionStorage.getItem('recommendationFallback');
-            return raw ? JSON.parse(raw)?.message || '' : '';
-        } catch {
-            return '';
-        }
-    })();
-    const cachedResults = (() => {
-        try {
-            const raw = sessionStorage.getItem('recommendationResults');
-            return raw ? JSON.parse(raw) : [];
-        } catch {
-            return [];
-        }
-    })();
+    const fallbackType = location.state?.fallbackType || 'strict';
+    const fallbackMessage = location.state?.fallbackMessage || '';
+    const stateFilters = location.state?.filters || null;
 
-    const results = stateResults.length > 0 ? stateResults : cachedResults;
+    const results = stateResults;
     const [liveResults, setLiveResults] = useState(results);
     const [liveFallbackType, setLiveFallbackType] = useState(fallbackType);
     const [liveFallbackMessage, setLiveFallbackMessage] = useState(fallbackMessage);
@@ -130,19 +109,12 @@ const RecommendationResultsPage = () => {
 
     const refreshResults = async () => {
         try {
-            let filters = null;
-
-            try {
-                const rawFilters = sessionStorage.getItem('recommendationFilters');
-                filters = rawFilters ? JSON.parse(rawFilters) : null;
-            } catch {
-                filters = null;
-            }
+            const filters = stateFilters;
 
             if (!filters) {
                 setLiveResults([]);
                 setLiveFallbackType('none');
-                setLiveFallbackMessage('Nu mai avem filtre salvate. Reia căutarea din wizard pentru recomandări noi.');
+                setLiveFallbackMessage('Reia căutarea din wizard pentru recomandări noi.');
                 return;
             }
 
@@ -231,11 +203,6 @@ const RecommendationResultsPage = () => {
                 setLiveResults(finalResults);
                 setAllEvents(allEventsToShow);
                 setLiveFallbackType(nextType);
-            sessionStorage.setItem('recommendationResults', JSON.stringify(finalResults));
-            sessionStorage.setItem('recommendationFallback', JSON.stringify({
-                type: nextType,
-                message: nextMessage
-            }));
         } catch {
         }
     };
