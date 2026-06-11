@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FiClock, FiDollarSign, FiEdit2, FiEye, FiImage, FiMapPin, FiPlus, FiShoppingBag, FiTrash2, FiTrendingUp } from 'react-icons/fi';
 import API from '../api';
 import OrganizerShell from '../components/OrganizerShell';
+import EventPreviewModal from '../components/EventPreviewModal';
 import '../styles/OrganizerDashboard.css';
 
 const toLocalDateInput = (date) => {
@@ -184,6 +185,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 		soldTickets: 0,
 		activeEvents: 0
 	});
+	const [previewEvent, setPreviewEvent] = useState(null);
 	const [activeTimeMenu, setActiveTimeMenu] = useState(null);
 	const startMenuRef = useRef(null);
 	const endMenuRef = useRef(null);
@@ -523,7 +525,8 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	};
 
 	const handleViewEvent = (eventId) => {
-		navigate(`/event/${eventId}`);
+		const found = events.find((e) => e.id === eventId);
+		if (found) setPreviewEvent(found);
 	};
 
 	const handleEditEvent = (eventId) => {
@@ -1139,6 +1142,10 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 						</form>
 					</div>
 				</div>
+			) : null}
+
+			{previewEvent ? (
+				<EventPreviewModal event={previewEvent} onClose={() => setPreviewEvent(null)} />
 			) : null}
 		</>
 	);
