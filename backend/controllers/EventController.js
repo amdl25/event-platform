@@ -204,7 +204,7 @@ export const getAllEvents = async (req, res) => {
         return false;
       }
 
-      if (event.moderation_status === 'hidden') {
+      if (event.moderation_status === 'hidden' || event.moderation_status === 'reported') {
         return requesterRole === 'admin' || (requesterId && event.creator_id === requesterId);
       }
 
@@ -359,6 +359,10 @@ export const updateEvent = async (req, res) => {
 
     if (requestedStatus && !allowedOrganizerStatuses.includes(requestedStatus)) {
       return res.status(400).json({ message: 'Status invalid pentru eveniment.' });
+    }
+
+    if (requestedStatus === 'published' && event.moderation_status === 'reported') {
+      return res.status(403).json({ message: 'Evenimentul este blocat de administrator. Contactează adminul sau modifică evenimentul pentru deblocare.' });
     }
     const normalizedCategoryIds = Array.isArray(category_ids)
       ? category_ids.filter(Boolean)

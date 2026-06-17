@@ -1,5 +1,6 @@
-import { Link, NavLink } from 'react-router-dom';
-import { FiBell, FiGrid, FiList, FiLogOut, FiMenu, FiPieChart, FiShield, FiSettings, FiUsers } from 'react-icons/fi';
+import { useState, useRef, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { FiBell, FiGrid, FiList, FiLogOut, FiMenu, FiShield, FiSettings, FiUsers } from 'react-icons/fi';
 import '../styles/AdminPanel.css';
 
 const navItems = [
@@ -8,11 +9,42 @@ const navItems = [
   { to: '/admin/organizations', label: 'Organizatori', icon: FiList },
   { to: '/admin/participants', label: 'Participanți', icon: FiUsers },
   { to: '/admin/events', label: 'Evenimente', icon: FiMenu },
-  { to: '/admin/reports', label: 'Rapoarte', icon: FiPieChart },
   { to: '/admin/settings', label: 'Setări', icon: FiSettings }
 ];
 
-const AdminShell = ({ handleLogout, title, subtitle, children, actions = null, notificationsCount = 0 }) => {
+const formatRelativeTime = (dateString) => {
+  const diff = Date.now() - new Date(dateString).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Acum';
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}z`;
+};
+
+const AdminShell = ({ handleLogout, title, subtitle, children, actions = null, notificationsCount = 0, notifications = [] }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  const count = notifications.length > 0 ? notifications.length : notificationsCount;
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleNotifClick = (notif) => {
+    setDropdownOpen(false);
+    if (notif.type === 'organization') navigate('/admin/verification-queue');
+    else if (notif.type === 'event') navigate('/admin/events');
+  };
+
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -50,10 +82,45 @@ const AdminShell = ({ handleLogout, title, subtitle, children, actions = null, n
           </div>
 
           <div className="admin-topbar-right">
-            <button type="button" className="admin-notification-button" aria-label="Notificări">
-              <FiBell />
-              {notificationsCount > 0 ? <span>{notificationsCount > 9 ? '9+' : notificationsCount}</span> : null}
-            </button>
+            <div className="admin-notif-wrapper" ref={dropdownRef}>
+              <button
+                type="button"
+                className="admin-notification-button"
+                aria-label="Notificări"
+                onClick={() => setDropdownOpen((prev) => !prev)}
+              >
+                <FiBell />
+                {count > 0 ? <span>{count > 9 ? '9+' : count}</span> : null}
+              </button>
+
+              {dropdownOpen ? (
+                <div className="admin-notif-dropdown">
+                  <div className="admin-notif-header">
+                    <strong>Notificări</strong>
+                  </div>
+                  {notifications.length === 0 && count === 0 ? (
+                    <p className="admin-notif-empty">Nicio notificare momentan.</p>
+                  ) : notifications.length === 0 ? (
+                    <p className="admin-notif-empty">Navighează la pagina relevantă pentru detalii.</p>
+                  ) : (
+                    <ul className="admin-notif-list">
+                      {notifications.map((notif) => (
+                        <li key={notif.id} className="admin-notif-item admin-notif-item-clickable" onClick={() => handleNotifClick(notif)}>
+                          <span className="admin-notif-icon">
+                            <FiShield color="#f59e0b" />
+                          </span>
+                          <div className="admin-notif-body">
+                            <strong>{notif.title}</strong>
+                            <p>{notif.message}</p>
+                            <time>{formatRelativeTime(notif.createdAt)}</time>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 

@@ -8,7 +8,6 @@ import {
   getEventsAdmin,
   getOrganizationsAdmin,
   getParticipantsAdmin,
-  getReportsAdmin,
   getSettingsAdmin,
   moderateEvent,
   updateCategoryAdmin,
@@ -26,7 +25,6 @@ router.patch('/organizations/:id/status', updateOrganizationStatus);
 router.get('/participants', getParticipantsAdmin);
 router.get('/events', getEventsAdmin);
 router.patch('/events/:id/moderation', moderateEvent);
-router.get('/reports', getReportsAdmin);
 router.get('/settings', getSettingsAdmin);
 router.patch('/settings', updateSettingsAdmin);
 router.get('/audit-log', getAuditLogAdmin);

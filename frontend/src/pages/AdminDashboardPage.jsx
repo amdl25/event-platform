@@ -141,11 +141,7 @@ const AdminDashboardPage = ({ user, handleLogout }) => {
     return `conic-gradient(${stops.join(', ')})`;
   }, [donutSegmentsList]);
 
-  const actions = (
-    <span className="admin-badge-pill warning">
-      <FiClock /> {summary?.stats?.pendingRequests || 0} cereri în așteptare
-    </span>
-  );
+  const actions = null;
 
   if (loading) {
     return null;
@@ -174,6 +170,7 @@ const AdminDashboardPage = ({ user, handleLogout }) => {
       subtitle="Privire de ansamblu asupra platformei"
       actions={actions}
       notificationsCount={summary?.stats?.notificationsCount || 0}
+      notifications={summary?.notifications || []}
     >
       {error ? <div className="admin-card admin-badge-pill danger">{error}</div> : null}
 
@@ -363,10 +360,9 @@ const AdminDashboardPage = ({ user, handleLogout }) => {
                   </div>
                 </div>
                 <div style={{ minWidth: 96, textAlign: 'right' }}>
-                  <span className={`admin-pill ${event.status === 'hidden' ? 'danger' : event.status === 'reported' ? 'warning' : 'success'}`}>
+                  <span className={`admin-pill ${event.status === 'hidden' || event.status === 'reported' ? 'danger' : 'success'}`}>
                     {event.occupancy}/{event.capacity || 0}
                   </span>
-                  <p className="admin-list-subtitle" style={{ marginTop: '8px' }}>{event.reports} raportări</p>
                 </div>
               </div>
             ))}

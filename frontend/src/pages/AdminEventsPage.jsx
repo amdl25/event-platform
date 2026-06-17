@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FiAlertTriangle, FiCalendar, FiEye, FiEyeOff, FiFlag, FiSearch } from 'react-icons/fi';
+import { FiCalendar, FiEye, FiSearch, FiSlash } from 'react-icons/fi';
 import API from '../api';
 import AdminShell from '../components/AdminShell';
 
@@ -32,8 +32,7 @@ const AdminEventsPage = ({ user, handleLogout }) => {
   const stats = useMemo(() => ({
     total: events.length,
     published: events.filter((item) => item.moderationStatus === 'published').length,
-    reported: events.filter((item) => item.moderationStatus === 'reported' || item.reportCount > 0).length,
-    hidden: events.filter((item) => item.moderationStatus === 'hidden').length
+    blocked: events.filter((item) => item.moderationStatus === 'reported').length,
   }), [events]);
 
   const filtered = events.filter((item) => {
@@ -65,16 +64,14 @@ const AdminEventsPage = ({ user, handleLogout }) => {
       <section className="admin-grid-4">
         <div className="admin-card compact"><div className="admin-stat"><div><label>TOTAL</label><strong>{stats.total}</strong></div><div className="admin-stat-icon blue"><FiCalendar /></div></div></div>
         <div className="admin-card compact"><div className="admin-stat"><div><label>PUBLICE</label><strong className="admin-text green">{stats.published}</strong></div><div className="admin-stat-icon green"><FiEye /></div></div></div>
-        <div className="admin-card compact"><div className="admin-stat"><div><label>RAPORTATE</label><strong className="admin-text orange">{stats.reported}</strong></div><div className="admin-stat-icon orange"><FiFlag /></div></div></div>
-        <div className="admin-card compact"><div className="admin-stat"><div><label>ASCUNSE</label><strong className="admin-text red">{stats.hidden}</strong></div><div className="admin-stat-icon red"><FiEyeOff /></div></div></div>
+        <div className="admin-card compact"><div className="admin-stat"><div><label>BLOCATE</label><strong className="admin-text red">{stats.blocked}</strong></div><div className="admin-stat-icon red"><FiSlash /></div></div></div>
       </section>
 
       <div className="admin-toolbar">
         <div className="admin-tabs">
           <button type="button" className={`admin-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>Toate</button>
           <button type="button" className={`admin-tab${activeTab === 'published' ? ' active' : ''}`} onClick={() => setActiveTab('published')}>Publicat</button>
-          <button type="button" className={`admin-tab${activeTab === 'reported' ? ' active' : ''}`} onClick={() => setActiveTab('reported')}>Raportat</button>
-          <button type="button" className={`admin-tab${activeTab === 'hidden' ? ' active' : ''}`} onClick={() => setActiveTab('hidden')}>Ascuns</button>
+          <button type="button" className={`admin-tab${activeTab === 'reported' ? ' active' : ''}`} onClick={() => setActiveTab('reported')}>Blocat</button>
         </div>
         <div className="admin-search" style={{ width: 'min(460px, 100%)' }}>
           <FiSearch className="admin-search-icon" />
@@ -120,12 +117,15 @@ const AdminEventsPage = ({ user, handleLogout }) => {
                     <div className="admin-progress"><span style={{ width: `${event.occupancyRate}%` }} /></div>
                   </div>
                 </td>
-                <td><span className={`admin-pill ${event.moderationStatus === 'hidden' ? 'danger' : event.moderationStatus === 'reported' ? 'warning' : 'success'}`}>{event.moderationStatus}</span></td>
+                <td>
+                  <span className={`admin-pill ${event.moderationStatus === 'reported' ? 'danger' : event.moderationStatus === 'hidden' ? 'warning' : 'success'}`}>
+                    {event.moderationStatus === 'reported' ? 'Blocat' : event.moderationStatus === 'hidden' ? 'Draft' : 'Publicat'}
+                  </span>
+                </td>
                 <td>
                   <div className="admin-actions">
-                    <button type="button" className="admin-action-button success" onClick={() => moderate(event.id, 'published')} disabled={processingId === event.id}><FiEye /> Publică</button>
-                    <button type="button" className="admin-action-button warning" onClick={() => moderate(event.id, 'reported')} disabled={processingId === event.id}><FiAlertTriangle /> Raportează</button>
-                    <button type="button" className="admin-action-button danger" onClick={() => moderate(event.id, 'hidden')} disabled={processingId === event.id}><FiEyeOff /> Ascunde</button>
+                    {event.moderationStatus !== 'published' ? <button type="button" className="admin-action-button success" onClick={() => moderate(event.id, 'published')} disabled={processingId === event.id}><FiEye /> Publică</button> : null}
+                    {event.moderationStatus !== 'reported' ? <button type="button" className="admin-action-button danger" onClick={() => moderate(event.id, 'reported')} disabled={processingId === event.id}><FiSlash /> Blochează</button> : null}
                   </div>
                 </td>
               </tr>

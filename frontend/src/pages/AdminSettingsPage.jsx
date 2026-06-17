@@ -157,37 +157,6 @@ const AdminSettingsPage = ({ user, handleLogout }) => {
           </div>
         </div>
 
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <div>
-              <h2>Verificări și notificări</h2>
-              <p className="admin-card-subtitle">Aici poți lega praguri și reguli interne</p>
-            </div>
-          </div>
-          <div className="admin-list">
-            <div className="admin-list-item">
-              <div>
-                <p className="admin-list-title">Cererile noi intră în coadă</p>
-                <p className="admin-list-subtitle">Notificare automată pentru fiecare organizator nou</p>
-              </div>
-              <span className="admin-pill success">Activ</span>
-            </div>
-            <div className="admin-list-item">
-              <div>
-                <p className="admin-list-title">Evenimente raportate</p>
-                <p className="admin-list-subtitle">Apar în Dashboard și în Raportări</p>
-              </div>
-              <span className="admin-pill warning">Activ</span>
-            </div>
-            <div className="admin-list-item">
-              <div>
-                <p className="admin-list-title">Audit log</p>
-                <p className="admin-list-subtitle">Se păstrează acțiunile adminului</p>
-              </div>
-              <span className="admin-pill info">Activ</span>
-            </div>
-          </div>
-        </div>
       </section>
     </AdminShell>
   );

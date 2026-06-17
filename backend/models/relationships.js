@@ -78,13 +78,13 @@ Event.hasMany(TicketType, { foreignKey: 'event_id', as: 'ticketTypes' });
 TicketType.belongsTo(Event, { foreignKey: 'event_id' });
 
 
-export { 
-  Account, 
-  Organization, 
-  Event, 
-  Participation, 
-  Category, 
-  LoyaltyWallet, 
+export {
+  Account,
+  Organization,
+  Event,
+  Participation,
+  Category,
+  LoyaltyWallet,
   LoyaltyTransaction,
   TicketType
 };

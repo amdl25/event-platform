@@ -1,16 +1,55 @@
 [
   {
-    "id": "dd432e5b-196d-4a18-9693-a7bd36f8a796",
+    "id": "dae576ef-3226-4af5-aaf8-b3a4816098de",
     "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
     "actor_role": "admin",
-    "action": "event_hidden",
+    "action": "event_reported",
     "entity_type": "event",
-    "entity_id": "dbb18e9d-e8da-470b-a459-560e1e084328",
+    "entity_id": "a9c6e53e-2fe6-4b35-b5c9-fd4c0f759d43",
+    "details": {
+      "title": "Street Food Festival",
+      "moderationStatus": "reported"
+    },
+    "createdAt": "2026-06-11T11:38:26.367Z"
+  },
+  {
+    "id": "f32cfbd9-0778-417c-99e2-1d696788ead5",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_published",
+    "entity_type": "event",
+    "entity_id": "748d22a7-de47-4f4f-aba5-ae5a97714f48",
     "details": {
       "title": "Smoke Test Event",
-      "moderationStatus": "hidden"
+      "moderationStatus": "published"
     },
-    "createdAt": "2026-05-27T18:24:46.966Z"
+    "createdAt": "2026-06-11T11:37:05.400Z"
+  },
+  {
+    "id": "a9d071a8-47dd-49a5-9f47-543c79bc7ce8",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_reported",
+    "entity_type": "event",
+    "entity_id": "748d22a7-de47-4f4f-aba5-ae5a97714f48",
+    "details": {
+      "title": "Smoke Test Event",
+      "moderationStatus": "reported"
+    },
+    "createdAt": "2026-06-11T11:37:00.447Z"
+  },
+  {
+    "id": "45757ef6-442e-4275-913a-b731c5c08c4c",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "organization_suspended",
+    "entity_type": "organization",
+    "entity_id": "6962e178-354c-4e06-ad46-ff187c9d484a",
+    "details": {
+      "name": "Smoke Org",
+      "adminStatus": "suspended"
+    },
+    "createdAt": "2026-06-11T11:24:04.613Z"
   },
   {
     "id": "c0fbd42f-83df-4ab5-9f53-29e117997b44",
@@ -24,5 +63,31 @@
       "moderationStatus": "hidden"
     },
     "createdAt": "2026-05-27T18:24:52.682Z"
+  },
+  {
+    "id": "dd432e5b-196d-4a18-9693-a7bd36f8a796",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_hidden",
+    "entity_type": "event",
+    "entity_id": "dbb18e9d-e8da-470b-a459-560e1e084328",
+    "details": {
+      "title": "Smoke Test Event",
+      "moderationStatus": "hidden"
+    },
+    "createdAt": "2026-05-27T18:24:46.966Z"
+  },
+  {
+    "id": "6861eb99-4405-4cce-b3a2-90d4d8a86d87",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_published",
+    "entity_type": "event",
+    "entity_id": "a9c6e53e-2fe6-4b35-b5c9-fd4c0f759d43",
+    "details": {
+      "title": "Street Food Festival",
+      "moderationStatus": "published"
+    },
+    "createdAt": "2026-06-17T12:49:12.055Z"
   }
 ]

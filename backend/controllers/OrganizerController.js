@@ -1,4 +1,5 @@
 import { Account, Event, Organization, Participation, LoyaltyWallet, LoyaltyTransaction } from '../models/relationships.js';
+import { getNotificationsForAccount, markAllNotificationsRead } from '../utils/fileStorage.js';
 import sequelize from '../config/database.js';
 
 const formatPersonName = (firstName, lastName, fallback = 'Utilizator') => `${firstName || ''} ${lastName || ''}`.trim() || fallback;
@@ -319,6 +320,29 @@ export const toggleParticipantCheckIn = async (req, res) => {
     }
 
     return res.json({ message: 'Status actualizat.', status: participation.status, points: awardedPoints });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getOrganizerNotifications = (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    const notifications = getNotificationsForAccount(accountId);
+    return res.json({
+      notifications,
+      unreadCount: notifications.filter((n) => !n.read).length
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const markNotificationsRead = (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    markAllNotificationsRead(accountId);
+    return res.json({ message: 'Notificările au fost marcate ca citite.' });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

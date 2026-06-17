@@ -62,6 +62,9 @@ const statusLabel = (event) => {
 	const end = event.end_date ? new Date(event.end_date) : null;
 
 	if (end && end < now) return { text: 'Încheiat', className: 'ended' };
+	if (event.moderation_status === 'reported') {
+		return { text: 'Blocat de Admin', className: 'admin-blocked' };
+	}
 	if (event.moderation_status === 'hidden') {
 		return { text: 'Draft', className: 'draft' };
 	}
@@ -180,12 +183,15 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	const [locationSuggestions, setLocationSuggestions] = useState([]);
 	const [remoteLocationSuggestions, setRemoteLocationSuggestions] = useState([]);
 	const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] = useState(false);
+	const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
 	const [overviewStats, setOverviewStats] = useState({
 		totalRevenue: 0,
 		soldTickets: 0,
 		activeEvents: 0
 	});
 	const [previewEvent, setPreviewEvent] = useState(null);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [notifications, setNotifications] = useState([]);
 	const [activeTimeMenu, setActiveTimeMenu] = useState(null);
 	const startMenuRef = useRef(null);
 	const endMenuRef = useRef(null);
@@ -245,6 +251,12 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 				console.error('Eroare dashboard:', error);
 			} finally {
 				setLoading(false);
+			}
+
+			try {
+				const notifRes = await API.get('/organizer/notifications');
+				setNotifications(notifRes.data?.notifications || []);
+			} catch {
 			}
 		};
 		loadData();
@@ -317,6 +329,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 
 	const handleCreateFormChange = (field, value) => {
 		setEventForm((prev) => ({ ...prev, [field]: value }));
+		if (field === 'location') setLocationDropdownOpen(true);
 	};
 
 	const handleTicketTypeChange = (ticketTypeId, field, value) => {
@@ -484,6 +497,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	const handleLocationSelect = (locationValue) => {
 		setEventForm((prev) => ({ ...prev, location: normalizeAddressLabel(locationValue) }));
 		setRemoteLocationSuggestions([]);
+		setLocationDropdownOpen(false);
 	};
 
 	const handleOpenCreateModal = () => {
@@ -518,9 +532,20 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	const handleCloseCreateModal = () => {
 		setShowCreateModal(false);
 		setEditingEventId('');
+		setLocationDropdownOpen(false);
 
 		if (new URLSearchParams(location.search).has('editEvent')) {
 			navigate('/organizer/events', { replace: true });
+		}
+	};
+
+	const handleMarkNotificationsRead = async () => {
+		const hasUnread = notifications.some((n) => !n.read);
+		if (!hasUnread) return;
+		try {
+			await API.patch('/organizer/notifications/read-all');
+			setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+		} catch {
 		}
 	};
 
@@ -715,17 +740,27 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	const formatMoney = (value) => `${Number(value || 0).toFixed(0)} RON`;
 
 	const filteredEvents = useMemo(() => {
-		if (activeTab === 'all') return events;
-		if (activeTab === 'published') return events.filter((event) => statusLabel(event).text === 'Publicat');
-		if (activeTab === 'draft') return events.filter((event) => statusLabel(event).text === 'Draft');
-		if (activeTab === 'ended') return events.filter((event) => statusLabel(event).text === 'Încheiat');
-		return events;
-	}, [activeTab, events]);
+		let result = events;
+		if (activeTab === 'published') result = events.filter((event) => statusLabel(event).text === 'Publicat');
+		else if (activeTab === 'draft') result = events.filter((event) => statusLabel(event).text === 'Draft');
+		else if (activeTab === 'ended') result = events.filter((event) => statusLabel(event).text === 'Încheiat');
+		else if (activeTab === 'blocked') result = events.filter((event) => statusLabel(event).className === 'admin-blocked');
+
+		const query = normalizeText(searchQuery);
+		if (!query) return result;
+
+		return result.filter((event) => (
+			normalizeText(event.title)?.includes(query)
+			|| normalizeText(event.location)?.includes(query)
+			|| normalizeText(event.description)?.includes(query)
+		));
+	}, [activeTab, events, searchQuery]);
 
 	const emptyStateMessage = useMemo(() => {
 		if (activeTab === 'published') return 'Nu ai evenimente publicate în acest moment.';
 		if (activeTab === 'draft') return 'Nu ai drafturi salvate momentan.';
 		if (activeTab === 'ended') return 'Nu ai evenimente încheiate.';
+		if (activeTab === 'blocked') return 'Niciun eveniment blocat de administrator.';
 		return 'Nu ai evenimente încă. Creează primul eveniment nou.';
 	}, [activeTab]);
 
@@ -747,7 +782,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 
 	return (
 		<>
-			<OrganizerShell user={user} handleLogout={handleLogout} title="Evenimentele mele" subtitle={`${totalEvents} evenimente total`} actions={actions}>
+			<OrganizerShell user={user} handleLogout={handleLogout} title="Evenimentele mele" subtitle={`${totalEvents} evenimente total`} actions={actions} searchValue={searchQuery} onSearchChange={setSearchQuery} notifications={notifications} onBellClick={handleMarkNotificationsRead}>
 			<section className="organizer-stat-grid organizer-status-row" style={{ marginTop: 0 }}>
 				<div className="organizer-stat-card compact">
 					<div className="organizer-stat-info">
@@ -778,6 +813,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 					<button type="button" className={`organizer-tab${activeTab === 'published' ? ' active' : ''}`} onClick={() => setActiveTab('published')}>Publicate</button>
 					<button type="button" className={`organizer-tab${activeTab === 'draft' ? ' active' : ''}`} onClick={() => setActiveTab('draft')}>Draft</button>
 					<button type="button" className={`organizer-tab${activeTab === 'ended' ? ' active' : ''}`} onClick={() => setActiveTab('ended')}>Încheiate</button>
+					<button type="button" className={`organizer-tab${activeTab === 'blocked' ? ' active' : ''}`} onClick={() => setActiveTab('blocked')}>Blocate</button>
 				</div>
 			</div>
 
@@ -792,7 +828,12 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 								: 0;
 							const status = statusLabel(event);
 							return (
-								<article key={event.id} className="event-row-new">
+								<article key={event.id} className={`event-row-new${status.className === 'admin-blocked' ? ' event-row-blocked' : ''}`}>
+									{status.className === 'admin-blocked' ? (
+										<div className="event-admin-blocked-banner">
+											Eveniment blocat de administrator — nu poate fi republicat fără aprobare
+										</div>
+									) : null}
 									<div className={`event-accent ${status.className}`} />
 									<div className="event-info-cell">
 										<div className="event-info-main">
@@ -912,11 +953,13 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 											type="text"
 											value={eventForm.location}
 											onChange={(event) => handleCreateFormChange('location', event.target.value)}
+											onFocus={() => { if (eventForm.location.trim()) setLocationDropdownOpen(true); }}
+											onBlur={() => setLocationDropdownOpen(false)}
 											placeholder="ex: Hub-ul Digital, Str. Lipscani 45, București"
 											autoComplete="off"
 											required
 										/>
-										{eventForm.location.trim() ? (
+										{locationDropdownOpen && eventForm.location.trim() ? (
 											<div className="organizer-location-suggestions" role="listbox" aria-label="Sugestii locație">
 												{isLoadingLocationSuggestions ? (
 													<p className="organizer-location-suggestion-empty">Căutăm adrese reale în România...</p>
@@ -1126,6 +1169,9 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 							</div>
 
 							<div className="organizer-create-modal-footer">
+								{editingEventId && events.find((e) => e.id === editingEventId)?.moderation_status === 'reported' ? (
+									<p className="organizer-create-blocked-note">Blocat de admin — salvează modificările ca draft și contactează administratorul pentru deblocare.</p>
+								) : null}
 								<button type="button" className="organizer-create-cancel" onClick={handleCloseCreateModal}>Anulează</button>
 								<button
 									type="button"
@@ -1135,7 +1181,11 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 								>
 									{isSubmittingEvent ? 'Se salvează...' : 'Salvează draft'}
 								</button>
-								<button type="submit" className="organizer-create-submit" disabled={isSubmittingEvent || categories.length === 0}>
+								<button
+									type="submit"
+									className="organizer-create-submit"
+									disabled={isSubmittingEvent || categories.length === 0 || (editingEventId && events.find((e) => e.id === editingEventId)?.moderation_status === 'reported')}
+								>
 									{isSubmittingEvent ? (editingEventId ? 'Se salvează...' : 'Se creează...') : (editingEventId ? 'Publică modificările' : 'Publică evenimentul')}
 								</button>
 							</div>

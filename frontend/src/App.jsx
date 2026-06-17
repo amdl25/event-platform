@@ -27,7 +27,6 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminOrganizationsPage from './pages/AdminOrganizationsPage';
 import AdminParticipantsPage from './pages/AdminParticipantsPage';
 import AdminEventsPage from './pages/AdminEventsPage';
-import AdminReportsPage from './pages/AdminReportsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import StyleGuide from './pages/StyleGuide';
 import { AUTH_TOKEN_STORAGE_KEY } from './api';
@@ -134,7 +133,6 @@ function App() {
             <Route path="/admin/organizations" element={user ? <AdminOrganizationsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/participants" element={user ? <AdminParticipantsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/events" element={user ? <AdminEventsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
-            <Route path="/admin/reports" element={user ? <AdminReportsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/settings" element={user ? <AdminSettingsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/style-guide" element={<StyleGuide />} />
           </Routes>

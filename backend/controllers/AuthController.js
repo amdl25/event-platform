@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
 import { Account, Organization } from '../models/relationships.js';
+import { addNotification } from '../utils/fileStorage.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -226,6 +227,14 @@ export const reviewOrganizerVerification = async (req, res) => {
       admin_status: isApproved ? 'active' : 'suspended'
     });
 
+    addNotification({
+      account_id: organization.owner_id,
+      type: isApproved ? 'verification_approved' : 'verification_rejected',
+      message: isApproved
+        ? `Organizația "${organization.name}" a fost verificată și aprobată. Poți publica evenimente acum.`
+        : `Organizația "${organization.name}" a fost respinsă.${notes?.trim() ? ` Motiv: ${notes.trim()}` : ''}`
+    });
+
     return res.status(200).json({
       message: isApproved ? 'Organizația a fost verificată.' : 'Organizația a fost respinsă.',
       verificationStatus: organization.verification_status,
@@ -305,6 +314,14 @@ export const verifyOrganizationByAdmin = async (req, res) => {
       verification_notes: notes?.trim() || null,
       verified_at: status === 'verified' ? new Date() : null,
       admin_status: status === 'verified' ? 'active' : 'suspended'
+    });
+
+    addNotification({
+      account_id: organization.owner_id,
+      type: status === 'verified' ? 'verification_approved' : 'verification_rejected',
+      message: status === 'verified'
+        ? `Organizația "${organization.name}" a fost verificată și aprobată. Poți publica evenimente acum.`
+        : `Organizația "${organization.name}" a fost respinsă.${notes?.trim() ? ` Motiv: ${notes.trim()}` : ''}`
     });
 
     return res.status(200).json({

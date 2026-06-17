@@ -6,6 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STORAGE_DIR = path.join(__dirname, '../storage');
 const SETTINGS_FILE = path.join(STORAGE_DIR, 'platformSettings.json');
 const AUDIT_LOG_FILE = path.join(STORAGE_DIR, 'auditLogs.json');
+const NOTIFICATIONS_FILE = path.join(STORAGE_DIR, 'notifications.json');
 
 const ensureStorageDir = () => {
   if (!fs.existsSync(STORAGE_DIR)) {
@@ -106,5 +107,64 @@ export const clearAuditLogs = () => {
   } catch (error) {
     console.error('Error clearing audit logs:', error.message);
     return false;
+  }
+};
+
+const readNotifications = () => {
+  try {
+    if (fs.existsSync(NOTIFICATIONS_FILE)) {
+      return JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
+    }
+  } catch (error) {
+    console.error('Error reading notifications:', error.message);
+  }
+  return [];
+};
+
+const writeNotifications = (data) => {
+  ensureStorageDir();
+  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(data, null, 2), 'utf8');
+};
+
+export const addNotification = ({ account_id, type, message }) => {
+  try {
+    const all = readNotifications();
+    const entry = {
+      id: crypto.randomUUID(),
+      account_id,
+      type,
+      message,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    all.push(entry);
+    writeNotifications(all);
+    return entry;
+  } catch (error) {
+    console.error('Error adding notification:', error.message);
+    return null;
+  }
+};
+
+export const getNotificationsForAccount = (account_id, limit = 20) => {
+  try {
+    const all = readNotifications();
+    return all
+      .filter((n) => n.account_id === account_id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error getting notifications:', error.message);
+    return [];
+  }
+};
+
+export const markAllNotificationsRead = (account_id) => {
+  try {
+    const all = readNotifications();
+    const updated = all.map((n) => n.account_id === account_id ? { ...n, read: true } : n);
+    writeNotifications(updated);
+  } catch (error) {
+    console.error('Error marking notifications read:', error.message);
   }
 };

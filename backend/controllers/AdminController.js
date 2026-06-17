@@ -145,7 +145,7 @@ export const getDashboardSummary = async (req, res) => {
       const createdAt = new Date(event.createdAt);
       return event.moderation_status !== 'hidden' && createdAt >= previousMonthStart && createdAt <= previousMonthEnd;
     }).length;
-    const reportedEvents = publicEvents.filter((event) => event.report_count > 0 || event.moderation_status === 'reported').length;
+    const blockedEvents = publicEvents.filter((event) => event.moderation_status === 'reported').length;
     const totalCapacity = publicEvents.reduce((sum, event) => sum + Number(event.max_capacity || 0), 0);
     const totalOccupancy = publicEvents.reduce((sum, event) => sum + Number(event.current_occupancy || 0), 0);
     const averageOccupancy = totalCapacity > 0 ? Math.round((totalOccupancy / totalCapacity) * 100) : 0;
@@ -205,7 +205,6 @@ export const getDashboardSummary = async (req, res) => {
         occupancy: Number(event.current_occupancy || 0),
         capacity: Number(event.max_capacity || 0),
         status: event.moderation_status,
-        reports: Number(event.report_count || 0),
         categories: (event.categories || []).map((category) => category.name)
       }));
 
@@ -234,22 +233,16 @@ export const getDashboardSummary = async (req, res) => {
       details: log.details || {}
     }));
 
-    const notifications = [
-      ...organizations.filter((org) => org.verification_status === 'pending').map((org) => ({
+    const notifications = organizations
+      .filter((org) => org.verification_status === 'pending')
+      .map((org) => ({
         id: `org-${org.id}`,
         type: 'organization',
         title: 'Cerere nouă de firmă',
         message: `${org.name} așteaptă aprobare`,
         createdAt: org.updatedAt
-      })),
-      ...events.filter((event) => event.report_count > 0 || event.moderation_status === 'reported').map((event) => ({
-        id: `event-${event.id}`,
-        type: 'event',
-        title: 'Eveniment raportat',
-        message: `${event.title} are ${event.report_count || 1} raportări`,
-        createdAt: event.updatedAt
       }))
-    ].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+      .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
 
     const settings = await ensureSettings();
 
@@ -284,7 +277,7 @@ export const getDashboardSummary = async (req, res) => {
         totalEvents,
         pendingRequests,
         averageOccupancy,
-        reportedEvents,
+        blockedEvents,
         notificationsCount: notifications.length,
         newUsersThisWeek,
         newUsersThisMonth,
@@ -446,6 +439,7 @@ export const getParticipantsAdmin = async (req, res) => {
 export const getEventsAdmin = async (req, res) => {
   try {
     const events = await Event.findAll({
+      where: { org_id: { [Op.ne]: null }, moderation_status: { [Op.ne]: 'hidden' } },
       include: [
         { model: Organization, as: 'organization', attributes: ['id', 'name', 'verification_status', 'admin_status'] },
         { model: Account, as: 'creator', attributes: ['id', 'first_name', 'last_name', 'email'] },
@@ -469,7 +463,6 @@ export const getEventsAdmin = async (req, res) => {
       pointsValue: Number(event.points_value || 0),
       imageUrl: event.image_url,
       moderationStatus: event.moderation_status,
-      reportCount: Number(event.report_count || 0),
       moderationNote: event.moderation_note,
       createdAt: event.createdAt,
       creator: event.creator ? {
@@ -498,7 +491,7 @@ export const moderateEvent = async (req, res) => {
     const { id } = req.params;
     const { moderationStatus, moderationNote } = req.body;
 
-    if (!['published', 'reported', 'hidden'].includes(moderationStatus)) {
+    if (!['published', 'reported'].includes(moderationStatus)) {
       return res.status(400).json({ message: 'Status invalid.' });
     }
 
@@ -510,7 +503,6 @@ export const moderateEvent = async (req, res) => {
     await event.update({
       moderation_status: moderationStatus,
       moderation_note: moderationNote?.trim() || null,
-      report_count: moderationStatus === 'reported' ? Math.max(1, Number(event.report_count || 0)) : Number(event.report_count || 0)
     });
 
     await createAuditEntry({
@@ -525,91 +517,13 @@ export const moderateEvent = async (req, res) => {
       message: 'Eveniment actualizat.',
       id: event.id,
       moderationStatus: event.moderation_status,
-      moderationNote: event.moderation_note,
-      reportCount: event.report_count
+      moderationNote: event.moderation_note
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-export const getReportsAdmin = async (req, res) => {
-  try {
-    const [events, transactions] = await Promise.all([
-      Event.findAll({
-        where: {
-          [Op.or]: [
-            { moderation_status: 'reported' },
-            { report_count: { [Op.gt]: 0 } }
-          ]
-        },
-        include: [
-          { model: Organization, as: 'organization', attributes: ['id', 'name'] },
-          { model: Account, as: 'creator', attributes: ['id', 'first_name', 'last_name'] }
-        ],
-        order: [['report_count', 'DESC'], ['updatedAt', 'DESC']]
-      }),
-      LoyaltyTransaction.findAll({
-        include: [
-          {
-            model: LoyaltyWallet,
-            as: 'wallet',
-            include: [
-              { model: Account, as: 'account', attributes: ['id', 'first_name', 'last_name', 'email'] },
-              { model: Organization, as: 'organization', attributes: ['id', 'name'] }
-            ]
-          },
-          { model: Event, as: 'event', attributes: ['id', 'title'] }
-        ],
-        order: [['createdAt', 'DESC']],
-        limit: 25
-      })
-    ]);
-    const logs = getAuditLogs(25);
-
-    const reportStats = {
-      reportedEvents: events.length,
-      hiddenEvents: events.filter((event) => event.moderation_status === 'hidden').length,
-      openReports: events.filter((event) => event.moderation_status === 'reported').length,
-      auditEntries: logs.length,
-      loyaltyTransactions: transactions.length
-    };
-
-    return res.json({
-      reportStats,
-      reportedEvents: events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        reportCount: Number(event.report_count || 0),
-        moderationStatus: event.moderation_status,
-        creator: event.creator ? `${event.creator.first_name} ${event.creator.last_name}`.trim() : 'Utilizator',
-        organization: event.organization?.name || 'Eveniment personal',
-        updatedAt: event.updatedAt,
-        note: event.moderation_note
-      })),
-      auditLog: logs.map((log) => ({
-        id: log.id,
-        action: log.action,
-        actor: log.actor ? `${log.actor.first_name} ${log.actor.last_name}`.trim() : 'System',
-        entityType: log.entity_type,
-        entityId: log.entity_id,
-        createdAt: log.createdAt,
-        details: log.details || {}
-      })),
-      loyaltyTransactions: transactions.map((transaction) => ({
-        id: transaction.id,
-        type: transaction.type,
-        points: transaction.points_amount,
-        account: transaction.wallet?.account ? `${transaction.wallet.account.first_name} ${transaction.wallet.account.last_name}`.trim() : 'Utilizator',
-        organization: transaction.wallet?.organization?.name || '',
-        event: transaction.event?.title || '',
-        createdAt: transaction.createdAt
-      }))
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
 
 export const getSettingsAdmin = async (req, res) => {
   try {
