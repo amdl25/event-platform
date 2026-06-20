@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
+import { Sparkles } from 'lucide-react';
 import Hero from '../components/Hero';
 import CategoryBrowser from '../components/CategoryBrowser';
 import WeekendFeed from '../components/WeekendFeed';
@@ -469,7 +470,7 @@ const Home = ({ user }) => {
             return b.score - a.score || startA - startB;
           });
 
-        const topRecommendations = scored.slice(0, 8);
+        const topRecommendations = scored.slice(0, 3);
 
         if (topRecommendations.length > 0) {
           console.group('[Home] Recomandări pentru tine - explicații');
@@ -687,35 +688,33 @@ const Home = ({ user }) => {
 
   return (
     <div className="home-page">
-      <div className="home-intro-bar">
-        <span className="home-intro-bar-text">
-          <strong>EventHub</strong> — creat pentru participanți la evenimente, business-uri sau ONG-uri care vor să ajungă la public.
-        </span>
-        <Link to="/about" className="home-intro-bar-link">Află mai multe →</Link>
-      </div>
-
-      <Hero onRecommendClick={() => setIsWizardOpen(true)} />
-
-      <CategoryBrowser />
+      {!user && (
+        <div className="home-intro-bar">
+          <span className="home-intro-bar-text">
+            <strong>EventHub</strong> — creat pentru participanți la evenimente, business-uri sau ONG-uri care vor să ajungă la public.
+          </span>
+          <Link to="/about" className="home-intro-bar-link">Află mai multe →</Link>
+        </div>
+      )}
 
       {user && (
         <section className="home-member-zone">
           <div className="home-member-shell">
+            <div className="home-member-head">
+              <div className="home-member-head-text">
+                <h2 className="home-member-greeting">
+                  Bună, <span>{greetingName}</span>
+                </h2>
+                {hasUpcomingStack && !isHomeLoading && (
+                  <p className="home-member-subtitle">
+                    {`Ai ${stackEvents.length} eveniment${stackEvents.length > 1 ? 'e' : ''} în curând — pregătește-te!`}
+                  </p>
+                )}
+              </div>
+            </div>
+
             {hasUpcomingStack ? (
               <>
-                <div className="home-member-head">
-                  <div>
-                    <h2 className="home-member-greeting">
-                      Bună, <span>{greetingName}</span>
-                    </h2>
-                    <p className="home-member-subtitle">
-                      {isHomeLoading
-                        ? ''
-                        : `Ai ${stackEvents.length} eveniment${stackEvents.length > 1 ? 'e' : ''} în curând — pregătește-te!`}
-                    </p>
-                  </div>
-                </div>
-
                 <div className="home-member-pair ticket-only">
                   <div className={hasMultipleStackEvents ? 'home-member-stack-wrapper' : ''}>
                     {stackGhostCount > 0 ? <div className="stack-ghost-card stack-ghost-card-one" aria-hidden="true"></div> : null}
@@ -879,52 +878,56 @@ const Home = ({ user }) => {
                 </div>
               </>
             ) : null}
+          </div>
+        </section>
+      )}
 
-                    <div className="home-reco-block">
-                      <div className="home-reco-head">
-                        <p className="home-reco-kicker overline">Pentru tine</p>
-                        <h2 className="home-reco-headline">
-                          <span>Recomandate</span> <span className="serif-accent">pentru tine</span>
-                        </h2>
-                      </div>
+      {!user && <Hero onRecommendClick={() => setIsWizardOpen(true)} />}
 
-                      <div className="home-reco-grid">
-                        {recommendationCards.map((event) => (
-                          <article
-                            key={event.id}
-                            className={`home-reco-card${event.image_url ? ' has-image' : ' no-image'}`}
-                            onClick={() => {
-                              navigate(`/event/${event.id}`);
-                            }}
-                          >
-                            {event.image_url ? (
-                              <img
-                                src={event.image_url?.startsWith('http') || event.image_url?.startsWith('data:') ? event.image_url : ''}
-                                alt={event.title}
-                              />
-                            ) : null}
-                            <div className="home-reco-top-row">
-                              <span className="home-reco-category-chip">{event.categories?.[0]?.name || 'Experiență live'}</span>
-                              {getMinTicketPoints(event) > 0 ? (
-                                <span className="home-reco-points-chip">★ +{getMinTicketPoints(event)}</span>
-                              ) : null}
-                            </div>
-                            <div className="home-reco-content">
-                              <p className="home-reco-date">{getRecommendationDateLabel(event)}</p>
-                              <h3>{event.title}</h3>
-                              <p className="home-reco-location"><FiMapPin /> {event.location || 'Locație nespecificată'}</p>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              )}
+      <CategoryBrowser onRecommendClick={user ? () => setIsWizardOpen(true) : undefined} />
 
-              <WeekendFeed />
+      {user && (
+        <div className="home-reco-block">
+          <div className="home-reco-head">
+            <p className="home-reco-kicker overline">Pentru tine</p>
+            <h2 className="home-reco-headline">
+              <span>Recomandate</span> <span className="serif-accent">pentru tine</span>
+            </h2>
+          </div>
 
-              {(!user || user?.role === 'user') && (
+          <div className="home-reco-grid">
+            {recommendationCards.map((event) => (
+              <article
+                key={event.id}
+                className={`home-reco-card${event.image_url ? ' has-image' : ' no-image'}`}
+                onClick={() => navigate(`/event/${event.id}`)}
+              >
+                {event.image_url ? (
+                  <img
+                    src={event.image_url?.startsWith('http') || event.image_url?.startsWith('data:') ? event.image_url : ''}
+                    alt={event.title}
+                  />
+                ) : null}
+                <div className="home-reco-top-row">
+                  <span className="home-reco-category-chip">{event.categories?.[0]?.name || 'Experiență live'}</span>
+                  {getMinTicketPoints(event) > 0 ? (
+                    <span className="home-reco-points-chip">★ +{getMinTicketPoints(event)}</span>
+                  ) : null}
+                </div>
+                <div className="home-reco-content">
+                  <p className="home-reco-date">{getRecommendationDateLabel(event)}</p>
+                  <h3>{event.title}</h3>
+                  <p className="home-reco-location"><FiMapPin /> {event.location || 'Locație nespecificată'}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <WeekendFeed />
+
+              {!user && (
                 <section className="home-org-cta">
                   <div className="home-org-cta-inner">
                     <div className="home-org-cta-left">

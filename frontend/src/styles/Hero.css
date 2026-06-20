@@ -34,8 +34,12 @@
 
 .hero-content {
   position: absolute;
-  bottom: 48px;
+  bottom: 40px;
   left: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 700px;
 }
 
 .hero-title {
@@ -55,9 +59,83 @@
   margin: 0;
 }
 
+.hero-search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  border-radius: 999px;
+  padding: 8px 8px 8px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  gap: 0;
+  width: 100%;
+}
+
+.hero-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-search-field:first-child {
+  flex: 2;
+}
+
+.hero-search-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.hero-search-field input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #111;
+  width: 100%;
+  font-family: inherit;
+}
+
+.hero-search-field input::placeholder {
+  color: #9ca3af;
+}
+
+.hero-search-divider {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+  margin: 0 16px;
+}
+
+.hero-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 22px;
+  background: var(--primary, #E95B3C);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.hero-search-btn:hover {
+  background: #d44e2f;
+  transform: translateY(-1px);
+}
+
 .hero-cta-card {
   position: absolute;
-  bottom: 48px;
+  bottom: 40px;
   right: 48px;
   display: flex;
   flex-direction: column;
@@ -110,16 +188,17 @@
   }
   
   .hero-content {
-    bottom: 40px;
+    bottom: 36px;
     left: 40px;
+    max-width: 620px;
   }
-  
+
   .hero-title {
     font-size: 2.8rem;
   }
-  
+
   .hero-cta-card {
-    bottom: 40px;
+    bottom: 36px;
     right: 40px;
     padding: 18px 22px;
   }
@@ -136,8 +215,10 @@
   }
 
   .hero-content {
-    bottom: 30px;
+    bottom: 24px;
     left: 24px;
+    max-width: calc(100% - 48px);
+    gap: 10px;
   }
 
   .hero-title {
@@ -150,13 +231,20 @@
   }
 
   .hero-cta-card {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    margin: 0;
-    width: min(220px, calc(100% - 28px));
-    padding: 10px 12px;
-    gap: 6px;
+    display: none;
+  }
+
+  .hero-search-bar {
+    padding: 6px 6px 6px 16px;
+  }
+
+  .hero-search-divider {
+    margin: 0 10px;
+  }
+
+  .hero-search-btn {
+    padding: 10px 16px;
+    font-size: 0.82rem;
   }
   
   .hero-cta-button {
@@ -176,8 +264,10 @@
   }
 
   .hero-content {
-    bottom: 20px;
+    bottom: 16px;
     left: 16px;
+    max-width: calc(100% - 32px);
+    gap: 8px;
   }
 
   .hero-title {
@@ -189,11 +279,9 @@
     font-size: 0.65rem;
   }
 
-  .hero-cta-card {
-    bottom: 10px;
-    right: 10px;
-    width: min(200px, calc(100% - 24px));
-    padding: 8px 10px;
+  .hero-search-divider,
+  .hero-search-field:last-of-type {
+    display: none;
   }
   
   .hero-cta-label {

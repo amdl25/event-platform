@@ -1,5 +1,5 @@
 .cat-browser {
-  padding: 36px 24px 8px;
+  padding: 56px 24px 16px;
   background: transparent;
 }
 
@@ -30,6 +30,13 @@
   font-weight: 800;
   color: #111;
   line-height: 1.2;
+}
+
+.cat-browser-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .cat-browser-see-all {

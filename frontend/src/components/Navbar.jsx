@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FiSearch, FiMenu, FiX, FiCompass, FiCalendar, FiPlus } from 'react-icons/fi';
 import '../styles/Navbar.css';
 
 const Navbar = ({ user, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchTerm.trim() !== "") {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      navigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm('');
       setMobileMenuOpen(false);
     }
   };
@@ -82,17 +84,19 @@ const Navbar = ({ user, handleLogout }) => {
         </div>
 
         <div className="navbar-actions">
-          <div className="navbar-search">
-            <FiSearch className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Caută evenimente..." 
-              className="navbar-search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleSearch}
-            />
-          </div>
+          {(user || !isHomePage) && (
+            <div className="navbar-search">
+              <FiSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Caută evenimente..."
+                className="navbar-search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleSearch}
+              />
+            </div>
+          )}
 
           {user ? (
             <>
@@ -117,17 +121,19 @@ const Navbar = ({ user, handleLogout }) => {
 
       {mobileMenuOpen && (
         <div className="navbar-mobile-menu">
-          <div className="navbar-mobile-search">
-             <FiSearch className="search-icon" />
-             <input 
-                type="text" 
-                placeholder="Caută..." 
+          {(user || !isHomePage) && (
+            <div className="navbar-mobile-search">
+              <FiSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Caută..."
                 className="navbar-search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleSearch}
-             />
-          </div>
+              />
+            </div>
+          )}
           <Link to="/explore" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Explorează</Link>
           {!user && (
             <Link to="/about" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Despre noi</Link>

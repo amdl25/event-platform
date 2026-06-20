@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -61,6 +61,7 @@ const getWeekendDates = () => {
 const ExplorePage = () => {
   const [filters, setFilters] = useState(initialFilters);
   const [quickFilter, setQuickFilter] = useState('toate');
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,6 +70,18 @@ const ExplorePage = () => {
 
   const orgIdParam = useMemo(() => new URLSearchParams(location.search).get('orgId'), [location.search]);
   const orgNameParam = useMemo(() => new URLSearchParams(location.search).get('orgName'), [location.search]);
+  const qParam = useMemo(() => new URLSearchParams(location.search).get('q') || '', [location.search]);
+  const cityParam = useMemo(() => new URLSearchParams(location.search).get('city') || '', [location.search]);
+
+  useEffect(() => {
+    setSearchQuery(qParam);
+  }, [qParam]);
+
+  useEffect(() => {
+    if (cityParam) {
+      setFilters(prev => ({ ...prev, city: cityParam }));
+    }
+  }, [cityParam]);
 
   const publicEvents = useMemo(() =>
     allEvents.filter(event => Boolean(event.org_id) && (!orgIdParam || String(event.org_id) === String(orgIdParam))),
@@ -86,14 +99,26 @@ const ExplorePage = () => {
   const filteredEvents = useMemo(() => {
     const today = new Date();
     const weekendDates = getWeekendDates();
+    const normalizedQuery = normalizeText(searchQuery.trim());
 
     return publicEvents.filter(event => {
+      const matchSearch = !normalizedQuery ||
+        normalizeText(event.title || '').includes(normalizedQuery) ||
+        normalizeText(event.description || '').includes(normalizedQuery) ||
+        normalizeText(event.location || '').includes(normalizedQuery);
+
       const matchCategory =
         filters.category === 'Toate categoriile' ||
         event.categories?.some(cat => normalizeText(cat.name) === normalizeText(filters.category));
 
       const eventCity = event.location?.split(',')?.pop()?.trim();
-      const matchCity = filters.city === 'Toate orașele' || normalizeText(eventCity) === normalizeText(filters.city);
+      const normalizedFilterCity = normalizeText(filters.city);
+      const normalizedEventCity = normalizeText(eventCity);
+      const matchCity =
+        filters.city === 'Toate orașele' ||
+        normalizedEventCity === normalizedFilterCity ||
+        normalizedEventCity?.includes(normalizedFilterCity) ||
+        normalizedFilterCity?.includes(normalizedEventCity);
 
       let matchDate = true;
       if (filters.selectedDate) {
@@ -116,11 +141,12 @@ const ExplorePage = () => {
         matchQuick = isFree;
       }
 
-      return matchCategory && matchCity && matchDate && matchType && matchQuick;
+      return matchSearch && matchCategory && matchCity && matchDate && matchType && matchQuick;
     });
-  }, [publicEvents, filters, quickFilter]);
+  }, [publicEvents, filters, quickFilter, searchQuery]);
 
   const hasActiveFilters =
+    searchQuery.trim() !== '' ||
     filters.category !== 'Toate categoriile' ||
     filters.city !== 'Toate orașele' ||
     filters.selectedDate !== null ||
@@ -129,7 +155,7 @@ const ExplorePage = () => {
 
   const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
   const resetField = (field) => setFilters(prev => ({ ...prev, [field]: initialFilters[field] }));
-  const resetAllFilters = () => { setFilters(initialFilters); setQuickFilter('toate'); };
+  const resetAllFilters = () => { setFilters(initialFilters); setQuickFilter('toate'); setSearchQuery(''); };
 
   const loading = categoriesLoading || eventsLoading;
 
@@ -157,7 +183,15 @@ const ExplorePage = () => {
 
         <header className="explore-header">
           <h1 className="explore-title">
-            {orgIdParam && orgNameParam ? orgNameParam : 'Descoperă'}
+            {orgIdParam && orgNameParam
+              ? orgNameParam
+              : searchQuery.trim() && cityParam.trim()
+                ? `Rezultate pentru „${searchQuery.trim()}" în „${cityParam.trim()}"`
+                : searchQuery.trim()
+                  ? `Rezultate pentru „${searchQuery.trim()}"`
+                  : cityParam.trim()
+                    ? `Evenimente în „${cityParam.trim()}"`
+                    : 'Descoperă evenimente'}
           </h1>
           <p className="explore-subtitle">
             {orgIdParam && orgNameParam

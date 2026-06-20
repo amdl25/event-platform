@@ -34,7 +34,7 @@
 }
 
 .home-member-zone {
-  padding: 6px 16px 10px;
+  padding: 48px 16px 32px;
 }
 
 .home-member-shell {
@@ -47,9 +47,121 @@
 
 .home-member-head {
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 20px 0 8px;
+  flex-wrap: wrap;
+}
+
+.home-member-head-text {
+  flex-shrink: 0;
+}
+
+.home-member-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  max-width: 600px;
+}
+
+.home-member-search-bar {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 6px 6px 6px 16px;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.home-member-search-bar:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 91, 60, 0.1);
+}
+
+.home-member-search-field {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.home-member-search-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.home-member-search-field input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: #0f172a;
+  width: 100%;
+  font-family: inherit;
+}
+
+.home-member-search-field input::placeholder {
+  color: #9ca3af;
+}
+
+.home-member-search-divider {
+  width: 1px;
+  height: 20px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+  margin: 0 12px;
+}
+
+.home-member-search-btn {
+  display: flex;
+  align-items: center;
+  padding: 8px 18px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: background 0.18s;
+}
+
+.home-member-search-btn:hover {
+  background: #d44e2f;
+}
+
+.home-member-recommend-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: background 0.18s, color 0.18s;
+}
+
+.home-member-recommend-btn:hover {
+  background: var(--primary);
+  color: #fff;
 }
 
 .home-member-greeting {
@@ -1574,6 +1686,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 48px 24px 32px;
+  max-width: calc(1280px + 48px);
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .home-reco-head h2 {
@@ -1602,40 +1718,24 @@
 }
 
 .home-reco-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 2px 10px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #111111 transparent;
 }
 
-.home-reco-grid::-webkit-scrollbar {
-  height: 5px;
-}
-
-.home-reco-grid::-webkit-scrollbar-thumb {
-  background: #111111;
-  border-radius: 999px;
-}
-
-.home-reco-grid::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 999px;
+@media (max-width: 768px) {
+  .home-reco-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .home-reco-card {
   position: relative;
-  flex: 0 0 min(360px, 86vw);
   height: 340px;
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   isolation: isolate;
-  scroll-snap-align: start;
   background: linear-gradient(145deg, #d6dbe3 0%, #b8c0cd 100%);
   box-shadow: 0 14px 32px rgba(148, 163, 184, 0.24);
 }

@@ -42,7 +42,7 @@ const getMeta = (categoryName) => {
   return null;
 };
 
-const CategoryBrowser = () => {
+const CategoryBrowser = ({ onRecommendClick }) => {
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
@@ -62,13 +62,25 @@ const CategoryBrowser = () => {
             <p className="cat-browser-kicker">EXPLOREAZĂ</p>
             <h2 className="cat-browser-title">Ce ți se potrivește?</h2>
           </div>
-          <button
-            type="button"
-            className="cat-browser-see-all"
-            onClick={() => navigate('/explore')}
-          >
-            Vezi toate →
-          </button>
+          <div className="cat-browser-head-actions">
+            {onRecommendClick && (
+              <button
+                type="button"
+                className="home-member-recommend-btn"
+                onClick={onRecommendClick}
+              >
+                <Sparkles size={15} />
+                Recomandă-mi
+              </button>
+            )}
+            <button
+              type="button"
+              className="cat-browser-see-all"
+              onClick={() => navigate('/explore')}
+            >
+              Vezi toate →
+            </button>
+          </div>
         </div>
 
         <div className="cat-browser-scroll">
