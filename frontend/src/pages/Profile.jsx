@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowDownRight, FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMail, FiMapPin, FiPhone, FiStar, FiX } from 'react-icons/fi';
+import { FiArrowUpRight, FiCalendar, FiClock, FiDownload, FiEdit2, FiGift, FiMapPin, FiStar, FiX } from 'react-icons/fi';
 import API from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
@@ -10,8 +10,6 @@ const toEditableProfile = (sourceUser = {}) => ({
     firstName: sourceUser?.firstName || sourceUser?.first_name || '',
     lastName: sourceUser?.lastName || sourceUser?.last_name || '',
     email: sourceUser?.email || '',
-    city: sourceUser?.city || sourceUser?.location || 'București',
-    phone: sourceUser?.phone || '+40 721 234 567',
     createdAt: sourceUser?.createdAt || null
 });
 
@@ -22,8 +20,9 @@ const Profile = ({ user }) => {
     const [profileForm, setProfileForm] = useState(() => toEditableProfile(user));
     const [profileFormError, setProfileFormError] = useState('');
     const [isSavingProfile, setIsSavingProfile] = useState(false);
-    const [activeTab, setActiveTab] = useState('tickets'); 
+    const [activeTab, setActiveTab] = useState('tickets');
     const [tickets, setTickets] = useState([]);
+    const [showAllTickets, setShowAllTickets] = useState(false);
     const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || null);
     const [verificationForm, setVerificationForm] = useState({
         companyName: user?.organizationName || '',
@@ -43,19 +42,13 @@ const Profile = ({ user }) => {
     const [profileTouched, setProfileTouched] = useState({
         firstName: false,
         lastName: false,
-        email: false,
-        phone: false,
-        city: false
+        email: false
     });
 
     const [pdfDownloading, setPdfDownloading] = useState(false);
     const [pdfPayload, setPdfPayload] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [ticketTimeline, setTicketTimeline] = useState('future');
-    const [showAllFutureTickets, setShowAllFutureTickets] = useState(false);
-    const [rewardsFilter, setRewardsFilter] = useState('all');
-    const [showAllRewardsHistory, setShowAllRewardsHistory] = useState(false);
-    const [loyaltySummary, setLoyaltySummary] = useState({ totalPoints: 0, companies: [], transactions: [] });
+    const [loyaltySummary, setLoyaltySummary] = useState({ totalPoints: 0, companies: [] });
     const ticketPdfRef = useRef(null);
     const rewardsCompanies = useMemo(() => {
         const accents = ['blue', 'purple', 'green', 'red'];
@@ -89,46 +82,6 @@ const Profile = ({ user }) => {
         });
     }, [loyaltySummary.companies]);
 
-    const rewardsHistory = useMemo(() => {
-        return (loyaltySummary.transactions || [])
-            .map((transaction) => {
-                const dateValue = transaction.createdAt;
-                const date = dateValue
-                    ? new Date(dateValue).toLocaleDateString('ro-RO', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                    })
-                    : 'Data necunoscută';
-                const points = Number(transaction.points || 0);
-                const isEarn = transaction.type === 'earn';
-                return {
-                    type: isEarn ? 'earn' : 'redeem',
-                    title: isEarn
-                        ? `Puncte câștigate — ${transaction.eventTitle || 'Eveniment'}`
-                        : `Puncte folosite — ${transaction.eventTitle || 'Eveniment'}`,
-                    date,
-                    points: `${isEarn ? '+' : '-'}${points}`
-                };
-            });
-    }, [loyaltySummary.transactions]);
-
-    const filteredRewardsHistory = useMemo(() => {
-        if (rewardsFilter === 'earn') {
-            return rewardsHistory.filter((entry) => entry.type === 'earn');
-        }
-        if (rewardsFilter === 'redeem') {
-            return rewardsHistory.filter((entry) => entry.type === 'redeem');
-        }
-        return rewardsHistory;
-    }, [rewardsFilter, rewardsHistory]);
-
-    const visibleRewardsHistory = useMemo(() => {
-        if (showAllRewardsHistory) return filteredRewardsHistory;
-        return filteredRewardsHistory.slice(0, 3);
-    }, [filteredRewardsHistory, showAllRewardsHistory]);
-
-    const hiddenRewardsCount = Math.max(filteredRewardsHistory.length - visibleRewardsHistory.length, 0);
 
     const getVerificationFieldErrors = (values) => {
         const companyName = String(values?.companyName || '').trim();
@@ -156,17 +109,12 @@ const Profile = ({ user }) => {
         const firstName = String(values?.firstName || '').trim();
         const lastName = String(values?.lastName || '').trim();
         const email = String(values?.email || '').trim();
-        const phone = String(values?.phone || '').trim();
-        const city = String(values?.city || '').trim();
-
         return {
             firstName: !firstName ? 'Prenumele este obligatoriu.' : (firstName.length < 2 ? 'Minim 2 caractere.' : ''),
             lastName: !lastName ? 'Numele este obligatoriu.' : (lastName.length < 2 ? 'Minim 2 caractere.' : ''),
             email: !email
                 ? 'Email-ul este obligatoriu.'
                 : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Format email invalid.' : ''),
-            phone: phone && !/^[0-9+()\-\s]{7,20}$/.test(phone) ? 'Telefon invalid.' : '',
-            city: city.length > 80 ? 'Orașul este prea lung.' : ''
         };
     };
 
@@ -178,12 +126,35 @@ const Profile = ({ user }) => {
         setProfileForm(toEditableProfile(user));
     }, [user]);
 
+    const POINTS_PER_RON = 10;
     const totalPoints = Number(loyaltySummary.totalPoints || 0);
-    const profileCity = profileData?.city || 'București';
-    const profilePhone = profileData?.phone || '+40 721 234 567';
     const greetingName = profileData?.firstName || 'prietene';
     const ticketsPurchased = tickets.length;
     const futureEvents = tickets.filter((ticket) => ticket.isFuture).length;
+
+    const memberSince = profileData?.createdAt
+        ? new Date(profileData.createdAt).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
+        : null;
+
+    const formatRon = (points) => {
+        const val = points / POINTS_PER_RON;
+        return val % 1 === 0 ? String(val) : val.toFixed(1);
+    };
+
+    const getDaysUntil = (dateValue) => {
+        if (!dateValue) return null;
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const eventDate = new Date(dateValue);
+        eventDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return null;
+        if (diffDays === 0) return { label: 'Azi', urgent: true };
+        if (diffDays === 1) return { label: 'Mâine', urgent: true };
+        if (diffDays <= 7) return { label: `În ${diffDays} zile`, urgent: true };
+        if (diffDays <= 14) return { label: 'Săptămâna viitoare', urgent: false };
+        return null;
+    };
 
     const groupedTickets = useMemo(() => {
         const buckets = new Map();
@@ -230,14 +201,6 @@ const Profile = ({ user }) => {
                 return dateB - dateA;
             });
     }, [groupedTickets]);
-
-    const visibleTicketGroups = useMemo(() => {
-        if (ticketTimeline === 'history') return historyTicketGroups;
-        if (showAllFutureTickets) return futureTicketGroups;
-        return futureTicketGroups.slice(0, 3);
-    }, [futureTicketGroups, historyTicketGroups, showAllFutureTickets, ticketTimeline]);
-
-    const hasMoreFutureTickets = futureTicketGroups.length > 3;
 
     const formatDateLabel = (dateValue) => {
         if (!dateValue) return 'Data necunoscută';
@@ -401,9 +364,7 @@ const Profile = ({ user }) => {
         setProfileTouched({
             firstName: false,
             lastName: false,
-            email: false,
-            phone: false,
-            city: false
+            email: false
         });
         setIsEditModalOpen(true);
     };
@@ -418,9 +379,7 @@ const Profile = ({ user }) => {
         setProfileTouched({
             firstName: true,
             lastName: true,
-            email: true,
-            phone: true,
-            city: true
+            email: true
         });
 
         const firstProfileError = Object.values(getProfileFieldErrors(profileForm)).find(Boolean);
@@ -432,8 +391,6 @@ const Profile = ({ user }) => {
         const nextFirstName = String(profileForm.firstName || '').trim();
         const nextLastName = String(profileForm.lastName || '').trim();
         const nextEmail = String(profileForm.email || '').trim();
-        const nextPhone = String(profileForm.phone || '').trim();
-        const nextCity = String(profileForm.city || '').trim();
 
         try {
             setIsSavingProfile(true);
@@ -443,8 +400,6 @@ const Profile = ({ user }) => {
                 firstName: nextFirstName,
                 lastName: nextLastName,
                 email: nextEmail,
-                phone: nextPhone,
-                city: nextCity
             });
 
             const backendProfile = response?.data?.profile || {};
@@ -453,8 +408,6 @@ const Profile = ({ user }) => {
                 firstName: backendProfile.firstName || nextFirstName,
                 lastName: backendProfile.lastName || nextLastName,
                 email: backendProfile.email || nextEmail,
-                phone: backendProfile.phone || nextPhone || profileData.phone,
-                city: backendProfile.city || nextCity || profileData.city,
             };
 
             setProfileData(updatedProfileData);
@@ -468,8 +421,6 @@ const Profile = ({ user }) => {
                         firstName: updatedProfileData.firstName,
                         lastName: updatedProfileData.lastName,
                         email: updatedProfileData.email,
-                        phone: updatedProfileData.phone,
-                        city: updatedProfileData.city,
                     };
                     localStorage.setItem('eventHubUser', JSON.stringify(nextStoredUser));
                 } catch {
@@ -491,52 +442,34 @@ const Profile = ({ user }) => {
     return (
         <div className="profile-page">
             <div className="container-max">
-                <section className="profile-intro-block">
-                    <h1 className="profile-intro-title">Bună, <span>{greetingName}</span></h1>
-                    <p className="profile-intro-subtitle">Profilul tău, biletele și recompensele.</p>
-                </section>
-                
-                <header className="profile-top-section">
-                    <div className="profile-summary-card">
-                        <div className="profile-summary-main">
-                            <div className="avatar-circle">
-                                {profileData?.firstName?.[0] || 'U'}{profileData?.lastName?.[0] || ''}
-                            </div>
-                            <div className="user-meta">
-                                <div className="profile-summary-headline">
-                                    <h1>{profileData?.firstName} {profileData?.lastName}</h1>
-                                    <button className="profile-edit-link" type="button" onClick={openEditModal}>
-                                        <FiEdit2 /> Editează
-                                    </button>
-                                </div>
-                                <div className="profile-contact-list">
-                                    <div className="profile-contact-item"><FiMail /> <span>{profileData?.email}</span></div>
-                                    <div className="profile-contact-item"><FiPhone /> <span>{profilePhone}</span></div>
-                                    <div className="profile-contact-item"><FiMapPin /> <span>{profileCity}</span></div>
-                                </div>
-                            </div>
+                <header className="profile-hero">
+                    <div className="profile-hero-top">
+                        <div className="profile-hero-avatar">
+                            {profileData?.firstName?.[0] || 'U'}{profileData?.lastName?.[0] || ''}
+                        </div>
+                        <div className="profile-hero-identity">
+                            <h1 className="profile-hero-name">{profileData?.firstName} {profileData?.lastName}</h1>
+                            <p className="profile-hero-email">{profileData?.email}</p>
+                            {memberSince && <p className="profile-hero-since">Membru din {memberSince}</p>}
+                        </div>
+                        <button className="profile-hero-edit" type="button" onClick={openEditModal} title="Editează contul">
+                            <FiEdit2 />
+                        </button>
+                    </div>
+                    <div className="profile-hero-stats">
+                        <div className="profile-hero-stat">
+                            <strong>{futureEvents}</strong>
+                            <span>Urmează</span>
+                        </div>
+                        <div className="profile-hero-stat-sep" />
+                        <div className="profile-hero-stat">
+                            <strong>{totalPoints}</strong>
+                            <span>Puncte acumulate</span>
+                            {totalPoints > 0 && (
+                                <span className="profile-hero-stat-sub">≈ {formatRon(totalPoints)} RON reducere</span>
+                            )}
                         </div>
                     </div>
-
-                    <aside className="profile-points-card">
-                        <div className="profile-points-header">
-                            <FiStar />
-                            <span>TOTAL PUNCTE</span>
-                        </div>
-                        <div className="profile-points-total">{totalPoints}</div>
-                        <p className="profile-points-subtitle">puncte acumulate</p>
-                        <div className="profile-points-divider" />
-                        <div className="profile-points-stats">
-                            <div className="profile-points-stat">
-                                <span>Bilete cumpărate</span>
-                                <strong>{ticketsPurchased}</strong>
-                            </div>
-                            <div className="profile-points-stat">
-                                <span>Evenimente viitoare</span>
-                                <strong>{futureEvents}</strong>
-                            </div>
-                        </div>
-                    </aside>
                 </header>
 
                 {user?.role === 'organizer' && organizerStatus !== 'verified' ? (
@@ -622,15 +555,16 @@ const Profile = ({ user }) => {
                     </section>
                 ) : null}
 
+                <div className="profile-content-wrap">
                 <nav className="profile-nav-tabs">
-                    <button 
-                        className={activeTab === 'tickets' ? 'active' : ''} 
+                    <button
+                        className={activeTab === 'tickets' ? 'active' : ''}
                         onClick={() => setActiveTab('tickets')}
                     >
-                        <FiCalendar /> Biletele mele
+                        <FiCalendar /> Urmează
                     </button>
-                    <button 
-                        className={activeTab === 'rewards' ? 'active' : ''} 
+                    <button
+                        className={activeTab === 'rewards' ? 'active' : ''}
                         onClick={() => setActiveTab('rewards')}
                     >
                         <FiStar /> Puncte & Recompense
@@ -641,273 +575,131 @@ const Profile = ({ user }) => {
                     
                     {activeTab === 'tickets' && (
                         <div className="tab-content tab-fade-in">
-                            <div className="ticket-timeline-pills" role="tablist" aria-label="Filtru bilete">
-                                <button
-                                    type="button"
-                                    className={`ticket-timeline-pill ${ticketTimeline === 'future' ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setTicketTimeline('future');
-                                        setShowAllFutureTickets(false);
-                                    }}
-                                >
-                                    <FiCalendar /> Viitoare <span>{futureTicketGroups.length}</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`ticket-timeline-pill ${ticketTimeline === 'history' ? 'active' : ''}`}
-                                    onClick={() => setTicketTimeline('history')}
-                                >
-                                    <FiClock /> Istoric <span>{historyTicketGroups.length}</span>
-                                </button>
-                            </div>
-
                             <div className="tickets-list">
-                                {visibleTicketGroups.length === 0 ? (
-                                    <div className="empty-state-card">
-                                        <p className="empty-state-text">
-                                            {ticketTimeline === 'future' ? 'Nu ai evenimente viitoare.' : 'Nu ai evenimente în istoric.'}
-                                        </p>
+                                {futureTicketGroups.length === 0 ? (
+                                    <div className="tickets-empty">
+                                        <div className="tickets-empty-icon"><FiCalendar /></div>
+                                        <h3>Niciun eveniment în calendar</h3>
+                                        <p>Explorează evenimentele disponibile și cumpără bilete pentru experiențe de neuitat.</p>
+                                        <button type="button" className="tickets-explore-btn" onClick={() => navigate('/explore')}>
+                                            Explorează evenimente <FiArrowUpRight />
+                                        </button>
                                     </div>
-                                ) : (
-                                    visibleTicketGroups.map((ticketGroup) => {
-                                        const isMulti = ticketGroup.tickets.length > 1;
-                                        const imageUrl = getTicketImageUrl(ticketGroup);
-
-                                        const isHistoryView = ticketTimeline === 'history';
-
-                                        return (
-                                            <article key={`group-${ticketGroup.eventId}`} className={`ticket-group-card ${isMulti ? 'multi' : 'single'}${isHistoryView ? ' is-history' : ''}`}>
-                                                <div className="ticket-card-image-wrap" aria-hidden={!imageUrl}>
-                                                    {imageUrl ? (
-                                                        <img src={imageUrl} alt={ticketGroup.event?.title || 'Eveniment'} className={`ticket-card-image${isHistoryView ? ' is-history' : ''}`} />
-                                                    ) : (
-                                                        <div className="ticket-card-image-placeholder">
-                                                            {(ticketGroup.event?.title || 'E').charAt(0).toUpperCase()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="ticket-group-content">
-                                                    <div className="ticket-group-header">
-                                                        <div className="ticket-group-title-wrap">
-                                                            <h3>{ticketGroup.event?.title || 'Eveniment'}</h3>
-                                                        </div>
+                                ) : (showAllTickets ? futureTicketGroups : futureTicketGroups.slice(0, 3)).map((ticketGroup) => {
+                                    const isMulti = ticketGroup.tickets.length > 1;
+                                    const imageUrl = getTicketImageUrl(ticketGroup);
+                                    const countdown = getDaysUntil(ticketGroup.event?.startDate);
+                                    return (
+                                        <article key={`group-${ticketGroup.eventId}`} className={`ticket-group-card ${isMulti ? 'multi' : 'single'}`}>
+                                            <div className="ticket-card-image-wrap" aria-hidden={!imageUrl}>
+                                                {imageUrl ? (
+                                                    <img src={imageUrl} alt={ticketGroup.event?.title || 'Eveniment'} className="ticket-card-image" />
+                                                ) : (
+                                                    <div className="ticket-card-image-placeholder">
+                                                        {(ticketGroup.event?.title || 'E').charAt(0).toUpperCase()}
                                                     </div>
-
-                                                    <p className="ticket-host">{ticketGroup.event?.organizationName || 'Organizator'}</p>
-
-                                                    <div className="ticket-meta-row">
-                                                        <span><FiCalendar /> {formatDateLabel(ticketGroup.event?.startDate)}</span>
-                                                        <span><FiClock /> {formatTimeLabel(ticketGroup.event?.startDate)}</span>
-                                                        <span><FiMapPin /> {ticketGroup.event?.location || 'Locație nespecificată'}</span>
+                                                )}
+                                                {countdown && (
+                                                    <div className={`ticket-image-countdown${countdown.urgent ? ' urgent' : ''}`}>
+                                                        {countdown.label}
                                                     </div>
-
-                                                    {!isHistoryView ? (
-                                                        <div className="ticket-group-actions">
-                                                            <button
-                                                                className="btn-qr-trigger v2"
-                                                                onClick={() => handleDownloadAllTickets(ticketGroup)}
-                                                                disabled={pdfDownloading}
-                                                            >
-                                                                <FiDownload /> {pdfDownloading ? 'Se descarcă...' : (isMulti ? 'Descarcă bilete' : 'Descarcă bilet')}
-                                                            </button>
-                                                        </div>
-                                                    ) : null}
+                                                )}
+                                            </div>
+                                            <div className="ticket-group-content">
+                                                <h3>{ticketGroup.event?.title || 'Eveniment'}</h3>
+                                                <p className="ticket-host">{ticketGroup.event?.organizationName || 'Organizator'}</p>
+                                                <div className="ticket-meta-row">
+                                                    <span><FiCalendar /> {formatDateLabel(ticketGroup.event?.startDate)}</span>
+                                                    <span><FiClock /> {formatTimeLabel(ticketGroup.event?.startDate)}</span>
+                                                    <span><FiMapPin /> {ticketGroup.event?.location || 'Locație nespecificată'}</span>
                                                 </div>
-                                            </article>
-                                        );
-                                    })
-                                )}
+                                                <div className="ticket-group-actions">
+                                                    <button
+                                                        className="btn-qr-trigger v2"
+                                                        onClick={() => handleDownloadAllTickets(ticketGroup)}
+                                                        disabled={pdfDownloading}
+                                                    >
+                                                        <FiDownload /> {pdfDownloading ? 'Se descarcă...' : (isMulti ? 'Descarcă bilete' : 'Descarcă bilet')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
                             </div>
-
-                            {ticketTimeline === 'future' && hasMoreFutureTickets ? (
-                                <div className="tickets-more-wrap">
-                                    <button
-                                        type="button"
-                                        className="tickets-more-button"
-                                        onClick={() => setShowAllFutureTickets((prev) => !prev)}
-                                    >
-                                        {showAllFutureTickets ? 'Arată mai puține' : 'Vezi mai multe'}
-                                    </button>
-                                </div>
-                            ) : null}
+                            {futureTicketGroups.length > 3 && (
+                                <button
+                                    type="button"
+                                    className="tickets-show-more-btn"
+                                    onClick={() => setShowAllTickets((prev) => !prev)}
+                                >
+                                    {showAllTickets
+                                        ? 'Arată mai puține'
+                                        : `Vezi toate`}
+                                </button>
+                            )}
                         </div>
                     )}
 
                     {activeTab === 'rewards' && (
                         <div className="tab-content tab-fade-in rewards-tab-content">
-                            <div className="rewards-header-row">
-                                <div>
-                                    <h2 className="section-title rewards-title">Puncte & Recompense</h2>
-                                    <p className="rewards-subtitle">Urmărește punctele acumulate și istoricul de recompense.</p>
+                            {rewardsCompanies.length === 0 ? (
+                                <div className="rewards-empty">
+                                    <div className="rewards-empty-icon"><FiStar /></div>
+                                    <h3>Câștigă puncte de fidelitate</h3>
+                                    <p>Cumpără bilete la evenimentele organizatorilor tăi favoriți și primești puncte pe care le poți folosi ca reduceri în viitor.</p>
+                                    <div className="rewards-empty-rate">10 puncte = 1 RON reducere</div>
+                                    <button
+                                        type="button"
+                                        className="rewards-explore-btn"
+                                        onClick={() => navigate('/explore')}
+                                    >
+                                        Explorează evenimente <FiArrowUpRight />
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="rewards-grid">
-                                <section className="rewards-column">
-                                    <h3 className="rewards-column-title">PUNCTE PE COMPANIE</h3>
-                                    <article className="rewards-tip-card">
-                                        <p className="rewards-tip-title"><FiGift /> SFAT</p>
-                                        <p className="rewards-tip-copy">Folosește punctele pentru reduceri la următorul eveniment de la aceeași companie.</p>
-                                    </article>
-
-                                    <article className="rewards-company-card demo-preview">
-                                        <div className="rewards-company-top">
-                                            <div className={`rewards-company-avatar accent-blue`}>
-                                                TC
-                                            </div>
-
-                                            <div className="rewards-company-info">
-                                                <strong>The Coffee Hub</strong>
-                                                <span>Disponibile pentru reduceri</span>
-
-                                                <div className="company-expiry-line">
-                                                    <span className="company-expiry-dot">●</span>
-                                                    <span className="company-expiry-text">353 pct expiră în 12 zile</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="rewards-company-points">
-                                                <strong>353</strong>
-                                            </div>
-                                        </div>
-
-                                        <div className="rewards-company-footer">
-                                            <div className="rewards-company-actions">
-                                                <button
-                                                    type="button"
-                                                    className="btn-link-compact"
-                                                    onClick={() => navigate('/explore?orgId=demo')}
-                                                >
-                                                    Vezi evenimente <FiArrowUpRight className="btn-link-icon" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </article>
-
-                                    <div className="rewards-company-list">
-                                        {rewardsCompanies.length === 0 ? (
-                                            <div className="empty-state-card">
-                                                <p className="empty-state-text">Nu există puncte acumulate încă.</p>
-                                            </div>
-                                        ) : rewardsCompanies.map((company) => {
-                                            const targetPath = company.orgId ? `/explore?orgId=${company.orgId}` : '/explore';
+                            ) : (
+                                <>
+                                    <p className="rewards-intro-note">Punctele sunt disponibile ca reducere la checkout, la biletele viitoare ale aceluiași organizator.</p>
+                                    <div className="rewards-wallets-grid">
+                                        {rewardsCompanies.map((company) => {
+                                            const ronValue = formatRon(company.points);
+                                            const targetPath = company.orgId
+                                                ? `/explore?orgId=${company.orgId}&orgName=${encodeURIComponent(company.name)}`
+                                                : '/explore';
                                             return (
-                                                <article key={company.name} className="rewards-company-card">
-                                                    <div className="rewards-company-top">
-                                                        <div className={`rewards-company-avatar accent-${company.accent}`}>
+                                                <article key={company.name} className="rewards-wallet-card">
+                                                    <div className="rewards-wallet-top">
+                                                        <div className={`rewards-wallet-avatar accent-${company.accent}`}>
                                                             {company.initials}
                                                         </div>
-
-                                                        <div className="rewards-company-info">
-                                                            <strong>{company.name}</strong>
-                                                            <span>{company.subtitle}</span>
-
-                                                            {company.expiringSoonPoints > 0 ? (
-                                                                <div className="company-expiry-line">
-                                                                    <span className="company-expiry-dot">●</span>
-                                                                    <span className="company-expiry-text">{company.expiringSoonPoints} pct expiră {company.expiryLabel ? `în ${company.expiryLabel}` : 'curând'}</span>
-                                                                </div>
-                                                            ) : null}
+                                                        <div className="rewards-wallet-info">
+                                                            <strong className="rewards-wallet-name">{company.name}</strong>
+                                                            <span className="rewards-wallet-pts">{company.points} puncte</span>
                                                         </div>
-
-                                                        <div className="rewards-company-points">
-                                                            <strong>{company.points}</strong>
+                                                        <div className="rewards-wallet-value">
+                                                            <strong>= {ronValue} RON</strong>
+                                                            <span>reducere disponibilă</span>
                                                         </div>
                                                     </div>
-
-                                                    <div className="rewards-company-footer">
-                                                        <div className="rewards-company-footer-left" />
-
-                                                        <div className="rewards-company-actions">
-                                                            <button
-                                                                type="button"
-                                                                className="btn-link-compact"
-                                                                onClick={() => navigate(targetPath)}
-                                                            >
-                                                                Vezi evenimente <FiArrowUpRight className="btn-link-icon" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="rewards-wallet-cta"
+                                                        onClick={() => navigate(targetPath)}
+                                                    >
+                                                        Cumpără bilete cu reducere <FiArrowUpRight />
+                                                    </button>
                                                 </article>
                                             );
                                         })}
                                     </div>
-                                </section>
-
-                                <section className="rewards-column rewards-history-column">
-                                    <div className="rewards-history-header">
-                                        <h3 className="rewards-column-title">ISTORIC PUNCTE</h3>
-                                        <div className="rewards-history-filters" role="tablist" aria-label="Filtru istoric puncte">
-                                            <button
-                                                type="button"
-                                                className={`rewards-filter-pill ${rewardsFilter === 'all' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setRewardsFilter('all');
-                                                    setShowAllRewardsHistory(false);
-                                                }}
-                                            >
-                                                Toate
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`rewards-filter-pill ${rewardsFilter === 'earn' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setRewardsFilter('earn');
-                                                    setShowAllRewardsHistory(false);
-                                                }}
-                                            >
-                                                Câștigate
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`rewards-filter-pill ${rewardsFilter === 'redeem' ? 'active' : ''}`}
-                                                onClick={() => {
-                                                    setRewardsFilter('redeem');
-                                                    setShowAllRewardsHistory(false);
-                                                }}
-                                            >
-                                                Folosite
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="rewards-history-list">
-                                        {visibleRewardsHistory.length === 0 ? (
-                                            <div className="rewards-history-empty">Nu există tranzacții de puncte încă.</div>
-                                        ) : visibleRewardsHistory.map((entry) => (
-                                            <article key={`${entry.title}-${entry.date}`} className="rewards-history-item">
-                                                <div className={`rewards-history-icon ${entry.type}`}>
-                                                    {entry.type === 'earn' ? <FiStar /> : <FiGift />}
-                                                </div>
-                                                <div className="rewards-history-info">
-                                                    <strong>{entry.title}</strong>
-                                                    <span>{entry.date}</span>
-                                                </div>
-                                                <div className={`rewards-history-points ${entry.type}`}>
-                                                    {entry.type === 'earn' ? <FiArrowUpRight /> : <FiArrowDownRight />}
-                                                    <strong>{entry.points}</strong>
-                                                </div>
-                                            </article>
-                                        ))}
-                                    </div>
-
-                                    {filteredRewardsHistory.length > 3 ? (
-                                        <div className="rewards-history-more-wrap">
-                                            <button
-                                                type="button"
-                                                className="rewards-history-more-btn"
-                                                onClick={() => setShowAllRewardsHistory((prev) => !prev)}
-                                            >
-                                                {showAllRewardsHistory ? 'Arată mai puțin' : `Vezi mai mult (${hiddenRewardsCount} rămase)`}
-                                            </button>
-                                        </div>
-                                    ) : null}
-                                </section>
-                            </div>
+                                    <p className="rewards-rate-note">10 puncte = 1 RON reducere · Reducerea se poate aplica la checkout.</p>
+                                </>
+                            )}
                         </div>
                     )}
 
                 </main>
+                </div>
             </div>
 
             {isEditModalOpen ? (
@@ -917,10 +709,7 @@ const Profile = ({ user }) => {
                             <FiX />
                         </button>
 
-                        <div className="profile-edit-modal-head">
-                            <p>Editare profil</p>
-                            <h3>Actualizează detaliile tale</h3>
-                        </div>
+                        <p className="profile-edit-modal-head">Editează contul</p>
 
                         <form className="profile-edit-form" onSubmit={handleSaveProfile}>
                             <label>
@@ -957,7 +746,7 @@ const Profile = ({ user }) => {
                                 {profileTouched.lastName && profileFieldErrors.lastName ? <p className="profile-field-error">{profileFieldErrors.lastName}</p> : null}
                             </label>
 
-                            <label>
+                            <label className="full-width">
                                 <span>Email</span>
                                 <input
                                     type="email"
@@ -972,38 +761,6 @@ const Profile = ({ user }) => {
                                     disabled={isSavingProfile}
                                 />
                                 {profileTouched.email && profileFieldErrors.email ? <p className="profile-field-error">{profileFieldErrors.email}</p> : null}
-                            </label>
-
-                            <label>
-                                <span>Telefon</span>
-                                <input
-                                    type="text"
-                                    value={profileForm.phone}
-                                    className={profileTouched.phone && profileFieldErrors.phone ? 'profile-input-invalid' : ''}
-                                    onChange={(eventChange) => {
-                                        setProfileForm((prev) => ({ ...prev, phone: eventChange.target.value }));
-                                        if (profileFormError) setProfileFormError('');
-                                    }}
-                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, phone: true }))}
-                                    disabled={isSavingProfile}
-                                />
-                                {profileTouched.phone && profileFieldErrors.phone ? <p className="profile-field-error">{profileFieldErrors.phone}</p> : null}
-                            </label>
-
-                            <label className="full-width">
-                                <span>Oraș</span>
-                                <input
-                                    type="text"
-                                    value={profileForm.city}
-                                    className={profileTouched.city && profileFieldErrors.city ? 'profile-input-invalid' : ''}
-                                    onChange={(eventChange) => {
-                                        setProfileForm((prev) => ({ ...prev, city: eventChange.target.value }));
-                                        if (profileFormError) setProfileFormError('');
-                                    }}
-                                    onBlur={() => setProfileTouched((prev) => ({ ...prev, city: true }))}
-                                    disabled={isSavingProfile}
-                                />
-                                {profileTouched.city && profileFieldErrors.city ? <p className="profile-field-error">{profileFieldErrors.city}</p> : null}
                             </label>
 
                             {profileFormError ? <p className="profile-edit-form-error">{profileFormError}</p> : null}

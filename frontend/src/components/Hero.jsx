@@ -20,7 +20,7 @@ const Hero = ({ onRecommendClick }) => {
               experiența.
             </h1>
             <p className="hero-subtitle">
-              Descoperă. Participă. Câștigă.
+              DESCOPERĂ &nbsp;·&nbsp; PARTICIPĂ &nbsp;·&nbsp; ORGANIZEAZĂ
             </p>
           </div>
 

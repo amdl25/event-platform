@@ -206,7 +206,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 		maxCapacity: 50,
 		price: 0,
 		pointsValue: 0,
-		categoryId: ''
+		categoryIds: []
 	}));
 
 	useEffect(() => {
@@ -287,7 +287,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 				maxCapacity: Number(eventToEdit.max_capacity || 50),
 				price: Number(eventToEdit.price || 0),
 				pointsValue: Number(eventToEdit.points_value || 0),
-				categoryId: eventToEdit.categories?.[0]?.id || categories[0]?.id || ''
+				categoryIds: (eventToEdit.categories || []).map((c) => c.id)
 			});
 			setTicketTypes(
 				eventToEdit.ticketTypes?.length > 0
@@ -519,7 +519,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 			maxCapacity: 50,
 			price: 0,
 			pointsValue: 0,
-			categoryId: categories[0]?.id || ''
+			categoryIds: []
 		}));
 		setEventImagePreview('');
 		setEventImageName('');
@@ -675,7 +675,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 				points_value: basePoints,
 				moderation_status: targetStatus,
 				org_id: user?.organizationId,
-				category_id: eventForm.categoryId || null,
+				category_ids: JSON.stringify(eventForm.categoryIds),
 				ticket_types: JSON.stringify(normalizedTicketTypes),
 				image_url: imageInputMode === 'url' ? (eventImageUrl.trim() || null) : null
 			};
@@ -1159,12 +1159,29 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 								</div>
 
 								<div className="organizer-create-field">
-									<label>Categorie</label>
-									<select value={eventForm.categoryId} onChange={(event) => handleCreateFormChange('categoryId', event.target.value)} required>
-										{categories.map((category) => (
-											<option key={category.id} value={category.id}>{category.name}</option>
-										))}
-									</select>
+									<label>Categorii <span className="organizer-field-hint">(selectează una sau mai multe)</span></label>
+									<div className="organizer-category-pills">
+										{categories.map((category) => {
+											const selected = eventForm.categoryIds.includes(category.id);
+											return (
+												<button
+													key={category.id}
+													type="button"
+													className={`organizer-category-pill${selected ? ' selected' : ''}`}
+													onClick={() => {
+														handleCreateFormChange(
+															'categoryIds',
+															selected
+																? eventForm.categoryIds.filter((id) => id !== category.id)
+																: [...eventForm.categoryIds, category.id]
+														);
+													}}
+												>
+													{category.name}
+												</button>
+											);
+										})}
+									</div>
 								</div>
 							</div>
 

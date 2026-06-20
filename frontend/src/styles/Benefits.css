@@ -23,8 +23,15 @@
   font-size: 2.4rem;
   font-weight: 700;
   color: #111827;
-  margin: 0;
+  margin: 0 0 12px;
   line-height: 1.2;
+}
+
+.benefits-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #667085;
+  line-height: 1.6;
 }
 
 .benefits-grid {

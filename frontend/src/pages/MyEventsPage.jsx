@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiCalendar, FiCopy, FiLink, FiLock, FiMapPin, FiMoreHorizontal, FiTrash2, FiUsers, FiEdit2, FiRefreshCw } from 'react-icons/fi';
+import { FiCalendar, FiCheck, FiCopy, FiEdit2, FiLink, FiLock, FiMapPin, FiMoreHorizontal, FiPlus, FiRefreshCw, FiTrash2, FiUsers } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import EventDetailsModal from '../components/EventDetailsModal';
@@ -8,45 +8,22 @@ import '../styles/MyEventsPage.css';
 const formatDateLabel = (startValue, endValue) => {
   const startDate = new Date(startValue);
   if (Number.isNaN(startDate.getTime())) return '';
-
-  const dateLabel = startDate.toLocaleDateString('ro-RO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-
-  const startTimeLabel = startDate.toLocaleTimeString('ro-RO', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  if (!endValue) {
-    return `${dateLabel}, ${startTimeLabel}`;
-  }
-
+  const dateLabel = startDate.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
+  const startTimeLabel = startDate.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  if (!endValue) return `${dateLabel}, ${startTimeLabel}`;
   const endDate = new Date(endValue);
-  if (Number.isNaN(endDate.getTime()) || endDate.getTime() === startDate.getTime()) {
-    return `${dateLabel}, ${startTimeLabel}`;
-  }
-
-  const endTimeLabel = endDate.toLocaleTimeString('ro-RO', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  return `${dateLabel}, ${startTimeLabel} - ${endTimeLabel}`;
+  if (Number.isNaN(endDate.getTime()) || endDate.getTime() === startDate.getTime()) return `${dateLabel}, ${startTimeLabel}`;
+  const endTimeLabel = endDate.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  return `${dateLabel}, ${startTimeLabel} – ${endTimeLabel}`;
 };
 
-const formatExpiryLabel = (dateValue) => {
-  if (!dateValue) return '';
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return '';
-
-  return date.toLocaleDateString('ro-RO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
+const getDateParts = (dateValue) => {
+  const d = new Date(dateValue);
+  if (Number.isNaN(d.getTime())) return { day: '—', month: '—' };
+  return {
+    day: d.getDate(),
+    month: d.toLocaleDateString('ro-RO', { month: 'short' }).replace('.', '').toUpperCase()
+  };
 };
 
 const MyEventsPage = ({ user }) => {
@@ -63,6 +40,7 @@ const MyEventsPage = ({ user }) => {
   const [loadingEventId, setLoadingEventId] = useState('');
   const [regeneratingEventId, setRegeneratingEventId] = useState('');
   const [togglingGuestListEventId, setTogglingGuestListEventId] = useState('');
+  const [copiedId, setCopiedId] = useState('');
 
   const loadEvents = async () => {
     try {
@@ -79,25 +57,34 @@ const MyEventsPage = ({ user }) => {
   };
 
   useEffect(() => {
-    if (!user?.id) {
-      navigate('/login');
-      return;
-    }
-
+    if (!user?.id) { navigate('/login'); return; }
     loadEvents();
   }, [navigate, user?.id]);
 
-  const counts = useMemo(() => ({
-    created: createdEvents.length,
-    invited: invitedEvents.length
-  }), [createdEvents.length, invitedEvents.length]);
+  const now = new Date();
 
-  const copyInviteLink = async (inviteLink) => {
+  const activeCreatedEvents = useMemo(() =>
+    createdEvents.filter((e) => new Date(e.start_date) > now),
+    [createdEvents]
+  );
+
+  const activeInvitedEvents = useMemo(() =>
+    invitedEvents.filter((e) => new Date(e.event?.start_date) > now),
+    [invitedEvents]
+  );
+
+  const counts = useMemo(() => ({
+    created: activeCreatedEvents.length,
+    invited: activeInvitedEvents.length
+  }), [activeCreatedEvents.length, activeInvitedEvents.length]);
+
+  const copyInviteLink = async (eventId, inviteLink) => {
     if (!inviteLink) return;
     try {
       await navigator.clipboard.writeText(inviteLink);
-    } catch {
-    }
+      setCopiedId(eventId);
+      setTimeout(() => setCopiedId(''), 2000);
+    } catch { }
   };
 
   const handleDeleteEvent = async (eventId) => {
@@ -125,9 +112,9 @@ const MyEventsPage = ({ user }) => {
     }
   };
 
-  const handleOpenViewModal = (eventId) => loadEventForModal(eventId, 'view');
-
   const handleOpenEditModal = (eventId) => loadEventForModal(eventId, 'edit');
+  const openEventFromCard = (eventId) => loadEventForModal(eventId, 'view');
+  const stopProp = (e) => e.stopPropagation();
 
   const handleRegenerateInviteLink = async (eventId) => {
     try {
@@ -136,11 +123,10 @@ const MyEventsPage = ({ user }) => {
       const response = await API.post(`/events/private/${eventId}/regenerate-link`);
       const newInviteLink = response.data?.inviteLink;
       const newInviteExpiresAt = response.data?.expiresAt || null;
-
       if (newInviteLink) {
-        setCreatedEvents((prev) => prev.map((item) => (
+        setCreatedEvents((prev) => prev.map((item) =>
           item.id === eventId ? { ...item, inviteLink: newInviteLink, inviteExpiresAt: newInviteExpiresAt } : item
-        )));
+        ));
       }
     } catch {
       setError('Nu am putut regenera linkul de invitație.');
@@ -153,15 +139,11 @@ const MyEventsPage = ({ user }) => {
     try {
       setTogglingGuestListEventId(eventId);
       setOpenMenuEventId('');
-
-      const response = await API.patch(`/events/private/${eventId}/settings`, {
-        show_guest_list: !currentValue
-      });
-
+      const response = await API.patch(`/events/private/${eventId}/settings`, { show_guest_list: !currentValue });
       const updatedValue = Boolean(response.data?.showGuestList);
-      setCreatedEvents((prev) => prev.map((item) => (
+      setCreatedEvents((prev) => prev.map((item) =>
         item.id === eventId ? { ...item, showGuestList: updatedValue } : item
-      )));
+      ));
     } catch {
       setError('Nu am putut actualiza vizibilitatea listei de invitați.');
     } finally {
@@ -169,193 +151,212 @@ const MyEventsPage = ({ user }) => {
     }
   };
 
-  const handleModalClose = () => {
-    setIsEventModalOpen(false);
-    setEditingEvent(null);
-  };
+  const handleModalClose = () => { setIsEventModalOpen(false); setEditingEvent(null); };
 
   const handleEventSaved = (updatedEvent) => {
-    setCreatedEvents((prev) => prev.map((item) => (
-      item.id === updatedEvent.id ? { ...item, ...updatedEvent } : item
-    )));
+    setCreatedEvents((prev) => prev.map((item) => item.id === updatedEvent.id ? { ...item, ...updatedEvent } : item));
     setEditingEvent(updatedEvent);
   };
 
   const handleInviteAction = async (participationId, action) => {
     try {
       await API.patch(`/events/private/invitations/${participationId}`, { action });
-      setInvitedEvents((prev) => prev.map((item) => {
-        if (item.participationId !== participationId) return item;
-        return {
-          ...item,
-          inviteStatus: action === 'accept' ? 'accepted' : 'rejected'
-        };
-      }));
+      setInvitedEvents((prev) => prev.map((item) =>
+        item.participationId !== participationId ? item : { ...item, inviteStatus: action === 'accept' ? 'accepted' : 'rejected' }
+      ));
     } catch {
       setError('Nu am putut actualiza invitația.');
     }
   };
 
-  const openEventFromCard = (eventId) => {
-    loadEventForModal(eventId, 'view');
-  };
-
-  const stopCardClick = (event) => {
-    event.stopPropagation();
-  };
-
-  if (loading) {
-    return <div className="my-events-shell" aria-busy="true" />;
-  }
+  if (loading) return <div className="mep-shell" aria-busy="true" />;
 
   return (
-    <div className="my-events-shell">
-      <div className="my-events-container">
-        <header className="my-events-header">
+    <div className="mep-shell">
+      <div className="mep-container">
+
+        <header className="mep-header">
           <div>
-            <h1>Evenimentele mele</h1>
-            <p>Evenimentele tale private - create de tine sau la care ai fost invitat.</p>
+            <h1 className="mep-title">Evenimentele mele</h1>
+            <p className="mep-subtitle">Spații private pentru tine și oamenii care contează.</p>
           </div>
-          <button type="button" className="my-events-new-btn" onClick={() => navigate('/create-event')}>
-            + Eveniment nou
+          <button type="button" className="mep-create-btn" onClick={() => navigate('/create-event')}>
+            <FiPlus /> Eveniment nou
           </button>
         </header>
 
-        <div className="my-events-tabs">
-          <button type="button" className={activeTab === 'created' ? 'active' : ''} onClick={() => setActiveTab('created')}>
-            Create de mine ({counts.created})
+        <div className="mep-tabs">
+          <button type="button" className={`mep-tab${activeTab === 'created' ? ' active' : ''}`} onClick={() => setActiveTab('created')}>
+            Organizate <span className="mep-tab-count">{counts.created}</span>
           </button>
-          <button type="button" className={activeTab === 'invited' ? 'active' : ''} onClick={() => setActiveTab('invited')}>
-            Invitații primite ({counts.invited})
+          <button type="button" className={`mep-tab${activeTab === 'invited' ? ' active' : ''}`} onClick={() => setActiveTab('invited')}>
+            Invitații <span className="mep-tab-count">{counts.invited}</span>
           </button>
         </div>
 
-        {error ? <div className="my-events-error">{error}</div> : null}
+        {error ? <div className="mep-error">{error}</div> : null}
 
         {activeTab === 'created' ? (
-          <section className="my-events-list">
-            {createdEvents.length === 0 ? <p className="my-events-empty">Nu ai creat niciun eveniment privat.</p> : null}
-            {createdEvents.map((eventItem) => {
-              const isFuture = new Date(eventItem.start_date) > new Date();
-              return (
-                <article
-                  key={eventItem.id}
-                  className="private-event-card private-event-card-clickable"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openEventFromCard(eventItem.id)}
-                  onKeyDown={(keyboardEvent) => {
-                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
-                      keyboardEvent.preventDefault();
-                      openEventFromCard(eventItem.id);
-                    }
-                  }}
-                >
-                  <div className="private-event-left">
-                    <div className="private-icon"><FiLock /></div>
-                    <div className="private-event-main">
-                      <div className="private-event-title-row">
-                        <h3>{eventItem.title}</h3>
-                        <span className={`private-status ${isFuture ? 'future' : 'past'}`}>{isFuture ? 'Viitor' : 'Trecut'}</span>
-                      </div>
-                      <div className="private-meta-row">
-                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
-                        <span><FiMapPin /> {eventItem.location || 'Locație nespecificată'}</span>
-                        <span><FiUsers /> {eventItem.confirmedCount || 0} participanți</span>
-                      </div>
-                      <div className="private-link-row">
-                        <span className="private-link-pill"><FiLink /> {eventItem.inviteLink}</span>
-                        {eventItem.inviteExpiresAt ? (
-                          <span className="private-link-expiry">Expiră la {formatExpiryLabel(eventItem.inviteExpiresAt)}</span>
-                        ) : null}
-                        <span className={`private-guest-list-status ${eventItem.showGuestList ? 'on' : 'off'}`}>
-                          Lista invitați: {eventItem.showGuestList ? 'Vizibilă' : 'Ascunsă'}
-                        </span>
-                        <button type="button" className="private-link-copy" onClick={(event) => { event.stopPropagation(); copyInviteLink(eventItem.inviteLink); }}>
-                          <FiCopy />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+          <section>
+            {activeCreatedEvents.length === 0 ? (
+              <div className="mep-empty-state">
+                <div className="mep-empty-icon"><FiLock /></div>
+                <h3>Niciun eveniment organizat</h3>
+                <p>Creează un eveniment privat și invită oamenii importanți pentru tine.</p>
+                <button type="button" className="mep-create-btn" onClick={() => navigate('/create-event')}>
+                  <FiPlus /> Creează eveniment
+                </button>
+              </div>
+            ) : (
+              <div className="mep-grid">
+                {activeCreatedEvents.map((eventItem) => {
+                  const isFuture = new Date(eventItem.start_date) > new Date();
+                  const { day, month } = getDateParts(eventItem.start_date);
+                  const isCopied = copiedId === eventItem.id;
 
-                  <div className="private-event-actions">
-                    <button type="button" className="private-menu-trigger" onClick={(event) => { event.stopPropagation(); setOpenMenuEventId(openMenuEventId === eventItem.id ? '' : eventItem.id); }}>
-                      <FiMoreHorizontal />
-                    </button>
-                    {openMenuEventId === eventItem.id ? (
-                      <div className="private-menu-dropdown">
-                        <button type="button" onClick={(event) => { event.stopPropagation(); handleOpenEditModal(eventItem.id); }} disabled={loadingEventId === eventItem.id}>
-                          <FiEdit2 /> Editează
-                        </button>
-                        <button type="button" onClick={(event) => { event.stopPropagation(); handleRegenerateInviteLink(eventItem.id); }} disabled={regeneratingEventId === eventItem.id}>
-                          <FiRefreshCw /> {regeneratingEventId === eventItem.id ? 'Se regenerează...' : 'Regenerare link'}
-                        </button>
+                  return (
+                    <article
+                      key={eventItem.id}
+                      className="mep-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openEventFromCard(eventItem.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEventFromCard(eventItem.id); } }}
+                    >
+                      <div className="mep-card-visual">
+                        {eventItem.image_url
+                          ? <img src={eventItem.image_url} alt={eventItem.title} className="mep-card-img" />
+                          : <div className="mep-card-no-img" />}
+                        <div className="mep-card-img-scrim" />
+
+                        <div className="mep-card-menu-wrap" onClick={stopProp}>
+                          <button
+                            type="button"
+                            className="mep-menu-trigger"
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuEventId(openMenuEventId === eventItem.id ? '' : eventItem.id); }}
+                            aria-label="Opțiuni"
+                          >
+                            <FiMoreHorizontal />
+                          </button>
+                          {openMenuEventId === eventItem.id ? (
+                            <div className="mep-dropdown">
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleOpenEditModal(eventItem.id); }} disabled={loadingEventId === eventItem.id}>
+                                <FiEdit2 /> Editează
+                              </button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleRegenerateInviteLink(eventItem.id); }} disabled={regeneratingEventId === eventItem.id}>
+                                <FiRefreshCw /> {regeneratingEventId === eventItem.id ? 'Se regenerează...' : 'Regenerează link'}
+                              </button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleToggleGuestListVisibility(eventItem.id, eventItem.showGuestList); }} disabled={togglingGuestListEventId === eventItem.id}>
+                                <FiUsers /> {eventItem.showGuestList ? 'Ascunde lista' : 'Afișează lista'}
+                              </button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); copyInviteLink(eventItem.id, eventItem.inviteLink); }}>
+                                <FiLink /> Copiază link
+                              </button>
+                              <button type="button" className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteEvent(eventItem.id); }}>
+                                <FiTrash2 /> Șterge
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className="mep-card-visual-bar">
+                          <div className="mep-date-chip">
+                            <span className="mep-date-day">{day}</span>
+                            <span className="mep-date-month">{month}</span>
+                          </div>
+                          <span className={`mep-status-chip${isFuture ? ' future' : ' past'}`}>
+                            {isFuture ? 'Viitor' : 'Trecut'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mep-card-content">
+                        <h3 className="mep-card-title">{eventItem.title}</h3>
+                        <div className="mep-card-meta">
+                          {eventItem.location ? <span><FiMapPin />{eventItem.location}</span> : null}
+                          <span><FiUsers />{eventItem.confirmedCount || 0} participanți</span>
+                        </div>
+                      </div>
+
+                      <div className="mep-card-footer" onClick={stopProp}>
                         <button
                           type="button"
-                          onClick={(event) => { event.stopPropagation(); handleToggleGuestListVisibility(eventItem.id, eventItem.showGuestList); }}
-                          disabled={togglingGuestListEventId === eventItem.id}
+                          className={`mep-copy-link-btn${isCopied ? ' copied' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); copyInviteLink(eventItem.id, eventItem.inviteLink); }}
                         >
-                          <FiUsers />
-                          {togglingGuestListEventId === eventItem.id
-                            ? 'Se actualizează...'
-                            : eventItem.showGuestList
-                              ? 'Ascunde lista invitaților'
-                              : 'Arată lista invitaților'}
+                          {isCopied ? <><FiCheck /> Copiat!</> : <><FiCopy /> Copiază linkul de invitație</>}
                         </button>
-                        <button type="button" onClick={(event) => { event.stopPropagation(); copyInviteLink(eventItem.inviteLink); }}><FiLink /> Copiază linkul</button>
-                        <button type="button" className="danger" onClick={(event) => { event.stopPropagation(); handleDeleteEvent(eventItem.id); }}><FiTrash2 /> Șterge</button>
                       </div>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </section>
         ) : (
-          <section className="my-events-list">
-            {invitedEvents.length === 0 ? <p className="my-events-empty">Nu ai invitații primite momentan.</p> : null}
-            {invitedEvents.map((inviteItem) => {
-              const eventItem = inviteItem.event;
-              return (
-                <article
-                  key={inviteItem.participationId}
-                  className="private-event-card invite-card private-event-card-clickable"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openEventFromCard(eventItem.id)}
-                  onKeyDown={(keyboardEvent) => {
-                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
-                      keyboardEvent.preventDefault();
-                      openEventFromCard(eventItem.id);
-                    }
-                  }}
-                >
-                  <div className="private-event-left">
-                    <div className="private-icon"><FiUsers /></div>
-                    <div className="private-event-main">
-                      <div className="private-event-title-row">
-                        <h3>{eventItem.title}</h3>
-                        <span className={`private-status ${inviteItem.inviteStatus === 'pending' ? 'pending' : inviteItem.inviteStatus === 'accepted' ? 'future' : 'past'}`}>
-                          {inviteItem.inviteStatus === 'pending' ? 'În așteptare' : inviteItem.inviteStatus === 'accepted' ? 'Acceptat' : 'Refuzat'}
-                        </span>
-                      </div>
-                      <p className="private-host-line">Organizator: {eventItem.hostName}</p>
-                      <div className="private-meta-row">
-                        <span><FiCalendar /> {formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
-                        <span><FiMapPin /> {eventItem.location || 'Locație nespecificată'}</span>
-                      </div>
-                    </div>
-                  </div>
+          <section>
+            {activeInvitedEvents.length === 0 ? (
+              <div className="mep-empty-state">
+                <div className="mep-empty-icon"><FiUsers /></div>
+                <h3>Nicio invitație</h3>
+                <p>Când cineva te invită la un eveniment privat, îl vei găsi aici.</p>
+              </div>
+            ) : (
+              <div className="mep-grid">
+                {activeInvitedEvents.map((inviteItem) => {
+                  const eventItem = inviteItem.event;
+                  const { day, month } = getDateParts(eventItem.start_date);
+                  const statusClass = inviteItem.inviteStatus === 'accepted' ? 'future' : inviteItem.inviteStatus === 'rejected' ? 'past' : 'pending';
+                  const statusLabel = { accepted: 'Acceptat', rejected: 'Refuzat', pending: 'În așteptare' }[inviteItem.inviteStatus] || 'În așteptare';
 
-                  {inviteItem.inviteStatus === 'pending' ? (
-                    <div className="invite-actions">
-                      <button type="button" className="accept" onClick={(event) => { event.stopPropagation(); handleInviteAction(inviteItem.participationId, 'accept'); }}>Accept</button>
-                      <button type="button" className="decline" onClick={(event) => { event.stopPropagation(); handleInviteAction(inviteItem.participationId, 'reject'); }}>Refuză</button>
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
+                  return (
+                    <article
+                      key={inviteItem.participationId}
+                      className="mep-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openEventFromCard(eventItem.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEventFromCard(eventItem.id); } }}
+                    >
+                      <div className="mep-card-visual">
+                        {eventItem.image_url
+                          ? <img src={eventItem.image_url} alt={eventItem.title} className="mep-card-img" />
+                          : <div className="mep-card-no-img invite" />}
+                        <div className="mep-card-img-scrim" />
+
+                        <div className="mep-card-visual-bar">
+                          <div className="mep-date-chip">
+                            <span className="mep-date-day">{day}</span>
+                            <span className="mep-date-month">{month}</span>
+                          </div>
+                          <span className={`mep-status-chip ${statusClass}`}>{statusLabel}</span>
+                        </div>
+                      </div>
+
+                      <div className="mep-card-content">
+                        <h3 className="mep-card-title">{eventItem.title}</h3>
+                        <p className="mep-host-name">de {eventItem.hostName}</p>
+                        <div className="mep-card-meta">
+                          <span><FiCalendar />{formatDateLabel(eventItem.start_date, eventItem.end_date)}</span>
+                          {eventItem.location ? <span><FiMapPin />{eventItem.location}</span> : null}
+                        </div>
+                      </div>
+
+                      {inviteItem.inviteStatus === 'pending' ? (
+                        <div className="mep-invite-actions" onClick={stopProp}>
+                          <button type="button" className="mep-accept-btn" onClick={(e) => { e.stopPropagation(); handleInviteAction(inviteItem.participationId, 'accept'); }}>
+                            Acceptă
+                          </button>
+                          <button type="button" className="mep-decline-btn" onClick={(e) => { e.stopPropagation(); handleInviteAction(inviteItem.participationId, 'reject'); }}>
+                            Refuză
+                          </button>
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </section>
         )}
       </div>

@@ -150,6 +150,33 @@
   transform: translateY(-1px);
 }
 
+.navbar-btn-organizer {
+  text-decoration: none;
+  border: 1.5px solid #d1d5db;
+  color: #374151;
+  padding: 7px 14px;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.navbar-btn-organizer:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft, #fff5f2);
+}
+
+.navbar-mobile-organizer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  min-height: 44px;
+  font-size: 0.875rem;
+}
+
 .navbar-mobile-toggle {
   display: none;
   background: none;

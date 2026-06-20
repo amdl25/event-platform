@@ -364,9 +364,10 @@ export const updateEvent = async (req, res) => {
     if (requestedStatus === 'published' && event.moderation_status === 'reported') {
       return res.status(403).json({ message: 'Evenimentul este blocat de administrator. Contactează adminul sau modifică evenimentul pentru deblocare.' });
     }
-    const normalizedCategoryIds = Array.isArray(category_ids)
-      ? category_ids.filter(Boolean)
-      : [];
+    const parsedCategoryIds = Array.isArray(category_ids)
+      ? category_ids
+      : (() => { try { return JSON.parse(category_ids); } catch { return []; } })();
+    const normalizedCategoryIds = parsedCategoryIds.filter(Boolean);
 
     if (category_id) {
       normalizedCategoryIds.push(category_id);
@@ -532,9 +533,10 @@ export const createEvent = async (req, res) => {
       return res.status(403).json({ message: 'Contul participant nu poate publica evenimente business.' });
     }
 
-    const normalizedCategoryIds = Array.isArray(category_ids)
-      ? category_ids.filter(Boolean)
-      : [];
+    const parsedCategoryIds = Array.isArray(category_ids)
+      ? category_ids
+      : (() => { try { return JSON.parse(category_ids); } catch { return []; } })();
+    const normalizedCategoryIds = parsedCategoryIds.filter(Boolean);
 
     if (category_id) {
       normalizedCategoryIds.push(category_id);

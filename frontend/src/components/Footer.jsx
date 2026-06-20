@@ -1,50 +1,41 @@
+import { Link } from 'react-router-dom';
 import '../styles/Footer.css';
 
 const Footer = () => {
   return (
     <footer className="main-footer">
-      <div className="footer-content">
+      <div className="footer-inner">
+
         <div className="footer-brand">
-          <h2 className="footer-logo">Event<span>Hub</span></h2>
-          <p>Your unified experience hub. Public or private, manage your entire social life in one single calendar.</p>
-          <div className="footer-status">
-            <span className="status-dot"></span> System Operational
-          </div>
+          <Link to="/" className="footer-logo">
+            <span>Event</span><span className="footer-logo-accent">Hub</span>
+          </Link>
+          <p className="footer-brand-desc">Platforma unde descoperi, organizezi și trăiești evenimente.</p>
         </div>
-        
-        <div className="footer-links-group">
-          <div className="footer-column">
-            <h4>Platform</h4>
-            <ul>
-              <li>Explore Events</li>
-              <li>How it Works</li>
-              <li>For Organizers</li>
-              <li>Loyalty Program</li>
-            </ul>
-          </div>
 
-          <div className="footer-column">
-            <h4>Support</h4>
-            <ul>
-              <li>Help Center</li>
-              <li>Privacy Policy</li>
-              <li>Terms of Service</li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <h4>Connect</h4>
-            <div className="social-links">
-              <li>Instagram</li>
-              <li>LinkedIn</li>
-              <li>X (Twitter)</li>
-            </div>
-          </div>
+        <div className="footer-col">
+          <h4>PENTRU PARTICIPANȚI</h4>
+          <Link to="/explore">Explorează evenimente</Link>
+          <Link to="/register">Creează cont gratuit</Link>
         </div>
+
+        <div className="footer-col">
+          <h4>PENTRU ORGANIZATORI</h4>
+          <Link to="/pricing">Planuri și prețuri</Link>
+          <Link to="/about">Cum funcționează</Link>
+        </div>
+
+        <div className="footer-col">
+          <h4>EVENTHUB</h4>
+          <Link to="/about">Despre noi</Link>
+          <a href="mailto:contact@eventhub.ro">Contact</a>
+        </div>
+
       </div>
-      
+
       <div className="footer-bottom">
-        <p>&copy; 2026 EventHub Experience Technologies.</p>
+        <span>© 2026 EventHub.</span>
+        <span>Făcut cu energie în România.</span>
       </div>
     </footer>
   );

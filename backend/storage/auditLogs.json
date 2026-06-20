@@ -1,5 +1,102 @@
 [
   {
+    "id": "f8be449c-9c3c-415d-9fdc-7ec2d293b8a2",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_deleted",
+    "entity_type": "category",
+    "entity_id": "f7575306-406e-4969-ab5e-ad0b1b05b40f",
+    "details": {
+      "name": "Lifestyle"
+    },
+    "createdAt": "2026-06-20T16:33:40.362Z"
+  },
+  {
+    "id": "d69162eb-5558-4fef-95a2-5df41ba929d3",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_created",
+    "entity_type": "category",
+    "entity_id": "d93f4f85-e4f1-45dc-aba3-d138bbd54a0f",
+    "details": {
+      "name": "Petreceri"
+    },
+    "createdAt": "2026-06-20T16:28:36.506Z"
+  },
+  {
+    "id": "c893e427-3660-422f-8d7f-39f6353073a2",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_created",
+    "entity_type": "category",
+    "entity_id": "bd3d445c-0cfe-44db-8e44-385465f38990",
+    "details": {
+      "name": "Comunitate & familie"
+    },
+    "createdAt": "2026-06-20T16:28:29.119Z"
+  },
+  {
+    "id": "2ca3143b-ec5f-4f3b-bc7d-3b22a6698a38",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_created",
+    "entity_type": "category",
+    "entity_id": "06608944-fa6b-4fb3-b774-3f4a8e761b10",
+    "details": {
+      "name": "Workshop-uri"
+    },
+    "createdAt": "2026-06-20T16:28:21.520Z"
+  },
+  {
+    "id": "318ad688-a472-40ed-aada-e4c14d829042",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_created",
+    "entity_type": "category",
+    "entity_id": "e2d3d66a-0c83-4b72-8b70-58c93a224573",
+    "details": {
+      "name": "Food & drinks"
+    },
+    "createdAt": "2026-06-20T16:28:07.523Z"
+  },
+  {
+    "id": "d070f105-28db-4a36-a8f5-05141fe0da22",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_created",
+    "entity_type": "category",
+    "entity_id": "281a60dd-bc2e-49e2-a1ca-0bb2c5d5fd40",
+    "details": {
+      "name": "Spectacole"
+    },
+    "createdAt": "2026-06-20T16:28:00.413Z"
+  },
+  {
+    "id": "604a42d9-77b0-4d0d-af06-d58799b5d3a7",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "category_updated",
+    "entity_type": "category",
+    "entity_id": "17c98a63-18ce-4ff1-a904-40eb8705885d",
+    "details": {
+      "name": "Artă & cultură"
+    },
+    "createdAt": "2026-06-20T16:27:35.251Z"
+  },
+  {
+    "id": "6861eb99-4405-4cce-b3a2-90d4d8a86d87",
+    "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
+    "actor_role": "admin",
+    "action": "event_published",
+    "entity_type": "event",
+    "entity_id": "a9c6e53e-2fe6-4b35-b5c9-fd4c0f759d43",
+    "details": {
+      "title": "Street Food Festival",
+      "moderationStatus": "published"
+    },
+    "createdAt": "2026-06-17T12:49:12.055Z"
+  },
+  {
     "id": "dae576ef-3226-4af5-aaf8-b3a4816098de",
     "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
     "actor_role": "admin",
@@ -78,16 +175,15 @@
     "createdAt": "2026-05-27T18:24:46.966Z"
   },
   {
-    "id": "6861eb99-4405-4cce-b3a2-90d4d8a86d87",
+    "id": "92a35130-cde6-4b08-b26b-40fbf2c759a1",
     "actor_id": "d8dfa42f-0faa-4c0d-b490-48ab43ac0509",
     "actor_role": "admin",
-    "action": "event_published",
-    "entity_type": "event",
-    "entity_id": "a9c6e53e-2fe6-4b35-b5c9-fd4c0f759d43",
+    "action": "category_deleted",
+    "entity_type": "category",
+    "entity_id": "dbd6e87b-68be-4e7c-8bb2-d1729dd3f15f",
     "details": {
-      "title": "Street Food Festival",
-      "moderationStatus": "published"
+      "name": "Tech"
     },
-    "createdAt": "2026-06-17T12:49:12.055Z"
+    "createdAt": "2026-06-20T16:33:48.331Z"
   }
 ]

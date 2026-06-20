@@ -461,6 +461,29 @@ export const getPurchaseQuote = async (req, res) => {
 	}
 };
 
+const REFERRAL_BONUS_POINTS = 50;
+
+const awardReferralBonus = async ({ referredBy, orgId, eventId }) => {
+	if (!referredBy || !orgId) return;
+	try {
+		const [wallet] = await LoyaltyWallet.findOrCreate({
+			where: { account_id: referredBy, org_id: orgId },
+			defaults: { points_balance: 0 }
+		});
+		await sequelize.transaction(async (t) => {
+			await wallet.increment('points_balance', { by: REFERRAL_BONUS_POINTS, transaction: t });
+			await LoyaltyTransaction.create({
+				wallet_id: wallet.id,
+				event_id: eventId,
+				points_amount: REFERRAL_BONUS_POINTS,
+				type: 'referral'
+			}, { transaction: t });
+		});
+	} catch (err) {
+		console.error('Referral bonus error:', err.message);
+	}
+};
+
 export const createCheckoutSession = async (req, res) => {
 	const {
 		event_id,
@@ -469,7 +492,8 @@ export const createCheckoutSession = async (req, res) => {
 		buyer_email,
 		quantity = 1,
 		use_points = false,
-		points_to_use = 0
+		points_to_use = 0,
+		referred_by = null
 	} = req.body;
 
 	const accountId = req.user?.id || null;
@@ -543,6 +567,10 @@ export const createCheckoutSession = async (req, res) => {
 				totalPrice: pricing.total
 			});
 
+			if (referred_by && accountId && String(referred_by) !== String(accountId)) {
+				await awardReferralBonus({ referredBy: referred_by, orgId: event.org_id, eventId: event.id });
+			}
+
 			return res.status(201).json({
 				checkoutRequired: false,
 				message: 'Bilet cumpărat cu succes',
@@ -591,7 +619,8 @@ export const createCheckoutSession = async (req, res) => {
 				buyer_name: buyer_name.trim(),
 				buyer_email: buyer_email.trim(),
 				quantity: String(pricing.quantity),
-				points_used: String(pricing.pointsUsed)
+				points_used: String(pricing.pointsUsed),
+				referred_by: referred_by ? String(referred_by) : ''
 			}
 		});
 
@@ -688,6 +717,9 @@ export const confirmCheckoutSession = async (req, res) => {
 
 			return {
 				statusCode: 201,
+				metadata,
+				eventOrgId: event.org_id,
+				eventId: event.id,
 				emailData: {
 					event,
 					buyerName: metadata.buyer_name || session.customer_details?.name || 'Participant',
@@ -708,6 +740,12 @@ export const confirmCheckoutSession = async (req, res) => {
 
 		if (result.emailData) {
 			result.payload.emailSent = await sendPurchaseEmailSafely(result.emailData);
+		}
+
+		const referredBy = result.metadata?.referred_by || null;
+		const purchasedAccountId = result.metadata?.account_id || null;
+		if (referredBy && purchasedAccountId && referredBy !== purchasedAccountId && result.eventOrgId) {
+			await awardReferralBonus({ referredBy, orgId: result.eventOrgId, eventId: result.eventId });
 		}
 
 		return res.status(result.statusCode).json(result.payload);

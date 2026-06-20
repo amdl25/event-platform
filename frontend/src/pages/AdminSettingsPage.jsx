@@ -83,7 +83,7 @@ const AdminSettingsPage = ({ user, handleLogout }) => {
     { key: 'base_points_per_checkin', label: 'Puncte implicite per check-in', description: 'Câte puncte primește un utilizator la participare' },
     { key: 'points_expiry_months', label: 'Expirare puncte', description: 'Câte luni rămân punctele valabile' },
     { key: 'featured_events_limit', label: 'Număr evenimente recomandate', description: 'Câte evenimente sunt afișate în widget-uri' },
-    { key: 'max_pending_days', label: 'Zile pentru cereri în așteptare', description: 'Prag pentru notificări urgente' }
+    { key: 'max_pending_days', label: 'Zile maxime pentru cereri în așteptare', description: 'Câte zile poate sta o cerere nesoluționată înainte de a fi considerată urgentă' }
   ]), []);
 
   if (loading) {

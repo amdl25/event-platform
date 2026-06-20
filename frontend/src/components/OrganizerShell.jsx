@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FiBell, FiCalendar, FiLogOut, FiSearch, FiSettings, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiBell, FiCalendar, FiCreditCard, FiLogOut, FiSearch, FiSettings, FiTrendingUp, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import '../styles/OrganizerDashboard.css';
 
 const navItems = [
   { to: '/organizer/events', label: 'Evenimentele mele', icon: FiCalendar },
-  { to: '/organizer/settings', label: 'Setări', icon: FiSettings }
+  { to: '/organizer/analytics', label: 'Analytics', icon: FiTrendingUp },
+  { to: '/organizer/billing', label: 'Abonament', icon: FiCreditCard },
+  { to: '/organizer/settings', label: 'Setări', icon: FiSettings },
 ];
 
 const formatRelativeTime = (dateString) => {

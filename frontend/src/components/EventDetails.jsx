@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import BookingModal from './BookingModal';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar, FiClock, FiHeart, FiMapPin, FiShield, FiStar, FiUsers } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiHeart, FiMapPin, FiShare2, FiShield, FiStar, FiUsers } from 'react-icons/fi';
 import { getEventStartValue, getEventEndValue, getEventTimeRangeLabel, getEventDateLabel } from '../utils/eventDateTime';
 import '../styles/EventDetails.css';
 
@@ -10,7 +10,25 @@ const EventDetails = ({ event, user }) => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [shareCopied, setShareCopied] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref && event?.id) {
+      localStorage.setItem(`eventhub_ref_${event.id}`, ref);
+    }
+  }, [event?.id]);
+
+  const handleShare = () => {
+    const refPart = user?.id ? `?ref=${user.id}` : '';
+    const url = `${window.location.origin}/event/${event.id}${refPart}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    });
+  };
   const isGlobalSoldOut = event.max_capacity > 0 && event.current_occupancy >= event.max_capacity;
   const eventStart = getEventStartValue(event);
   const eventEnd = getEventEndValue(event);
@@ -175,6 +193,14 @@ const EventDetails = ({ event, user }) => {
                 <p>Doar {remainingTickets} bilete rămase la acest pret. Asigură-ți prezența în centrul acțiunii.</p>
               </div>
             ) : null}
+
+            <button className={`share-event-btn${shareCopied ? ' copied' : ''}`} onClick={handleShare}>
+              <FiShare2 />
+              {shareCopied ? 'Link copiat!' : 'Invită prieteni'}
+            </button>
+            {user?.id && !shareCopied && (
+              <p className="share-event-hint">Tu și prietenul tău primiți 50 puncte bonus când el cumpără bilet.</p>
+            )}
           </aside>
         </div>
       </div>

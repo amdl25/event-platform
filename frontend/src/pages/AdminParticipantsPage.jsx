@@ -7,6 +7,7 @@ const AdminParticipantsPage = ({ user, handleLogout }) => {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [revealedEmails, setRevealedEmails] = useState(new Set());
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -80,28 +81,40 @@ const AdminParticipantsPage = ({ user, handleLogout }) => {
               <th>Puncte</th>
               <th>Evenimente</th>
               <th>Înscris</th>
-              <th>Status</th>
+              <th>Ultimă activitate</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((participant) => (
-              <tr key={participant.id}>
-                <td>
-                  <div className="admin-row-inline">
-                    <div className="admin-avatar-soft">{participant.name.slice(0, 2).toUpperCase()}</div>
-                    <div>
+            {filtered.map((participant) => {
+              const [localPart, domain] = participant.email.split('@');
+              const maskedEmail = `${localPart[0]}***@${domain}`;
+              const revealed = revealedEmails.has(participant.id);
+              const toggleEmail = () => setRevealedEmails((prev) => {
+                const next = new Set(prev);
+                if (next.has(participant.id)) next.delete(participant.id);
+                else next.add(participant.id);
+                return next;
+              });
+              return (
+                <tr key={participant.id}>
+                  <td>
+                    <div className="admin-row-inline">
+                      <div className="admin-avatar-soft">{participant.name.slice(0, 2).toUpperCase()}</div>
                       <p className="admin-row-title">{participant.name}</p>
-                      <p className="admin-row-subtitle">Activitate: {participant.activityScore}</p>
                     </div>
-                  </div>
-                </td>
-                <td>{participant.email}</td>
-                <td><span className="admin-pill warning"><FiAward /> {participant.points}</span></td>
-                <td>{participant.totalEvents}</td>
-                <td>{new Date(participant.joinedAt).toLocaleDateString('ro-RO')}</td>
-                <td><span className={`admin-pill ${participant.status === 'active' ? 'success' : 'neutral'}`}>{participant.status === 'active' ? 'Activ' : 'Inactiv'}</span></td>
-              </tr>
-            ))}
+                  </td>
+                  <td>
+                    <button type="button" className="admin-email-reveal" onClick={toggleEmail} title={revealed ? 'Ascunde email' : 'Afișează email complet'}>
+                      {revealed ? participant.email : maskedEmail}
+                    </button>
+                  </td>
+                  <td><span className="admin-pill warning"><FiAward /> {participant.points}</span></td>
+                  <td>{participant.totalEvents}</td>
+                  <td>{new Date(participant.joinedAt).toLocaleDateString('ro-RO')}</td>
+                  <td>{new Date(participant.lastActivity).toLocaleDateString('ro-RO')}</td>
+                </tr>
+              );
+            })}
             {filtered.length === 0 ? <tr><td colSpan="6" className="admin-table-empty">Niciun participant găsit.</td></tr> : null}
           </tbody>
         </table>

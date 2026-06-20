@@ -861,6 +861,44 @@
   gap: 8px;
 }
 
+.admin-reject-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.admin-reject-input {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+}
+
+.admin-reject-input:focus {
+  border-color: var(--admin-accent);
+}
+
+.admin-email-reveal {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: underline dotted #9ca3af;
+  transition: color 0.15s;
+}
+
+.admin-email-reveal:hover {
+  color: var(--admin-accent);
+}
+
 .admin-avatar-soft {
   width: 36px;
   height: 36px;

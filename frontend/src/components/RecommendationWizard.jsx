@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import API from '../api';
 import '../styles/RecommendationWizard.css';
 
@@ -34,6 +35,7 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [recommendedEvents, setRecommendedEvents] = useState([]);
   const [didSubmit, setDidSubmit] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
 
   const totalQuestions = 4;
 
@@ -66,6 +68,7 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
     setSelectedWhen('any');
     setRecommendedEvents([]);
     setDidSubmit(false);
+    setCitySearch('');
   };
 
   useEffect(() => {
@@ -307,6 +310,11 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
         <div className="wizard-progress-thin" style={{ width: `${(screen / totalQuestions) * 100}%` }} />
         
         <button className="wizard-drawer-close" onClick={onClose}>×</button>
+        {screen > 0 && !didSubmit && (
+          <button className="wizard-back-btn" onClick={() => setScreen(s => s - 1)}>
+            <FiArrowLeft /> Înapoi
+          </button>
+        )}
 
         {!didSubmit ? (
           <div className="wizard-drawer-content">
@@ -323,9 +331,39 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
                 </button>
               )}
               {screen === 1 && (
-                <div className="wizard-options-list">
-                  <button className={`wizard-option-pill ${selectedCity === 'Oriunde' ? 'active' : ''}`} onClick={() => {setSelectedCity('Oriunde'); handleNextScreen(2)}}>ORIUNDE</button>
-                  {cities.map(c => <button key={c} className={`wizard-option-pill ${selectedCity === c ? 'active' : ''}`} onClick={() => { setSelectedCity(c); handleNextScreen(2); }}>{c.toUpperCase()}</button>)}
+                <div className="wizard-city-picker">
+                  <button
+                    className={`wizard-option-pill large ${selectedCity === 'Oriunde' ? 'active' : ''}`}
+                    onClick={() => { setSelectedCity('Oriunde'); handleNextScreen(2); }}
+                  >
+                    ORIUNDE
+                  </button>
+                  <div className="wizard-city-divider">sau alege un oraș</div>
+                  <div className="wizard-city-search-wrap">
+                    <input
+                      type="text"
+                      className="wizard-city-search"
+                      placeholder="Caută oraș..."
+                      value={citySearch}
+                      onChange={e => setCitySearch(e.target.value)}
+                    />
+                    <div className="wizard-city-list">
+                      {cities
+                        .filter(c => c.toLowerCase().includes(citySearch.toLowerCase()))
+                        .map(c => (
+                          <button
+                            key={c}
+                            className={`wizard-city-item ${selectedCity === c ? 'active' : ''}`}
+                            onClick={() => { setSelectedCity(c); handleNextScreen(2); }}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      {cities.filter(c => c.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                        <p className="wizard-city-empty">Niciun oraș găsit</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               {screen === 2 && (

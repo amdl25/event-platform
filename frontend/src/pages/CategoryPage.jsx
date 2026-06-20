@@ -206,9 +206,11 @@ const CategoryPage = ({ user }) => {
                         </div>
                     </div>
 
-                    <p className="results-count">
-                        {filteredResults.length} {filteredResults.length === 1 ? 'eveniment găsit' : 'evenimente găsite'}
-                    </p>
+                    {!loading && (
+                        <p className="results-count">
+                            {filteredResults.length} {filteredResults.length === 1 ? 'eveniment găsit' : 'evenimente găsite'}
+                        </p>
+                    )}
                 </header>
 
                 <div className="events-grid">

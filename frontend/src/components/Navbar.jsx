@@ -51,6 +51,11 @@ const Navbar = ({ user, handleLogout }) => {
             <FiCompass size={14} />
             Explorează
           </NavLink>
+          {!user && (
+            <NavLink to="/about" className="navbar-link">
+              Despre noi
+            </NavLink>
+          )}
           {user && (
             <NavLink to="/my-events" className="navbar-link">
               <FiCalendar size={14} />
@@ -124,6 +129,9 @@ const Navbar = ({ user, handleLogout }) => {
              />
           </div>
           <Link to="/explore" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Explorează</Link>
+          {!user && (
+            <Link to="/about" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Despre noi</Link>
+          )}
           {user && (
             <Link to="/my-events" className="navbar-mobile-link" onClick={() => setMobileMenuOpen(false)}>Evenimentele mele</Link>
           )}

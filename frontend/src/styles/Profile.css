@@ -763,13 +763,10 @@
 }
 
 .profile-nav-tabs {
-    display: inline-flex;
-    gap: 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #fff;
-    margin: 8px 0 20px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid #ebebeb;
+    margin: 0 0 24px;
 }
 
 .profile-nav-tabs button {
@@ -778,17 +775,20 @@
     gap: 8px;
     background: transparent;
     border: none;
-    padding: 9px 14px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: 10px 4px;
     font-size: 0.92rem;
     font-weight: 600;
-    color: #64748b;
+    color: #888;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: inherit;
 }
 
 .profile-nav-tabs button.active {
-    color: #0f172a;
-    background: #f8fafc;
+    color: #111;
+    border-bottom-color: var(--primary);
 }
 
 .profile-main-content {
@@ -814,50 +814,6 @@
     gap: 12px;
 }
 
-.ticket-timeline-pills {
-    margin: 0 0 14px;
-    display: inline-flex;
-    gap: 8px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    padding: 4px;
-}
-
-.ticket-timeline-pill {
-    border: none;
-    background: transparent;
-    color: #64748b;
-    border-radius: 999px;
-    min-height: 34px;
-    padding: 0 14px;
-    font-size: 0.86rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.ticket-timeline-pill.active {
-    background: #ffffff;
-    color: #0f172a;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.ticket-timeline-pill span {
-    background: #e2e8f0;
-    color: #334155;
-    border-radius: 999px;
-    padding: 1px 8px;
-    font-size: 0.74rem;
-    line-height: 1.4;
-}
-
-.ticket-timeline-pill.active span {
-    background: #fee2d5;
-    color: #c2410c;
-}
 
 .functional-ticket-card {
     background: white;
@@ -1008,10 +964,11 @@
 }
 
 .ticket-card-image-wrap {
-    width: 92px;
-    min-width: 92px;
+    width: 116px;
+    min-width: 116px;
     border-right: 1px solid #e5e7eb;
     background: #f1f5f9;
+    position: relative;
 }
 
 .ticket-card-image {
@@ -1083,27 +1040,12 @@
     margin-top: 8px;
 }
 
-.tickets-more-wrap {
-    margin-top: 12px;
-    display: flex;
-    justify-content: center;
-}
-
-.tickets-more-button {
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #475569;
-    border-radius: 999px;
-    min-height: 38px;
-    padding: 0 20px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.tickets-more-button:hover {
-    border-color: #cbd5e1;
-    color: #0f172a;
+.profile-history-note {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 13px;
+    color: #aaa;
+    font-weight: 400;
 }
 
 .date-badge {
@@ -1188,122 +1130,220 @@
 .rewards-tab-content {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
 }
 
-.rewards-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.rewards-title {
-    margin-bottom: 6px;
-}
-
-.rewards-subtitle {
-    margin: 0;
-    color: #64748b;
-    font-size: 0.92rem;
-}
-
-.rewards-total-pill {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 10px 12px;
-    min-width: 122px;
+.rewards-empty {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+    align-items: center;
+    text-align: center;
+    padding: 56px 24px;
+    gap: 12px;
 }
 
-.rewards-total-pill span {
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.rewards-total-pill strong {
-    font-size: 1.45rem;
-    color: #0f172a;
-    line-height: 1;
-}
-
-.rewards-grid {
+.rewards-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: var(--primary-soft);
+    color: var(--primary);
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
-    gap: 16px;
-    align-items: start;
+    place-items: center;
+    font-size: 22px;
+    margin-bottom: 4px;
 }
 
-.rewards-column-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #64748b;
-    letter-spacing: 0.04em;
-    margin: 0 0 10px 0;
-}
-
-.rewards-company-list,
-.rewards-history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.rewards-tip-card {
-    margin-top: 10px;
-    border: 1px dashed #f8c9b3;
-    background: #fff8f4;
-    border-radius: 14px;
-    padding: 12px 14px;
-}
-
-.rewards-tip-title {
+.rewards-empty h3 {
     margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+.rewards-empty p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    max-width: 340px;
+    line-height: 1.6;
+}
+
+.rewards-empty-rate {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.rewards-explore-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #f15c2a;
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
+    gap: 7px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 4px;
 }
 
-.rewards-tip-copy {
-    margin: 8px 0 0;
-    color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.35;
+.rewards-explore-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
 }
 
-.rewards-history-empty {
-    color: #64748b;
-    font-size: 0.9rem;
-    padding: 12px 14px;
-}
-
-.rewards-company-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 12px;
+.tickets-empty {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-    min-height: 0;
+    align-items: center;
+    text-align: center;
+    padding: 64px 24px;
+    gap: 12px;
+    background: #fff;
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 20px;
 }
 
-.rewards-company-avatar {
-    width: 44px;
-    height: 44px;
+.tickets-empty-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.tickets-empty h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+.tickets-empty p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    max-width: 300px;
+    line-height: 1.6;
+}
+
+.tickets-explore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 4px;
+}
+
+.tickets-explore-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.ticket-image-countdown {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(4px);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #555;
+    white-space: nowrap;
+}
+
+.ticket-image-countdown.urgent {
+    background: var(--primary);
+    color: #fff;
+}
+
+.tickets-show-more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    background: transparent;
+    border: 1.5px solid #e5e7eb;
     border-radius: 12px;
+    color: #555;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.tickets-show-more-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-soft);
+}
+
+.rewards-intro-note {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.rewards-wallets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.rewards-wallet-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.rewards-wallet-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 6px 20px rgba(233, 91, 60, 0.1);
+}
+
+.rewards-wallet-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rewards-wallet-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
     display: grid;
     place-items: center;
     color: #fff;
@@ -1312,240 +1352,12 @@
     flex-shrink: 0;
 }
 
-.rewards-company-avatar.accent-blue { background: #3b82f6; }
-.rewards-company-avatar.accent-purple { background: #a855f7; }
-.rewards-company-avatar.accent-green { background: #10b981; }
-.rewards-company-avatar.accent-red { background: #f43f5e; }
+.rewards-wallet-avatar.accent-blue   { background: #3b82f6; }
+.rewards-wallet-avatar.accent-purple { background: #a855f7; }
+.rewards-wallet-avatar.accent-green  { background: #10b981; }
+.rewards-wallet-avatar.accent-red    { background: #f43f5e; }
 
-.rewards-company-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.rewards-company-info strong {
-    font-size: 0.95rem;
-    color: #111827;
-}
-
-.rewards-company-info span {
-    color: #64748b;
-    font-size: 0.86rem;
-}
-
-.company-expiry-line {
-    margin-top: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #92400e;
-    font-weight: 700;
-    font-size: 0.82rem;
-}
-
-.company-expiry-dot {
-    color: #f59e0b;
-    font-size: 0.92rem;
-    line-height: 1;
-}
-
-.company-expiry-text {
-    color: #92400e;
-    font-weight: 700;
-}
-
-.rewards-company-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-link-compact {
-    background: transparent;
-    border: none;
-    color: #f15c2a;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-link-compact:hover {
-    background: rgba(241,92,42,0.06);
-}
-
-.rewards-company-points {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 0.96rem;
-    flex-shrink: 0;
-}
-
-.rewards-company-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-
-.rewards-company-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    margin-top: 6px;
-    padding-top: 4px;
-    gap: 8px;
-}
-
-.rewards-company-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.rewards-company-arrow {
-    background: transparent;
-    border: none;
-    color: #f15c2a;
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.rewards-company-arrow:hover {
-    background: rgba(241,92,42,0.06);
-}
-
-.btn-link-icon {
-    display: inline-block;
-    font-size: 0.95rem;
-    line-height: 1;
-}
-
-.rewards-company-card.demo-preview .company-expiry-dot {
-    color: #f97316;
-}
-
-.rewards-company-card.demo-preview .company-expiry-text {
-    color: #f97316;
-    font-weight: 800;
-}
-
-.rewards-history-column {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-}
-
-.rewards-history-header {
-    padding: 12px 14px 10px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.rewards-history-column .rewards-column-title {
-    margin: 0;
-}
-
-.rewards-history-filters {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    padding: 3px;
-}
-
-.rewards-filter-pill {
-    border: none;
-    background: transparent;
-    border-radius: 999px;
-    min-height: 30px;
-    padding: 0 12px;
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: #64748b;
-    cursor: pointer;
-}
-
-.rewards-filter-pill.active {
-    background: #ffffff;
-    color: #111827;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.rewards-history-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.rewards-history-item:first-of-type {
-    border-top: none;
-}
-
-.rewards-history-more-wrap {
-    padding: 12px 14px;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: center;
-}
-
-.rewards-history-more-btn {
-    border: 1px solid #d0d7e2;
-    background: #ffffff;
-    color: #0f172a;
-    border-radius: 999px;
-    min-height: 40px;
-    padding: 0 24px;
-    font-size: 0.92rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.rewards-history-more-btn:hover {
-    border-color: #bac4d3;
-}
-
-.rewards-history-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-}
-
-.rewards-history-icon.earn {
-    background: #ecfdf5;
-    color: #059669;
-}
-
-.rewards-history-icon.redeem {
-    background: #fff1f2;
-    color: #f43f5e;
-}
-
-.rewards-history-info {
+.rewards-wallet-info {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -1553,30 +1365,72 @@
     gap: 3px;
 }
 
-.rewards-history-info strong {
-    font-size: 0.9rem;
+.rewards-wallet-name {
+    font-size: 0.95rem;
+    font-weight: 700;
     color: #111827;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.rewards-history-info span {
-    color: #64748b;
+.rewards-wallet-pts {
     font-size: 0.82rem;
+    color: #64748b;
 }
 
-.rewards-history-points {
+.rewards-wallet-value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.rewards-wallet-value strong {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.rewards-wallet-value span {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.rewards-wallet-cta {
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 7px;
+    border: 1.5px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
     font-weight: 700;
-    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
 }
 
-.rewards-history-points.earn {
-    color: #059669;
+.rewards-wallet-cta:hover {
+    background: var(--primary);
+    color: #fff;
 }
 
-.rewards-history-points.redeem {
-    color: #f43f5e;
+.rewards-rate-note {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
 }
 
 .profile-loader {
@@ -1635,10 +1489,6 @@
     .profile-top-section {
         grid-template-columns: 1fr;
     }
-
-    .rewards-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 768px) {
@@ -1663,27 +1513,9 @@
 
     .profile-nav-tabs {
         width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
     }
 
-    .profile-nav-tabs button {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .rewards-header-row {
-        flex-direction: column;
-    }
-
-    .rewards-history-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .functional-ticket-card,
-    .rewards-company-card,
-    .rewards-history-item {
+    .functional-ticket-card {
         flex-direction: column;
         align-items: flex-start;
     }
@@ -1779,5 +1611,174 @@
 
     .profile-points-total {
         font-size: 3rem;
+    }
+}
+
+.profile-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
+    padding: 32px 36px 28px;
+    margin-bottom: 28px;
+    color: #fff;
+}
+
+.profile-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.profile-hero-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 2.5px solid rgba(255, 255, 255, 0.4);
+    font-size: 22px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+.profile-hero-identity {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-hero-name {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+    letter-spacing: -0.4px;
+}
+
+.profile-hero-email {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 400;
+}
+
+.profile-hero-since {
+    margin: 3px 0 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.42);
+    font-weight: 400;
+}
+
+.profile-hero-edit {
+    flex-shrink: 0;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.profile-hero-edit:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.profile-hero-stats {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.profile-hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.profile-hero-stat strong {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+}
+
+.profile-hero-stat span {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.profile-hero-stat-sub {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.42);
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+.profile-hero-stat-sep {
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    margin-top: 4px;
+}
+
+.profile-content-wrap {
+    max-width: 800px;
+}
+
+.profile-edit-modal-head {
+    margin: 0 0 20px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #111;
+}
+
+.profile-history-note {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 13px;
+    color: #aaa;
+}
+
+@media (max-width: 600px) {
+    .profile-hero {
+        padding: 24px 20px 20px;
+        border-radius: 16px;
+    }
+
+    .profile-hero-avatar {
+        width: 56px;
+        height: 56px;
+        font-size: 18px;
+    }
+
+    .profile-hero-name {
+        font-size: 18px;
+    }
+
+    .profile-hero-stat strong {
+        font-size: 22px;
+    }
+
+    .profile-hero-stats {
+        gap: 20px;
+    }
+
+    .ticket-card-image-wrap {
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
     }
 }

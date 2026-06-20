@@ -1,71 +1,63 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiCalendar, FiGift, FiStar, FiX } from 'react-icons/fi';
 import '../styles/BookingModal.css';
+
+const benefits = [
+  { icon: FiCalendar, text: 'Calendar personal cu toate biletele tale.' },
+  { icon: FiStar, text: 'Puncte de fidelitate la fiecare participare.' },
+  { icon: FiGift, text: 'Recompense exclusive și bilete gratuite.' }
+];
 
 const BookingModal = ({ isOpen, onClose, event, user }) => {
   const navigate = useNavigate();
   const redirectToUserPurchase = `/purchase/${event?.id}?mode=user`;
   const redirectToGuestPurchase = `/purchase/${event?.id}?mode=guest`;
 
-  const handleChooseUser = () => {
-    onClose();
-    navigate(`/login?redirect=${encodeURIComponent(redirectToUserPurchase)}`);
-  };
+  const handleChooseUser = () => { onClose(); navigate(`/login?redirect=${encodeURIComponent(redirectToUserPurchase)}`); };
+  const handleRegister = () => { onClose(); navigate(`/register?redirect=${encodeURIComponent(redirectToUserPurchase)}`); };
+  const handleChooseGuest = () => { onClose(); navigate(redirectToGuestPurchase); };
 
-	const handleRegister = () => {
-		onClose();
-		navigate(`/register?redirect=${encodeURIComponent(redirectToUserPurchase)}`);
-	};
+  if (!isOpen || user?.id) return null;
 
-  const handleChooseGuest = () => {
-    onClose();
-    navigate(redirectToGuestPurchase);
-  };
+  return (
+    <div className="booking-overlay" onClick={onClose}>
+      <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="booking-close" onClick={onClose} aria-label="Închide"><FiX /></button>
 
-	if (!isOpen) return null;
-	if (user?.id) return null;
+        <div className="booking-layout">
+          <aside className="booking-left-panel">
+            <div className="booking-brand">
+              <span className="booking-brand-event">Event</span><span className="booking-brand-hub">Hub</span>
+            </div>
+            <h2 className="booking-left-heading">Bună!</h2>
+            <p className="booking-left-sub">Conectează-te pentru o experiență completă</p>
+            <button className="booking-login-btn" onClick={handleChooseUser}>Intră în cont</button>
+          </aside>
 
-	return (
-		<div className="booking-overlay" onClick={onClose}>
-			<div className="booking-modal" onClick={(eventClick) => eventClick.stopPropagation()}>
-				<button className="booking-close" onClick={onClose}>×</button>
-				<div className="booking-layout">
-					<aside className="booking-left-panel">
-						<h2>Bună!</h2>
-						<p className="booking-left-title">Conectează-te pentru o experiență completă</p>
-						<div className="booking-left-actions">
-							<button className="booking-pill-btn" onClick={handleChooseUser}>INTRĂ ÎN CONT</button>
-						</div>
-					</aside>
+          <section className="booking-right-panel">
+            <p className="booking-eyebrow">De ce să îți faci cont?</p>
+            <h3 className="booking-main-title">Controlezi totul dintr-un singur loc.</h3>
 
-					<section className="booking-right-panel">
-						<h3 className="booking-main-title">
-							Contul tău îți oferă control total asupra experienței.
-						</h3>
+            <ul className="booking-benefits-list">
+              {benefits.map(({ icon: Icon, text }) => (
+                <li key={text} className="booking-benefit-item">
+                  <span className="booking-benefit-icon"><Icon /></span>
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
 
-						<ul className="booking-benefits-list">
-							<li>Vezi toate biletele și evenimentele într-un calendar personal.</li>
-							<li>Creezi și administrezi propriile evenimente.</li>
-							<li>Acumulezi puncte de fidelitate pentru beneficii viitoare.</li>
-						</ul>
+            <button className="booking-register-btn" onClick={handleRegister}>Înscrie-te gratuit</button>
 
-						<div className="booking-right-actions">
-							<button className="booking-mode-btn" onClick={handleRegister}>
-								ÎNSCRIE-TE GRATUIT
-							</button>
-						</div>
+            <div className="booking-divider"><span>sau</span></div>
 
-						<div className="booking-guest-divider" />
-						<div className="booking-guest-section">
-							<button className="booking-mode-btn booking-guest-btn" onClick={handleChooseGuest}>
-								Continuă ca vizitator
-							</button>
-						</div>
-					</section>
-				</div>
-			</div>
-		</div>
-	);
+            <button className="booking-guest-link" onClick={handleChooseGuest}>Continuă ca vizitator</button>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default BookingModal;

@@ -223,6 +223,8 @@ const TicketPurchasePage = ({ user }) => {
       setError('');
       setLoadingPurchase(true);
 
+      const referredBy = localStorage.getItem(`eventhub_ref_${id}`);
+
       const payload = {
         event_id: id,
         ticket_type_id: selectedTicketTypeId,
@@ -230,7 +232,8 @@ const TicketPurchasePage = ({ user }) => {
         buyer_email: emailToSend,
         quantity: qty,
         use_points: mode === 'user' ? usePoints : false,
-        points_to_use: mode === 'user' && usePoints ? pointsAmount : 0
+        points_to_use: mode === 'user' && usePoints ? pointsAmount : 0,
+        ...(referredBy ? { referred_by: referredBy } : {})
       };
 
       const response = await API.post('/events/purchase/checkout-session', payload);
@@ -243,6 +246,7 @@ const TicketPurchasePage = ({ user }) => {
           start_date: firstTicket?.eventDate || null,
           location: firstTicket?.eventLocation || 'Locatie nespecificata'
         };
+        localStorage.removeItem(`eventhub_ref_${id}`);
         setPurchaseNotice('Comanda confirmata. Pregatim biletele tale...');
         redirectTimeoutRef.current = setTimeout(() => {
           saveLastPurchaseContext(response.data, resolvedEvent);

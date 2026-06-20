@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 import Hero from '../components/Hero';
-import DiscoveryFeed from '../components/DiscoveryFeed';
-import Benefits from '../components/Benefits';
+import CategoryBrowser from '../components/CategoryBrowser';
+import WeekendFeed from '../components/WeekendFeed';
 import RecommendationWizard from '../components/RecommendationWizard';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import API from '../api';
-import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiX } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiDownload, FiLock, FiMapPin, FiStar, FiTrendingUp, FiUsers, FiX } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import { PiConfetti } from 'react-icons/pi';
 import { getRecentCategoryClickCounts } from '../utils/recommendationSignals';
@@ -686,9 +687,18 @@ const Home = ({ user }) => {
 
   return (
     <div className="home-page">
+      <div className="home-intro-bar">
+        <span className="home-intro-bar-text">
+          <strong>EventHub</strong> — creat pentru participanți la evenimente, business-uri sau ONG-uri care vor să ajungă la public.
+        </span>
+        <Link to="/about" className="home-intro-bar-link">Află mai multe →</Link>
+      </div>
+
       <Hero onRecommendClick={() => setIsWizardOpen(true)} />
 
-      {user ? (
+      <CategoryBrowser />
+
+      {user && (
         <section className="home-member-zone">
           <div className="home-member-shell">
             {hasUpcomingStack ? (
@@ -910,11 +920,32 @@ const Home = ({ user }) => {
                     </div>
                   </div>
                 </section>
-              ) : (
-                <Benefits />
               )}
 
-              <DiscoveryFeed />
+              <WeekendFeed />
+
+              {(!user || user?.role === 'user') && (
+                <section className="home-org-cta">
+                  <div className="home-org-cta-inner">
+                    <div className="home-org-cta-left">
+                      <p className="home-org-cta-label">PENTRU ORGANIZATORI</p>
+                      <h2 className="home-org-cta-title">Publici evenimente pentru comunitate?</h2>
+                      <p className="home-org-cta-desc">
+                        Pentru ONG-uri, asociații și business-uri care organizează activități deschise publicului.
+                      </p>
+                    </div>
+                    <div className="home-org-cta-right">
+                      <button
+                        type="button"
+                        className="home-org-cta-btn-primary"
+                        onClick={() => navigate('/about')}
+                      >
+                        Cum funcționează →
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               <RecommendationWizard
                 isOpen={isWizardOpen}

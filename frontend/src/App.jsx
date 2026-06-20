@@ -21,7 +21,11 @@ import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
 import OrganizerOverviewPage from './pages/OrganizerOverviewPage';
 import OrganizerEventsPage from './pages/OrganizerEventsPage';
+import OrganizerAnalyticsPage from './pages/OrganizerAnalyticsPage';
+import OrganizerBillingPage from './pages/OrganizerBillingPage';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
+import PricingPage from './pages/PricingPage';
+import AboutPage from './pages/AboutPage';
 import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminOrganizationsPage from './pages/AdminOrganizationsPage';
@@ -29,6 +33,7 @@ import AdminParticipantsPage from './pages/AdminParticipantsPage';
 import AdminEventsPage from './pages/AdminEventsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import StyleGuide from './pages/StyleGuide';
+import Footer from './components/Footer';
 import { AUTH_TOKEN_STORAGE_KEY } from './api';
 import './App.css';
 
@@ -126,7 +131,11 @@ function App() {
             <Route path="/organizer" element={<Navigate to="/organizer/events" replace />} />
             <Route path="/organizer/dashboard" element={<Navigate to="/organizer/events" replace />} />
             <Route path="/organizer/events" element={<OrganizerEventsPage user={user} handleLogout={handleLogout} />} />
+            <Route path="/organizer/analytics" element={<OrganizerAnalyticsPage user={user} handleLogout={handleLogout} />} />
+            <Route path="/organizer/billing" element={<OrganizerBillingPage user={user} handleLogout={handleLogout} />} />
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/admin/dashboard" element={user ? <AdminDashboardPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} handleLogout={handleLogout} />} />
@@ -136,6 +145,7 @@ function App() {
             <Route path="/admin/settings" element={user ? <AdminSettingsPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/style-guide" element={<StyleGuide />} />
           </Routes>
+          {!isOrganizerLayout && !isAdminLayout ? <Footer /> : null}
         </main>
       </div>
     </QueryClientProvider>

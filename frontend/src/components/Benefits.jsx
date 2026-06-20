@@ -1,40 +1,41 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar, FiUsers, FiStar, FiGift } from 'react-icons/fi';
+import { FiCalendar, FiUsers, FiTrendingUp, FiStar } from 'react-icons/fi';
 import '../styles/Benefits.css';
 
 const Benefits = () => {
   const navigate = useNavigate();
   const benefits = [
     {
-      icon: <FiCalendar />,
-      title: "Calendar Personal",
-      description: "Toate biletele si evenimentele intr-un singur loc."
+      icon: <FiUsers />,
+      title: "Organizezi cu prietenii",
+      description: "Petreceri, ieșiri, aniversări sau întâlniri private. Creezi evenimentul rapid și inviți doar persoanele dorite."
     },
     {
-      icon: <FiUsers />,
-      title: "Creeaza Evenimente",
-      description: "Organizeaza-ti propriile evenimente si invita-ti prietenii."
+      icon: <FiTrendingUp />,
+      title: "Construiești o comunitate",
+      description: "Pentru ONG-uri, asociații și grupuri locale. Aduci oamenii împreună și îți faci inițiativa mai vizibilă."
     },
     {
       icon: <FiStar />,
-      title: "Puncte de Fidelitate",
-      description: "Castigi puncte la fiecare participare."
+      title: "Promovezi și vinzi",
+      description: "Pentru afaceri și organizatori. Publici evenimente, ajungi la participanți noi și gestionezi biletele."
     },
     {
-      icon: <FiGift />,
-      title: "Recompense Exclusive",
-      description: "Schimba punctele in bilete gratuite si reduceri."
+      icon: <FiCalendar />,
+      title: "Descoperi ce se întâmplă",
+      description: "Găsești evenimente relevante în jurul tău și participi la cele care te interesează."
     }
   ];
 
   return (
     <section className="benefits-section">
       <div className="benefits-header">
-        <span className="benefits-badge">Beneficii Cont</span>
-        <h2 className="benefits-title">De ce sa iti faci cont?</h2>
+        <span className="benefits-badge">Pentru oameni, comunități și organizatori</span>
+        <h2 className="benefits-title">Planifică, adună și promovează</h2>
+        <p className="benefits-subtitle">Planifică întâlniri private, adună comunități sau promovează evenimente publice – toate într-un singur loc.</p>
       </div>
-      
+
       <div className="benefits-grid">
         {benefits.map((benefit, index) => (
           <div key={index} className="benefit-card">
@@ -46,10 +47,10 @@ const Benefits = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="benefits-cta">
         <button className="cta-button" onClick={() => navigate('/register')}>
-          Inscrie-te gratuit
+          Înscrie-te gratuit
         </button>
       </div>
     </section>
