@@ -209,6 +209,7 @@ const Home = ({ user }) => {
   const [privateModalGuests, setPrivateModalGuests] = useState([]);
   const [privateModalGuestsLoading, setPrivateModalGuestsLoading] = useState(false);
   const [privateModalGuestsError, setPrivateModalGuestsError] = useState('');
+  const [activeModalTicketIndex, setActiveModalTicketIndex] = useState(0);
   const ticketPdfRef = useRef(null);
 
   useEffect(() => {
@@ -280,6 +281,20 @@ const Home = ({ user }) => {
           }))
           .filter(Boolean);
 
+        const publicCandidatesByEventId = new Map();
+        publicCandidates.forEach((candidate) => {
+          const eventId = candidate.event.id;
+          if (!publicCandidatesByEventId.has(eventId)) {
+            publicCandidatesByEventId.set(eventId, {
+              ...candidate,
+              ticketCodes: candidate.ticketCode ? [candidate.ticketCode] : [],
+            });
+          } else if (candidate.ticketCode) {
+            publicCandidatesByEventId.get(eventId).ticketCodes.push(candidate.ticketCode);
+          }
+        });
+        const deduplicatedPublicCandidates = Array.from(publicCandidatesByEventId.values());
+
         const privateCreatedCandidates = privateCreated
           .filter((entry) => {
             const startTs = toTimestamp(entry?.start_date);
@@ -339,7 +354,7 @@ const Home = ({ user }) => {
           .filter(Boolean);
 
         const nextStack = sortSmartStack(
-          [...publicCandidates, ...privateCreatedCandidates, ...privateInvitedCandidates],
+          [...deduplicatedPublicCandidates, ...privateCreatedCandidates, ...privateInvitedCandidates],
           nowTimestamp
         );
         setStackEvents(nextStack);
@@ -524,35 +539,54 @@ const Home = ({ user }) => {
     () => (nextTicketDate ? formatTicketDateParts(nextTicketDate) : { dayPart: '', timePart: '' }),
     [nextTicketDate]
   );
+  const activeModalTicketCode = useMemo(() => {
+    const codes = primaryStackEvent?.ticketCodes;
+    if (Array.isArray(codes) && codes.length > 0) {
+      return codes[Math.min(activeModalTicketIndex, codes.length - 1)] || null;
+    }
+    return primaryStackEvent?.ticketCode || null;
+  }, [primaryStackEvent, activeModalTicketIndex]);
+
   const nextTicketQrValue = useMemo(() => {
     if (!isPrimaryPublic || !primaryStackEvent?.event) return '';
 
     return buildTicketQrPayload({
-      ticketCode: primaryStackEvent.ticketCode,
+      ticketCode: activeModalTicketCode,
       event: {
         id: primaryStackEvent.event.id,
         title: primaryStackEvent.event.title,
         startDate: primaryStackEvent.startDate,
       }
     });
-  }, [isPrimaryPublic, primaryStackEvent]);
+  }, [isPrimaryPublic, primaryStackEvent, activeModalTicketCode]);
 
   const buildPdfPayload = () => {
     if (!isPrimaryPublic || !primaryStackEvent?.event) return null;
 
+    const allCodes = Array.isArray(primaryStackEvent?.ticketCodes) && primaryStackEvent.ticketCodes.length > 0
+      ? primaryStackEvent.ticketCodes
+      : [primaryStackEvent?.ticketCode].filter(Boolean);
+
     return {
       eventTitle: primaryStackEvent.event?.title || 'Eveniment',
       generatedAt: new Date().toISOString(),
-      tickets: [{
-        number: 1,
-        code: primaryStackEvent.ticketCode || 'TK-UNKNOWN',
-        qrValue: nextTicketQrValue || primaryStackEvent.ticketCode || 'ticket',
+      tickets: allCodes.map((code, index) => ({
+        number: index + 1,
+        code: code || 'TK-UNKNOWN',
+        qrValue: buildTicketQrPayload({
+          ticketCode: code,
+          event: {
+            id: primaryStackEvent.event?.id,
+            title: primaryStackEvent.event?.title,
+            startDate: primaryStackEvent.startDate,
+          }
+        }) || code || 'ticket',
         eventId: primaryStackEvent.event?.id || null,
         date: primaryStackEvent.startDate,
         location: primaryStackEvent.event?.location || 'Locație nespecificată',
         points: Number(primaryStackEvent.event?.pointsValue || 0),
-        organizationName: primaryStackEvent.event?.organizationName || 'Organizator'
-      }]
+        organizationName: primaryStackEvent.event?.organizationName || 'Organizator',
+      })),
     };
   };
 
@@ -691,7 +725,7 @@ const Home = ({ user }) => {
       {!user && (
         <div className="home-intro-bar">
           <span className="home-intro-bar-text">
-            <strong>EventHub</strong> — creat pentru participanți la evenimente, business-uri sau ONG-uri care vor să ajungă la public.
+            <strong>EventHub</strong> - creat pentru participanți la evenimente, business-uri sau ONG-uri care vor să ajungă la public.
           </span>
           <Link to="/about" className="home-intro-bar-link">Află mai multe →</Link>
         </div>
@@ -707,7 +741,7 @@ const Home = ({ user }) => {
                 </h2>
                 {hasUpcomingStack && !isHomeLoading && (
                   <p className="home-member-subtitle">
-                    {`Ai ${stackEvents.length} eveniment${stackEvents.length > 1 ? 'e' : ''} în curând — pregătește-te!`}
+                    {`Ai ${stackEvents.length} eveniment${stackEvents.length > 1 ? 'e' : ''} în curând - pregătește-te!`}
                   </p>
                 )}
               </div>
@@ -978,7 +1012,7 @@ const Home = ({ user }) => {
                         <FiX />
                       </button>
 
-                      <p className="home-ticket-modal-kicker"><FaTicketAlt /> BILETUL TĂU</p>
+                      <p className="home-ticket-modal-kicker"><FaTicketAlt /> {(() => { const n = primaryStackEvent?.ticketCodes?.length || 1; return n > 1 ? `BILETELE TALE (${n})` : 'BILETUL TĂU'; })()}</p>
                       <h2 id="home-ticket-modal-title">{primaryStackEvent.event?.title || 'Eveniment'}</h2>
 
                       <div className="home-ticket-modal-meta">
@@ -994,23 +1028,57 @@ const Home = ({ user }) => {
                       </div>
 
                       <div className="home-ticket-modal-qr-shell">
-                        <div className="home-ticket-modal-qr-card">
-                          <QRCode
-                            value={nextTicketQrValue || primaryStackEvent.ticketCode || 'ticket'}
-                            size={220}
-                            bgColor="#141821"
-                            fgColor="#f8fafc"
-                            style={{ width: '100%', height: '100%' }}
-                          />
-                        </div>
-
-                        <p className="home-ticket-modal-code">{primaryStackEvent.ticketCode || 'TK-UNKNOWN'}</p>
-                        <p className="home-ticket-modal-note">Arată acest cod la intrare</p>
+                        {(() => {
+                          const codes = Array.isArray(primaryStackEvent?.ticketCodes) && primaryStackEvent.ticketCodes.length > 0
+                            ? primaryStackEvent.ticketCodes
+                            : [primaryStackEvent?.ticketCode].filter(Boolean);
+                          const hasMulti = codes.length > 1;
+                          const safeIdx = Math.min(activeModalTicketIndex, codes.length - 1);
+                          return (
+                            <>
+                              {hasMulti && (
+                                <div className="home-ticket-modal-multi-nav">
+                                  <button
+                                    type="button"
+                                    className="home-stack-nav-btn"
+                                    onClick={() => setActiveModalTicketIndex((i) => (i - 1 + codes.length) % codes.length)}
+                                    aria-label="Biletul anterior"
+                                  >
+                                    <FiChevronLeft />
+                                  </button>
+                                  <span>Bilet {safeIdx + 1} din {codes.length}</span>
+                                  <button
+                                    type="button"
+                                    className="home-stack-nav-btn"
+                                    onClick={() => setActiveModalTicketIndex((i) => (i + 1) % codes.length)}
+                                    aria-label="Biletul următor"
+                                  >
+                                    <FiChevronRight />
+                                  </button>
+                                </div>
+                              )}
+                              <div className="home-ticket-modal-qr-card">
+                                <QRCode
+                                  value={nextTicketQrValue || codes[safeIdx] || 'ticket'}
+                                  size={220}
+                                  bgColor="#141821"
+                                  fgColor="#f8fafc"
+                                  style={{ width: '100%', height: '100%' }}
+                                />
+                              </div>
+                              <p className="home-ticket-modal-code">{codes[safeIdx] || 'TK-UNKNOWN'}</p>
+                              <p className="home-ticket-modal-note">Arată acest cod la intrare</p>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       <button type="button" className="home-ticket-modal-action" onClick={handleDownloadPdf} disabled={downloadingPdf}>
                         <FiDownload />
-                        {downloadingPdf ? 'Se descarcă...' : 'Descarcă PDF'}
+                        {downloadingPdf ? 'Se descarcă...' : (() => {
+                          const n = Array.isArray(primaryStackEvent?.ticketCodes) ? primaryStackEvent.ticketCodes.length : 1;
+                          return n > 1 ? `Descarcă toate biletele (${n})` : 'Descarcă PDF';
+                        })()}
                       </button>
                     </div>
                   </div>

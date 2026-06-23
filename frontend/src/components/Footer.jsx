@@ -28,14 +28,14 @@ const Footer = () => {
         <div className="footer-col">
           <h4>EVENTHUB</h4>
           <Link to="/about">Despre noi</Link>
-          <a href="mailto:contact@eventhub.ro">Contact</a>
+          <Link to="/contact">Contact</Link>
         </div>
 
       </div>
 
       <div className="footer-bottom">
         <span>© 2026 EventHub.</span>
-        <span>Făcut cu energie în România.</span>
+        <span>Creat în România.</span>
       </div>
     </footer>
   );

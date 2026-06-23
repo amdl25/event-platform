@@ -1,4 +1,6 @@
 import { Event, Organization, Category, Account, Participation, TicketType } from '../models/relationships.js';
+import { Op } from 'sequelize';
+import { getOrgPlan } from '../utils/fileStorage.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
@@ -526,6 +528,25 @@ export const createEvent = async (req, res) => {
         return res.status(403).json({
           message: 'Cont în așteptare. Încarcă documentele și așteaptă validarea pentru a publica evenimente.'
         });
+      }
+
+      if (getOrgPlan(organization.id) === 'gratuit') {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const monthlyCount = await Event.count({
+          where: {
+            org_id: organization.id,
+            start_date: { [Op.between]: [startOfMonth, endOfMonth] },
+            moderation_status: { [Op.ne]: 'hidden' }
+          }
+        });
+        if (monthlyCount >= 10) {
+          return res.status(403).json({
+            message: 'Ai atins limita de 10 evenimente pe lună pentru planul Gratuit. Fă upgrade la Pro pentru evenimente nelimitate.',
+            code: 'PLAN_LIMIT_EXCEEDED'
+          });
+        }
       }
     }
 

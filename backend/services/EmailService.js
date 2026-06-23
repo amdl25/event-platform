@@ -161,4 +161,37 @@ export const sendTicketEmail = async (emailData) => {
   }
 };
 
-export default { sendTicketEmail };
+export const sendContactEmail = async ({ name, email, message }) => {
+  if (!transporter) {
+    console.warn('⚠️  Email transporter not configured. Skipping contact email.');
+    return { success: false, message: 'Email service not configured' };
+  }
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"EventHub" <${process.env.EMAIL_USER}>`,
+      to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER,
+      replyTo: `"${name}" <${email}>`,
+      subject: `[Contact EventHub] Mesaj de la ${name}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #333;">
+          <h2 style="color: #111; margin-bottom: 4px;">Mesaj nou prin formularul de contact</h2>
+          <p style="color: #888; font-size: 13px; margin-top: 0;">Primit de pe eventhub.ro</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p><strong>Nume:</strong> ${name}</p>
+          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Mesaj:</strong></p>
+          <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; white-space: pre-wrap; font-size: 14px;">${message}</div>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #aaa;">Răspunde direct la acest email pentru a contacta expeditorul.</p>
+        </div>
+      `
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error sending contact email:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+export default { sendTicketEmail, sendContactEmail };

@@ -1,4 +1,5 @@
-import { TicketType, Event } from '../models/relationships.js';
+import { TicketType, Event, Organization } from '../models/relationships.js';
+import { getOrgPlan } from '../utils/fileStorage.js';
 
 export const getTicketTypesForEvent = async (req, res) => {
   try {
@@ -27,6 +28,25 @@ export const createTicketType = async (req, res) => {
     const event = await Event.findByPk(eventId);
     if (!event) {
       return res.status(404).json({ message: 'Evenimentul nu a fost găsit' });
+    }
+
+    if (event.org_id) {
+      const org = await Organization.findByPk(event.org_id);
+      if (getOrgPlan(org?.id) === 'gratuit') {
+        const existing = await TicketType.count({ where: { event_id: eventId } });
+        if (existing >= 1) {
+          return res.status(403).json({
+            message: 'Planul Gratuit permite un singur tip de bilet per eveniment. Fă upgrade la Pro pentru tipuri personalizate.',
+            code: 'PLAN_LIMIT_EXCEEDED'
+          });
+        }
+        if (name && name.trim() !== 'General Access') {
+          return res.status(403).json({
+            message: 'Planul Gratuit permite doar bilete de tip "General Access". Fă upgrade la Pro pentru denumiri personalizate.',
+            code: 'PLAN_LIMIT_EXCEEDED'
+          });
+        }
+      }
     }
 
     const ticketType = await TicketType.create({

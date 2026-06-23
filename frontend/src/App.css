@@ -47,6 +47,8 @@ body {
   flex: 1;
   width: 100%;
   background: var(--light-bg);
+  display: flex;
+  flex-direction: column;
 }
 
 .container-max {

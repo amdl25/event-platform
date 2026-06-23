@@ -19,7 +19,7 @@ const formatDateLabel = (startValue, endValue) => {
 
 const getDateParts = (dateValue) => {
   const d = new Date(dateValue);
-  if (Number.isNaN(d.getTime())) return { day: '—', month: '—' };
+  if (Number.isNaN(d.getTime())) return { day: '-', month: '-' };
   return {
     day: d.getDate(),
     month: d.toLocaleDateString('ro-RO', { month: 'short' }).replace('.', '').toUpperCase()

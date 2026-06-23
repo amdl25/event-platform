@@ -10,6 +10,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import organizerRoutes from './routes/organizerRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
 
 const serializeErrorMessage = (error) => {
   if (!error) return 'Eroare necunoscută.';
@@ -36,6 +37,7 @@ app.use('/categories', categoryRoutes);
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/organizer', organizerRoutes);
+app.use('/contact', contactRoutes);
 
 
 app.use((error, req, res, next) => {

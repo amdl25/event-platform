@@ -88,6 +88,37 @@
   text-align: right;
 }
 
+.ob-upgrade-msg {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.ob-upgrade-msg--success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.ob-upgrade-msg--cancel {
+  background: #fefce8;
+  color: #a16207;
+  border-color: #fde68a;
+}
+
+.ob-upgrade-msg--error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
 .ob-section-title {
   font-size: 15px;
   font-weight: 700;

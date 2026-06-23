@@ -26,6 +26,7 @@ import OrganizerBillingPage from './pages/OrganizerBillingPage';
 import OrganizerSettingsPage from './pages/OrganizerSettingsPage';
 import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 import AdminVerificationQueuePage from './pages/AdminVerificationQueuePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminOrganizationsPage from './pages/AdminOrganizationsPage';
@@ -136,6 +137,7 @@ function App() {
             <Route path="/organizer/settings" element={<OrganizerSettingsPage user={user} handleLogout={handleLogout} />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/admin/dashboard" element={user ? <AdminDashboardPage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/verification-queue" element={<AdminVerificationQueuePage user={user} handleLogout={handleLogout} />} />

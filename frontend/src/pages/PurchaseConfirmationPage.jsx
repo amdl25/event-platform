@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCheckCircle, FiDownload, FiMail } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiCheck, FiClock, FiCopy, FiDownload, FiMail, FiMapPin, FiUser } from 'react-icons/fi';
 import API from '../api';
 import TicketPdfRenderer from '../components/TicketPdfRenderer';
 import { downloadTicketsPdf } from '../utils/downloadTicketsPdf';
@@ -19,6 +19,7 @@ const PurchaseConfirmationPage = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [emailStatusMessage, setEmailStatusMessage] = useState('');
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const state = location.state;
@@ -54,32 +55,29 @@ const PurchaseConfirmationPage = () => {
     setEventData(resolvedEvent);
     setEmailSent(Boolean(successState.successData?.emailSent));
     if (successState.successData?.emailSent && firstTicket?.buyerEmail) {
-      setEmailStatusMessage(`Email trimis catre ${firstTicket.buyerEmail}`);
+      setEmailStatusMessage(`trimis la ${firstTicket.buyerEmail}`);
     }
   }, [location, navigate]);
 
   const firstTicket = useMemo(() => ticketData?.tickets?.[0] || null, [ticketData]);
 
-  const confirmationDateLabel = useMemo(() => {
-    if (!firstTicket?.eventDate) return '';
-    return new Date(firstTicket.eventDate).toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+  const confirmationDateLong = useMemo(() => {
+    if (!firstTicket?.eventDate) return '-';
+    const raw = new Date(firstTicket.eventDate).toLocaleDateString('ro-RO', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
   }, [firstTicket]);
 
   const confirmationTimeLabel = useMemo(() => {
-    if (!firstTicket?.eventDate) return '';
+    if (!firstTicket?.eventDate) return '-';
     return new Date(firstTicket.eventDate).toLocaleTimeString('ro-RO', {
-      hour: '2-digit',
-      minute: '2-digit'
+      hour: '2-digit', minute: '2-digit'
     });
   }, [firstTicket]);
 
   const buildPdfPayload = useCallback(() => {
     if (!ticketData || !eventData) return null;
-
     return {
       eventTitle: eventData.title || 'Eveniment',
       generatedAt: new Date().toISOString(),
@@ -98,7 +96,6 @@ const PurchaseConfirmationPage = () => {
 
   const handleDownloadPDF = async () => {
     if (!ticketData || !eventData || downloading) return;
-
     setDownloading(true);
     try {
       const payload = buildPdfPayload();
@@ -106,9 +103,8 @@ const PurchaseConfirmationPage = () => {
         eventTitle: payload.eventTitle,
         tickets: payload.tickets,
         fileName: `bilete-${String(eventData?.title || eventData?.id || 'eveniment')
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-]/g, '') || 'eveniment'}`
+          .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'eveniment'}`,
+        layoutMode: 'stack'
       });
     } catch (err) {
       console.error('PDF generation error:', err);
@@ -119,37 +115,24 @@ const PurchaseConfirmationPage = () => {
   };
 
   const handleSendEmail = useCallback(async () => {
-    if (!ticketData || !eventData) return;
-
-    if (!firstTicket?.buyerName) {
-      setError('Nu am găsit datele cumpărătorului pentru trimiterea pe email.');
-      return;
-    }
-
+    if (!ticketData || !eventData || !firstTicket?.buyerName) return;
     setSending(true);
     setError('');
-    setEmailStatusMessage('');
-
     try {
-      const resolvedEventTitle = eventData.title || firstTicket?.eventTitle || 'Eveniment';
-      const resolvedEventDate = eventData.start_date || firstTicket?.eventDate || new Date().toISOString();
-      const resolvedEventLocation = eventData.location || firstTicket?.eventLocation || 'Locatie nespecificata';
-
       const response = await API.post('/events/tickets/send-email', {
         buyerEmail: firstTicket.buyerEmail,
         buyerName: firstTicket.buyerName,
-        eventTitle: resolvedEventTitle,
-        eventDate: resolvedEventDate,
-        eventLocation: resolvedEventLocation,
+        eventTitle: eventData.title || firstTicket?.eventTitle || 'Eveniment',
+        eventDate: eventData.start_date || firstTicket?.eventDate || new Date().toISOString(),
+        eventLocation: eventData.location || firstTicket?.eventLocation || 'Locatie nespecificata',
         tickets: ticketData.tickets,
         quantity: ticketData.quantity,
         totalPrice: ticketData.totalPrice
       });
-
       if (response.status === 200) {
         setEmailSent(true);
-        const acceptedEmail = response.data?.accepted?.[0] || firstTicket.buyerEmail;
-        setEmailStatusMessage(`Email trimis cu succes catre ${acceptedEmail}`);
+        const accepted = response.data?.accepted?.[0] || firstTicket.buyerEmail;
+        setEmailStatusMessage(`trimis la ${accepted}`);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la trimiterea email-ului.');
@@ -164,118 +147,119 @@ const PurchaseConfirmationPage = () => {
     handleSendEmail();
   }, [ticketData, eventData, emailSent, sending, firstTicket, handleSendEmail]);
 
-  if (!ticketData || !eventData) {
-    return null;
-  }
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(ticketCodeLabel).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
-  const buyerEmailLabel = firstTicket?.buyerEmail || '—';
-  const buyerNameLabel = firstTicket?.buyerName || '—';
-  const ticketCodeLabel = firstTicket?.code || '—';
-  const eventLocationLabel = firstTicket?.eventLocation || eventData.location || '—';
+  if (!ticketData || !eventData) return null;
+
+  const buyerEmailLabel = firstTicket?.buyerEmail || '-';
+  const buyerNameLabel = firstTicket?.buyerName || '-';
+  const ticketCodeLabel = firstTicket?.code || '-';
+  const eventLocationLabel = firstTicket?.eventLocation || eventData.location || '-';
   const eventTitleLabel = firstTicket?.eventTitle || eventData.title || 'Eveniment';
-  const totalPaidLabel = Number(ticketData.totalPrice || 0).toFixed(2);
 
   return (
-    <div className="tickets-download-page">
-      <div className="tickets-container">
-        <div className="tickets-header">
-          <div className="success-badge">
-            <FiCheckCircle />
-            <span>Bilete cumpărate cu succes!</span>
+    <div className="pcp-page">
+      <div className="pcp-wrapper">
+      <div className="pcp-container">
+
+        <div className="pcp-header">
+          <div className="pcp-check-circle">
+            <FiCheck strokeWidth={2.5} />
           </div>
-          <h1>Vă mulțumim.</h1>
-          <p className="tickets-subtitle">Locul dumneavoastră este rezervat.</p>
-          <p className="purchase-summary">
-            Ai cumpărat {ticketData.quantity} bilet(e) • Total: <strong>{totalPaidLabel} lei</strong>
+          <h1 className="pcp-title">Locul tău este rezervat</h1>
+          <p className="pcp-subtitle">
+            Îți mulțumim, <strong>{buyerNameLabel}</strong>. Ai cumpărat{' '}
+            {ticketData.quantity} bilet{ticketData.quantity > 1 ? 'e' : ''} pentru:
           </p>
+          <p className="pcp-event-name">{eventTitleLabel}</p>
         </div>
 
-        <div className="tickets-ticket-card">
-          <div className="tickets-ticket-grid">
-            <div className="tickets-ticket-left">
-              <span className="tickets-ticket-pill">ACCES GENERAL</span>
-              <h2 className="tickets-event-title">{eventTitleLabel}</h2>
-              <p className="tickets-event-location">{eventLocationLabel}</p>
-
-              <div className="tickets-meta-grid">
-                <div className="tickets-meta-item">
-                  <span className="tickets-meta-label">DATA</span>
-                  <strong>{confirmationDateLabel || '—'}</strong>
-                </div>
-                <div className="tickets-meta-item">
-                  <span className="tickets-meta-label">ORA</span>
-                  <strong>{confirmationTimeLabel || '—'}</strong>
-                </div>
-                <div className="tickets-meta-item tickets-code-item">
-                  <span className="tickets-meta-label">COD BILET</span>
-                  <strong>{ticketCodeLabel}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="tickets-ticket-right">
-              <div className="tickets-qr-shell">
-                <img src={firstTicket?.qr} alt="QR Code" className="tickets-qr-large" />
-                <span>PREZINTĂ ACEST COD LA INTRARE</span>
-              </div>
-            </div>
+        <div className="pcp-info-grid">
+          <div className="pcp-info-card">
+            <span className="pcp-info-label"><FiCalendar size={11} /> DATA</span>
+            <span className="pcp-info-value">{confirmationDateLong}</span>
           </div>
-
-          <div className="tickets-ticket-footer-row">
-            <div className="tickets-buyer-chip">{(buyerNameLabel || 'U').slice(0, 2).toUpperCase()}</div>
-            <div className="tickets-footer-info">
-              <div>
-                <span>Cumpărător</span>
+          <div className="pcp-info-card">
+            <span className="pcp-info-label"><FiClock size={11} /> ORA</span>
+            <span className="pcp-info-value">{confirmationTimeLabel}</span>
+          </div>
+          <div className="pcp-info-card pcp-info-card--full">
+            <span className="pcp-info-label"><FiMapPin size={11} /> LOCAȚIE</span>
+            <span className="pcp-info-value">{eventLocationLabel}</span>
+          </div>
+          <div className="pcp-info-card pcp-info-card--full">
+            <span className="pcp-info-label"><FiUser size={11} /> CUMPĂRĂTOR</span>
+            <div className="pcp-buyer-row">
+              <div className="pcp-buyer-avatar">
+                {(buyerNameLabel || 'U').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+              </div>
+              <div className="pcp-buyer-info">
                 <strong>{buyerNameLabel}</strong>
-              </div>
-              <div>
-                <span>Email</span>
-                <strong>{buyerEmailLabel}</strong>
-              </div>
-              <div>
-                <span>Total achitat</span>
-                <strong>{totalPaidLabel} lei</strong>
+                <span>{buyerEmailLabel}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="tickets-confirm-note">
-          {emailStatusMessage || `O copie a confirmării a fost trimisă la ${buyerEmailLabel}`}
+        <div className="pcp-ticket">
+          <div className="pcp-ticket-qr-col">
+            {firstTicket?.qr ? (
+              <img src={firstTicket.qr} alt="QR Code" className="pcp-qr-img" />
+            ) : (
+              <div className="pcp-qr-placeholder" />
+            )}
+            <span className="pcp-qr-hint">Prezintă acest cod la intrare</span>
+          </div>
+          <div className="pcp-ticket-divider" aria-hidden="true" />
+          <div className="pcp-ticket-code-col">
+            <span className="pcp-code-label">COD BILET</span>
+            <span className="pcp-code-value">{ticketCodeLabel}</span>
+            <button className="pcp-copy-btn" onClick={handleCopyCode} type="button">
+              <FiCopy size={12} />
+              {copied ? 'Copiat!' : 'Copiază codul'}
+            </button>
+          </div>
         </div>
 
-        <div className="tickets-actions">
-          <button 
-            className="btn-action download-btn" 
-            onClick={handleDownloadPDF}
-            disabled={downloading}
-          >
-            <FiDownload />
+        <div className="pcp-actions">
+          <button className="pcp-btn-primary" onClick={handleDownloadPDF} disabled={downloading} type="button">
+            <FiDownload size={15} />
             {downloading ? 'Se descarcă...' : 'Descarcă PDF'}
           </button>
-
-          <button 
-            className={`btn-action email-btn ${emailSent ? 'sent' : ''}`}
-            onClick={handleSendEmail}
-            disabled={sending}
-          >
-            <FiMail />
-            {sending ? 'Se trimite...' : 'Retrimite pe Email'}
-          </button>
         </div>
 
-        {error ? <div className="error-message">{error}</div> : null}
+        {error ? <div className="pcp-error">{error}</div> : null}
 
-        <div className="tickets-footer">
-          <button className="btn-secondary" onClick={() => navigate('/')}>
-            <FiArrowLeft /> Acasă
-          </button>
-          {eventData.id ? (
-            <button className="btn-secondary" onClick={() => navigate(`/event/${eventData.id}`)}>
-              Înapoi la eveniment
-            </button>
-          ) : null}
+        <div className="pcp-email-note">
+          <FiMail size={13} />
+          <span>
+            Un email cu biletul a fost trimis către <strong>{buyerEmailLabel}</strong>.{' '}
+            {!emailSent && !sending && (
+              <button className="pcp-resend-link" onClick={handleSendEmail} type="button">
+                Retrimite
+              </button>
+            )}
+          </span>
         </div>
+        <p className="pcp-spam-hint">Verifică și folderul Spam dacă nu-l găsești în câteva minute.</p>
+
+      </div>
+
+      <div className="pcp-footer">
+        <button className="pcp-nav-btn" onClick={() => navigate('/')} type="button">
+          <FiArrowLeft size={13} /> Acasă
+        </button>
+        {eventData.id ? (
+          <button className="pcp-nav-btn" onClick={() => navigate(`/event/${eventData.id}`)} type="button">
+            Înapoi la eveniment
+          </button>
+        ) : null}
+      </div>
       </div>
 
       {pdfPayload ? <TicketPdfRenderer payload={pdfPayload} ref={ticketPdfRef} /> : null}

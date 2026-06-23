@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCheck, FiZap, FiTrendingUp, FiStar } from 'react-icons/fi';
+import { FiCheck, FiZap, FiTrendingUp, FiStar, FiMinus } from 'react-icons/fi';
 import '../styles/PricingPage.css';
 
 const PLANS = [
@@ -10,20 +10,24 @@ const PLANS = [
     price: 0,
     period: null,
     badge: null,
-    description: 'Perfect pentru a testa platforma și evenimentele mici.',
+    tag: 'Ideal pentru ONG-uri',
+    description: 'Funcționalități reale, fără costuri. Perfect pentru organizații non-profit și organizatori independenți.',
     cta: 'Începe gratuit',
     ctaVariant: 'outline',
     icon: FiZap,
     features: [
-      '1 eveniment activ simultan',
-      'Max. 50 participanți / eveniment',
+      '10 evenimente / lună',
       'Pagină publică a evenimentului',
-      'Vânzare bilete gratuite',
-      'Acces la dashboard basic',
+      'Vânzare bilete (gratuite și cu preț)',
+      '2 tipuri de bilete personalizate',
+      '300 participanți / eveniment',
+      'Validare bilete prin cod QR',
+      'Dashboard de gestionare',
+      'Listare în pagina de Explorare',
+      'Sistem de loialitate activat',
     ],
     missing: [
-      'Analitics și rapoarte',
-      'Sistem de loialitate pentru participanți',
+      'Analytics și rapoarte',
       'Suport prioritar',
       'Plasare featured în Explorare',
     ],
@@ -34,22 +38,26 @@ const PLANS = [
     price: 99,
     period: 'lună',
     badge: 'Recomandat',
-    description: 'Pentru organizatori activi care vor să crească.',
+    tag: null,
+    description: 'Pentru organizatori activi care vor să crească și să înțeleagă audiența.',
     cta: 'Alege Pro',
     ctaVariant: 'primary',
     icon: FiTrendingUp,
     features: [
       'Evenimente nelimitate',
       'Participanți nelimitați',
-      'Analytics detaliat (revenue, check-in, tendințe)',
-      'Sistem de loialitate activat pentru participanți',
-      'Export participanți CSV',
-      'Suport prioritar (răspuns în 24h)',
+      'Tipuri de bilete personalizate nelimitate',
       'Plasare standard în Explorare',
+      'Dashboard analytics complet',
+      'Statistici venituri și check-in',
+      'Sistem de loialitate activat',
+      'Suport prioritar (răspuns în 24h)',
     ],
     missing: [
-      'Plasare featured premium',
-      'Manager de cont dedicat',
+      'Plasare featured în Explorare',
+      'Statistici avansate și comparații între evenimente',
+      'Tendințe și evoluție pe perioadă',
+      'Suport prioritar extins (răspuns în 12h)',
     ],
   },
   {
@@ -58,18 +66,17 @@ const PLANS = [
     price: 249,
     period: 'lună',
     badge: null,
-    description: 'Pentru companii și ONG-uri cu volume mari de evenimente.',
+    tag: null,
+    description: 'Pentru companii cu volume mari de evenimente și nevoi avansate de personalizare.',
     cta: 'Contactează-ne',
     ctaVariant: 'dark',
     icon: FiStar,
     features: [
       'Tot ce include Pro',
       'Plasare featured în Explorare (prioritate maximă)',
-      'Manager de cont dedicat',
-      'Rapoarte personalizate',
-      'Integrare API (webhook-uri)',
-      'Branding personalizat pe bilete',
-      'SLA garantat 99.9% uptime',
+      'Statistici avansate și comparații între evenimente',
+      'Tendințe și evoluție pe perioadă',
+      'Suport prioritar extins (răspuns în 12h)',
     ],
     missing: [],
   },
@@ -78,6 +85,26 @@ const PLANS = [
 const PricingPage = () => {
   const [billing, setBilling] = useState('lunar');
   const navigate = useNavigate();
+
+  const handlePlanCta = (planId) => {
+    if (planId === 'business') {
+      navigate('/contact');
+      return;
+    }
+    if (planId === 'gratuit') {
+      navigate('/register');
+      return;
+    }
+    try {
+      const stored = localStorage.getItem('eventHubUser');
+      const userData = stored ? JSON.parse(stored) : null;
+      if (userData?.role === 'organizer') {
+        navigate(`/organizer/billing?plan=${planId}`);
+        return;
+      }
+    } catch { }
+    navigate(`/register?redirect=${encodeURIComponent(`/organizer/billing?plan=${planId}`)}`);
+  };
 
   const getPrice = (plan) => {
     if (plan.price === 0) return 0;
@@ -89,9 +116,9 @@ const PricingPage = () => {
       <div className="pricing-hero">
         <div className="container-max">
           <p className="pricing-eyebrow">Planuri & Prețuri</p>
-          <h1 className="pricing-title">Alege planul potrivit<br />pentru organizatia ta</h1>
+          <h1 className="pricing-title">Alege planul potrivit<br />pentru organizația ta</h1>
           <p className="pricing-subtitle">
-            Fără comisioane ascunse. Poți face upgrade sau downgrade oricând.
+            Fără comisioane ascunse. Upgrade sau downgrade oricând.
           </p>
 
           <div className="pricing-billing-toggle">
@@ -128,53 +155,80 @@ const PricingPage = () => {
                     <div className={`pricing-icon pricing-icon--${plan.id}`}>
                       <Icon />
                     </div>
-                    <h2 className="pricing-plan-name">{plan.name}</h2>
+                    <div className="pricing-name-row">
+                      <h2 className="pricing-plan-name">{plan.name}</h2>
+                      {plan.tag && <span className="pricing-plan-tag">{plan.tag}</span>}
+                    </div>
                     <p className="pricing-plan-desc">{plan.description}</p>
                   </div>
 
                   <div className="pricing-price-wrap">
-                    <span className="pricing-amount">
-                      {price === 0 ? 'Gratuit' : `${price} RON`}
-                    </span>
-                    {plan.period && (
-                      <span className="pricing-period">/ {plan.period}</span>
-                    )}
+                    <div className="pricing-price-row">
+                      <span className="pricing-amount">
+                        {price === 0 ? '0 RON' : `${price} RON`}
+                      </span>
+                      {plan.period && (
+                        <span className="pricing-period">/ {plan.period}</span>
+                      )}
+                    </div>
                     {billing === 'anual' && plan.price > 0 && (
                       <p className="pricing-annual-note">
-                        {plan.price} RON/lună facturat anual
+                        față de {plan.price} RON/lună lunar
                       </p>
                     )}
                   </div>
 
                   <button
                     className={`pricing-cta pricing-cta--${plan.ctaVariant}`}
-                    onClick={() => navigate(plan.id === 'business' ? '/contact' : '/register')}
+                    onClick={() => handlePlanCta(plan.id)}
                   >
                     {plan.cta}
                   </button>
 
-                  <ul className="pricing-features">
-                    {plan.features.map((f) => (
-                      <li key={f} className="pricing-feature pricing-feature--yes">
-                        <FiCheck className="pricing-feature-icon" />
-                        {f}
-                      </li>
-                    ))}
-                    {plan.missing.map((f) => (
-                      <li key={f} className="pricing-feature pricing-feature--no">
-                        <span className="pricing-feature-icon pricing-feature-dash">–</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="pricing-features-section">
+                    <ul className="pricing-features">
+                      {plan.features.map((f) => (
+                        <li key={f} className="pricing-feature pricing-feature--yes">
+                          <FiCheck className="pricing-feature-icon" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {plan.missing.length > 0 && (
+                      <>
+                        <div className="pricing-features-divider" />
+                        <ul className="pricing-features">
+                          {plan.missing.map((f) => (
+                            <li key={f} className="pricing-feature pricing-feature--no">
+                              <FiMinus className="pricing-feature-icon pricing-feature-dash" />
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
 
+          <div className="pricing-ong-banner">
+            <div className="pricing-ong-left">
+              <div>
+                <p className="pricing-ong-title">Ești o organizație non-profit?</p>
+                <p className="pricing-ong-desc">ONG-urile verificate beneficiază de <strong>50% reducere</strong> la orice plan plătit. Contactează-ne cu dovada statutului non-profit.</p>
+              </div>
+            </div>
+            <button className="pricing-ong-cta" onClick={() => navigate('/contact')}>
+              Aplică pentru reducere
+            </button>
+          </div>
+
           <div className="pricing-footer-note">
             <p>
-              Toate planurile includ acces la sistemul de loialitate EventHub, vânzare de bilete și gestionare participanți.
+              Toate planurile includ vânzare de bilete, gestionare participanți și acces la sistemul EventHub.
               Plata se procesează securizat prin Stripe.
             </p>
           </div>

@@ -45,6 +45,8 @@ const formatTimeLabel = (timeValue) => {
 	return `${String(displayHour).padStart(2, '0')}:${rawMinutes} ${period}`;
 };
 
+const FREE_PLAN_TICKET_NAMES = ['General Access', 'VIP'];
+
 const createTicketTypeDraft = (overrides = {}) => ({
 	id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
 	name: 'General Access',
@@ -167,6 +169,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	const location = useLocation();
 	const [events, setEvents] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const isFreePlan = (user?.organizationPlan || 'gratuit') === 'gratuit';
 	const [organizerStatus, setOrganizerStatus] = useState(user?.organizerVerificationStatus || 'unverified');
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [categories, setCategories] = useState([]);
@@ -289,24 +292,31 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 				pointsValue: Number(eventToEdit.points_value || 0),
 				categoryIds: (eventToEdit.categories || []).map((c) => c.id)
 			});
+			const loadedTicketTypes = eventToEdit.ticketTypes?.length > 0
+				? eventToEdit.ticketTypes.map((ticketType, index) => createTicketTypeDraft({
+						id: ticketType.id,
+						name: ticketType.name || '',
+						description: ticketType.description || '',
+						price: Number(ticketType.price || 0),
+						quantity: Number(ticketType.quantity || 0),
+						points_reward: Number(ticketType.points_reward || 0),
+						display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
+						is_active: ticketType.is_active !== false
+					}))
+				: [createTicketTypeDraft({
+						name: eventToEdit.title ? `${eventToEdit.title} - General Access` : 'General Access',
+						price: Number(eventToEdit.price || 0),
+						quantity: Number(eventToEdit.max_capacity || 50),
+						points_reward: Number(eventToEdit.points_value || 0)
+					})];
+
 			setTicketTypes(
-				eventToEdit.ticketTypes?.length > 0
-					? eventToEdit.ticketTypes.map((ticketType, index) => createTicketTypeDraft({
-							id: ticketType.id,
-							name: ticketType.name || '',
-							description: ticketType.description || '',
-							price: Number(ticketType.price || 0),
-							quantity: Number(ticketType.quantity || 0),
-							points_reward: Number(ticketType.points_reward || 0),
-							display_order: Number.isFinite(Number(ticketType.display_order)) ? Number(ticketType.display_order) : index,
-							is_active: ticketType.is_active !== false
+				isFreePlan
+					? FREE_PLAN_TICKET_NAMES.map((name, index) => ({
+							...(loadedTicketTypes[index] || createTicketTypeDraft({ display_order: index })),
+							name
 						}))
-					: [createTicketTypeDraft({
-							name: eventToEdit.title ? `${eventToEdit.title} - General Access` : 'General Access',
-							price: Number(eventToEdit.price || 0),
-							quantity: Number(eventToEdit.max_capacity || 50),
-							points_reward: Number(eventToEdit.points_value || 0)
-						})]
+					: loadedTicketTypes
 			);
 			setEventImagePreview(eventToEdit.image_url || '');
 			setEventImageName('');
@@ -506,7 +516,11 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 		}
 		setEventFormError('');
 		setEditingEventId('');
-		setTicketTypes([createTicketTypeDraft()]);
+		setTicketTypes(
+			isFreePlan
+				? FREE_PLAN_TICKET_NAMES.map((name, index) => createTicketTypeDraft({ name, display_order: index }))
+				: [createTicketTypeDraft()]
+		);
 		setEventForm((prev) => ({
 			...prev,
 			title: '',
@@ -737,6 +751,16 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	};
 
 	const totalEvents = useMemo(() => events.length, [events]);
+	const monthlyEventCount = useMemo(() => {
+		const now = new Date();
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+		return events.filter((e) => {
+			const startDate = new Date(e.start_date);
+			return startDate >= startOfMonth && startDate <= endOfMonth && e.moderation_status !== 'hidden';
+		}).length;
+	}, [events]);
+	const atMonthlyLimit = isFreePlan && monthlyEventCount >= 10;
 	const formatMoney = (value) => `${Number(value || 0).toFixed(0)} RON`;
 
 	const filteredEvents = useMemo(() => {
@@ -765,15 +789,23 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 	}, [activeTab]);
 
 	const actions = (
-		<button
-			className="organizer-primary-button organizer-primary-button-large"
-			onClick={handleOpenCreateModal}
-			disabled={organizerStatus !== 'verified'}
-			type="button"
-		>
-			<FiPlus />
-			<span>Eveniment nou</span>
-		</button>
+		<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+			<button
+				className="organizer-primary-button organizer-primary-button-large"
+				onClick={handleOpenCreateModal}
+				disabled={organizerStatus !== 'verified' || atMonthlyLimit}
+				type="button"
+				title={atMonthlyLimit ? 'Ai atins limita de 10 evenimente / lună (plan Gratuit)' : undefined}
+			>
+				<FiPlus />
+				<span>Eveniment nou</span>
+			</button>
+			{isFreePlan && (
+				<span style={{ fontSize: 11, color: atMonthlyLimit ? '#e95b3c' : '#a0a0a0', fontWeight: 600 }}>
+					{monthlyEventCount}/10 evenimente luna aceasta
+				</span>
+			)}
+		</div>
 	);
 
 	if (loading) {
@@ -831,7 +863,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 								<article key={event.id} className={`event-row-new${status.className === 'admin-blocked' ? ' event-row-blocked' : ''}`}>
 									{status.className === 'admin-blocked' ? (
 										<div className="event-admin-blocked-banner">
-											Eveniment blocat de administrator — nu poate fi republicat fără aprobare
+											Eveniment blocat de administrator - nu poate fi republicat fără aprobare
 										</div>
 									) : null}
 									<div className={`event-accent ${status.className}`} />
@@ -1074,12 +1106,18 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 									<div className="organizer-ticket-types-header">
 										<div>
 											<label className="organizer-ticket-types-title">Tipuri de bilete</label>
-											<p className="organizer-ticket-types-subtitle">Adaugă unul sau mai multe tipuri. Userii le vor vedea exact așa în pagina eventului.</p>
+											<p className="organizer-ticket-types-subtitle">
+												{isFreePlan
+													? 'Planul Gratuit permite maximum 2 tipuri de bilete. Fă upgrade la Pro pentru tipuri nelimitate.'
+													: 'Adaugă unul sau mai multe tipuri. Userii le vor vedea exact așa în pagina eventului.'}
+											</p>
 										</div>
-										<button type="button" className="organizer-ticket-add" onClick={handleAddTicketType}>
-											<FiPlus />
-											<span>Adaugă tip</span>
-										</button>
+										{!isFreePlan && (
+											<button type="button" className="organizer-ticket-add" onClick={handleAddTicketType}>
+												<FiPlus />
+												<span>Adaugă tip</span>
+											</button>
+										)}
 									</div>
 
 									<div className="organizer-ticket-types-list">
@@ -1091,7 +1129,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 														type="button"
 														className="organizer-ticket-remove"
 														onClick={() => handleRemoveTicketType(ticketType.id)}
-														disabled={ticketTypes.length === 1}
+														disabled={isFreePlan || ticketTypes.length === 1}
 													>
 														<FiTrash2 />
 														<span>Șterge</span>
@@ -1187,7 +1225,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 
 							<div className="organizer-create-modal-footer">
 								{editingEventId && events.find((e) => e.id === editingEventId)?.moderation_status === 'reported' ? (
-									<p className="organizer-create-blocked-note">Blocat de admin — salvează modificările ca draft și contactează administratorul pentru deblocare.</p>
+									<p className="organizer-create-blocked-note">Blocat de admin - salvează modificările ca draft și contactează administratorul pentru deblocare.</p>
 								) : null}
 								<button type="button" className="organizer-create-cancel" onClick={handleCloseCreateModal}>Anulează</button>
 								<button

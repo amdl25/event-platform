@@ -7,6 +7,32 @@ const STORAGE_DIR = path.join(__dirname, '../storage');
 const SETTINGS_FILE = path.join(STORAGE_DIR, 'platformSettings.json');
 const AUDIT_LOG_FILE = path.join(STORAGE_DIR, 'auditLogs.json');
 const NOTIFICATIONS_FILE = path.join(STORAGE_DIR, 'notifications.json');
+const ORG_PLANS_FILE = path.join(STORAGE_DIR, 'orgPlans.json');
+
+const readOrgPlans = () => {
+  try {
+    if (fs.existsSync(ORG_PLANS_FILE)) {
+      return JSON.parse(fs.readFileSync(ORG_PLANS_FILE, 'utf8'));
+    }
+  } catch {}
+  return {};
+};
+
+export const getOrgPlan = (orgId) => {
+  return readOrgPlans()[orgId] || 'gratuit';
+};
+
+export const setOrgPlan = (orgId, plan) => {
+  ensureStorageDir();
+  try {
+    const plans = readOrgPlans();
+    plans[orgId] = plan;
+    fs.writeFileSync(ORG_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf8');
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const ensureStorageDir = () => {
   if (!fs.existsSync(STORAGE_DIR)) {

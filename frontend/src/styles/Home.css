@@ -220,7 +220,7 @@
   max-width: 735px;
   width: 100%;
   justify-self: end;
-  height: 220px;
+  height: 260px;
 }
 
 .home-member-stack-card {
@@ -901,6 +901,23 @@
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+.home-ticket-modal-multi-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.04em;
+}
+
+.home-ticket-modal-multi-nav .home-stack-nav-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
 }
 
 .home-ticket-modal-code {

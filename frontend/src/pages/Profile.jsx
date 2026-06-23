@@ -45,7 +45,7 @@ const Profile = ({ user }) => {
         email: false
     });
 
-    const [pdfDownloading, setPdfDownloading] = useState(false);
+    const [downloadingEventId, setDownloadingEventId] = useState('');
     const [pdfPayload, setPdfPayload] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loyaltySummary, setLoyaltySummary] = useState({ totalPoints: 0, companies: [] });
@@ -324,11 +324,11 @@ const Profile = ({ user }) => {
         };
     };
 
-    const exportTicketsPdf = async (ticketItems, eventTitleOverride, fileHint) => {
-        if (!ticketItems?.length || pdfDownloading) return;
+    const exportTicketsPdf = async (ticketItems, eventTitleOverride, fileHint, eventId) => {
+        if (!ticketItems?.length || downloadingEventId) return;
 
         const payload = buildPdfPayload(ticketItems, eventTitleOverride);
-        setPdfDownloading(true);
+        setDownloadingEventId(eventId || 'unknown');
 
         try {
             await downloadTicketsPdf({
@@ -340,7 +340,7 @@ const Profile = ({ user }) => {
         } catch (error) {
             console.error('Eroare la exportul PDF al biletelor:', error);
         } finally {
-            setPdfDownloading(false);
+            setDownloadingEventId('');
         }
     };
 
@@ -348,7 +348,8 @@ const Profile = ({ user }) => {
         exportTicketsPdf(
             ticketGroup.tickets,
             ticketGroup.event?.title,
-            `${ticketGroup.event?.title || 'eveniment'}-${ticketGroup.tickets.length}`
+            `${ticketGroup.event?.title || 'eveniment'}-${ticketGroup.tickets.length}`,
+            ticketGroup.eventId
         );
     };
 
@@ -617,9 +618,9 @@ const Profile = ({ user }) => {
                                                     <button
                                                         className="btn-qr-trigger v2"
                                                         onClick={() => handleDownloadAllTickets(ticketGroup)}
-                                                        disabled={pdfDownloading}
+                                                        disabled={downloadingEventId === String(ticketGroup.eventId)}
                                                     >
-                                                        <FiDownload /> {pdfDownloading ? 'Se descarcă...' : (isMulti ? 'Descarcă bilete' : 'Descarcă bilet')}
+                                                        <FiDownload /> {downloadingEventId === String(ticketGroup.eventId) ? 'Se descarcă...' : (isMulti ? 'Descarcă bilete' : 'Descarcă bilet')}
                                                     </button>
                                                 </div>
                                             </div>

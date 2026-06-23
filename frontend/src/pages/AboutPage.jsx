@@ -13,7 +13,7 @@ const AboutPage = () => {
           <p className="about-kicker">DESPRE EVENTHUB</p>
           <h1 className="about-title">O platformă pentru toți.<br />Construită în jurul evenimentelor.</h1>
           <p className="about-lead">
-            EventHub conectează oamenii prin evenimente — fie că vrei să descoperi ce se întâmplă în orașul tău,
+            EventHub conectează oamenii prin evenimente - fie că vrei să descoperi ce se întâmplă în orașul tău,
             să organizezi o petrecere privată cu prietenii, sau să publici și să vinzi bilete ca business sau ONG.
           </p>
         </div>
@@ -32,7 +32,7 @@ const AboutPage = () => {
               <p>
                 Descoperi concerte, festivaluri, expoziții, ateliere și multe altele. Poți cumpăra bilete direct
                 din platformă, îți gestionezi calendarul de evenimente și primești recomandări personalizate.
-                Nu ai nevoie de cont pentru a explora — contul îți adaugă beneficii extra.
+                Nu ai nevoie de cont pentru a explora - contul îți adaugă beneficii extra.
               </p>
               <ul className="about-audience-list">
                 <li><FiStar size={13} /> Explorează gratuit, fără cont</li>
@@ -49,7 +49,7 @@ const AboutPage = () => {
               </div>
               <h3>Organizatori privați</h3>
               <p>
-                Orice utilizator cu cont poate crea evenimente private — petreceri, ieșiri, aniversări sau
+                Orice utilizator cu cont poate crea evenimente private - petreceri, ieșiri, aniversări sau
                 întâlniri de grup. Evenimentele private sunt vizibile doar persoanelor invitate,
                 nu apar în feed-ul public.
               </p>
@@ -66,14 +66,14 @@ const AboutPage = () => {
               <div className="about-audience-icon">
                 <FiTrendingUp />
               </div>
-              <h3>Business-uri și ONG-uri</h3>
+              <h3>Firme și ONG-uri verificate</h3>
               <p>
-                Organizatorii profesioniști pot publica evenimente în feed-ul public, vinde bilete și accesa
-                statistici detaliate. Contul de organizator necesită verificarea identității juridice —
-                o măsură pentru siguranța participanților.
+                Dacă organizezi evenimente ca firmă sau ONG, îți creezi un cont de organizator
+                și treci printr-un proces scurt de verificare a identității juridice. Odată verificat,
+                poți publica în feed-ul public, vinde bilete și accesa statistici detaliate.
               </p>
               <ul className="about-audience-list">
-                <li><FiShield size={13} /> Verificare identitate juridică</li>
+                <li><FiShield size={13} /> Verificare identitate juridică (CUI / statut ONG)</li>
                 <li><FiShield size={13} /> Publicare în feed-ul public</li>
                 <li><FiShield size={13} /> Vânzare bilete și încasări</li>
                 <li><FiShield size={13} /> Dashboard cu analitics</li>
@@ -91,7 +91,7 @@ const AboutPage = () => {
             <div className="about-step">
               <span className="about-step-num">01</span>
               <h4>Explorezi fără cont</h4>
-              <p>Intri pe EventHub și poți vedea imediat evenimentele publice disponibile — fără înregistrare.</p>
+              <p>Intri pe EventHub și poți vedea imediat evenimentele publice disponibile - fără înregistrare.</p>
             </div>
             <div className="about-step">
               <span className="about-step-num">02</span>
@@ -106,7 +106,7 @@ const AboutPage = () => {
             <div className="about-step">
               <span className="about-step-num">04</span>
               <h4>Aplici ca organizator profesionist</h4>
-              <p>Dacă ești business sau ONG, aplici pentru un cont de organizator — verificăm și aprobăm în câteva zile lucrătoare.</p>
+              <p>Dacă ești business sau ONG, aplici pentru un cont de organizator - verificăm și aprobăm în câteva zile lucrătoare.</p>
             </div>
           </div>
         </div>

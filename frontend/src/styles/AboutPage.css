@@ -120,6 +120,10 @@
   margin: 0;
 }
 
+.about-audience-card--dark h3 {
+  color: #fff;
+}
+
 .about-audience-card p {
   font-size: 0.88rem;
   color: #555;

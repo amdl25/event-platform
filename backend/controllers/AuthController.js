@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
 import { Account, Organization } from '../models/relationships.js';
-import { addNotification } from '../utils/fileStorage.js';
+import { addNotification, getOrgPlan } from '../utils/fileStorage.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_change_me';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -23,6 +23,7 @@ const buildAuthPayload = (user, organization = null, token = null) => ({
   organizationId: organization?.id || null,
   organizationName: organization?.name || null,
   organizerVerificationStatus: organization?.verification_status || null,
+  organizationPlan: organization?.id ? getOrgPlan(organization.id) : null,
   isAuthenticated: true,
   token
 });
