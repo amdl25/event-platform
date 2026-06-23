@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
 	FiTrendingUp, FiTrendingDown, FiDollarSign, FiUsers, FiCalendar,
-	FiLock, FiAward
+	FiLock, FiAward, FiStar, FiChevronUp, FiChevronDown
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,13 +24,13 @@ const RO_MONTHS = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep'
 const DAYS_RO_SHORT = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
 const DAYS_RO_FULL = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
 
-const buildMonthlyData = (rawRows) => {
+const buildMonthlyData = (rawRows, months = 6) => {
 	const map = {};
 	rawRows.forEach((row) => {
 		map[row.month] = { revenue: Number(row.revenue || 0), tickets: Number(row.ticket_count || 0) };
 	});
 	const result = [];
-	for (let i = 5; i >= 0; i--) {
+	for (let i = months - 1; i >= 0; i--) {
 		const d = new Date();
 		d.setDate(1);
 		d.setMonth(d.getMonth() - i);
@@ -99,14 +99,181 @@ const DowTooltip = ({ active, payload, label }) => {
 	);
 };
 
+const BUSINESS_PURPLE = '#7c3aed';
+
+const YearlyRevenueTooltip = ({ active, payload, label }) => {
+	if (!active || !payload?.length) return null;
+	return (
+		<div className="oa-chart-tooltip">
+			<p className="oa-chart-tooltip-label">{label}</p>
+			<p className="oa-chart-tooltip-value">{fmtRon(payload[0]?.value)}</p>
+			<p className="oa-chart-tooltip-sub">{payload[0]?.payload?.tickets} bilete</p>
+		</div>
+	);
+};
+
+const SortIcon = ({ col, sortCol, sortAsc }) => {
+	if (sortCol !== col) return <span className="oa-sort-icon neutral"><FiChevronUp /><FiChevronDown /></span>;
+	return sortAsc
+		? <span className="oa-sort-icon active"><FiChevronUp /></span>
+		: <span className="oa-sort-icon active"><FiChevronDown /></span>;
+};
+
+const BusinessAnalyticsSection = ({ advancedData, sortCol, sortAsc, onSort }) => {
+	const yearlyData = buildMonthlyData(advancedData.yearlyRevenue || [], 12);
+	const qoqDelta = advancedData.qoqDelta;
+	const currentQRevenue = Number(advancedData.currentQRevenue || 0);
+	const prevQRevenue = Number(advancedData.prevQRevenue || 0);
+
+	const rawComparison = advancedData.eventComparison || [];
+	const sortedComparison = [...rawComparison].sort((a, b) => {
+		const fn = {
+			revenue: (x, y) => Number(y.revenue) - Number(x.revenue),
+			tickets_sold: (x, y) => Number(y.tickets_sold) - Number(x.tickets_sold),
+			fill_rate: (x, y) => Number(y.fill_rate) - Number(x.fill_rate),
+			start_date: (x, y) => new Date(y.start_date) - new Date(x.start_date),
+		}[sortCol];
+		return fn ? (sortAsc ? -fn(a, b) : fn(a, b)) : 0;
+	});
+
+	return (
+		<>
+			<div className="oa-business-header">
+				<div className="oa-business-badge"><FiStar /> Business Intelligence</div>
+				<p className="oa-business-subtitle">Statistici avansate disponibile exclusiv în planul Business</p>
+			</div>
+
+			<div className="oa-grid-2col">
+				<div className="oa-panel oa-panel-chart">
+					<h2 className="oa-panel-title">
+						Venituri lunare
+						<span className="oa-panel-subtitle"> ultimele 12 luni</span>
+					</h2>
+					{yearlyData.every((d) => d.revenue === 0) ? (
+						<p className="oa-empty">Nu există venituri înregistrate în ultimele 12 luni.</p>
+					) : (
+						<ResponsiveContainer width="100%" height={200}>
+							<BarChart data={yearlyData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barSize={22}>
+								<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+								<XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#999' }} interval={1} />
+								<YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#999' }} width={48} />
+								<Tooltip content={<YearlyRevenueTooltip />} cursor={{ fill: '#f5f5f5' }} />
+								<Bar dataKey="revenue" radius={[5, 5, 0, 0]}>
+									{yearlyData.map((entry, index) => (
+										<Cell key={index} fill={entry.revenue > 0 ? BUSINESS_PURPLE : '#e8e8e8'} />
+									))}
+								</Bar>
+							</BarChart>
+						</ResponsiveContainer>
+					)}
+				</div>
+
+				<div className="oa-panel oa-qoq-panel">
+					<h2 className="oa-panel-title">
+						Creștere trimestrială
+						<span className="oa-panel-subtitle"> Q/Q</span>
+					</h2>
+					<div className="oa-qoq-body">
+						<div className="oa-qoq-delta-wrap">
+							{qoqDelta != null ? (
+								<>
+									<span className={`oa-qoq-delta${qoqDelta >= 0 ? ' pos' : ' neg'}`}>
+										{qoqDelta >= 0 ? <FiTrendingUp /> : <FiTrendingDown />}
+										{qoqDelta >= 0 ? '+' : ''}{qoqDelta}%
+									</span>
+									<p className="oa-qoq-label">față de trimestrul trecut</p>
+								</>
+							) : (
+								<p className="oa-qoq-no-data">Insuficiente date pentru comparație</p>
+							)}
+						</div>
+						<div className="oa-qoq-rows">
+							<div className="oa-qoq-row">
+								<span className="oa-qoq-row-dot current" />
+								<span className="oa-qoq-row-label">Trimestrul curent</span>
+								<span className="oa-qoq-row-val">{fmtRon(currentQRevenue)}</span>
+							</div>
+							<div className="oa-qoq-row">
+								<span className="oa-qoq-row-dot prev" />
+								<span className="oa-qoq-row-label">Trimestrul anterior</span>
+								<span className="oa-qoq-row-val">{fmtRon(prevQRevenue)}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="oa-panel">
+				<h2 className="oa-panel-title">
+					Comparație evenimente
+					<span className="oa-panel-subtitle"> toate evenimentele tale</span>
+				</h2>
+				{sortedComparison.length === 0 ? (
+					<p className="oa-empty">Niciun eveniment de afișat.</p>
+				) : (
+					<div className="oa-table-wrap">
+						<table className="oa-table oa-comparison-table">
+							<thead>
+								<tr>
+									<th>Eveniment</th>
+									<th className="oa-th-sort" onClick={() => onSort('start_date')}>
+										Dată <SortIcon col="start_date" sortCol={sortCol} sortAsc={sortAsc} />
+									</th>
+									<th className="oa-th-sort" onClick={() => onSort('revenue')}>
+										Venituri <SortIcon col="revenue" sortCol={sortCol} sortAsc={sortAsc} />
+									</th>
+									<th className="oa-th-sort" onClick={() => onSort('tickets_sold')}>
+										Bilete <SortIcon col="tickets_sold" sortCol={sortCol} sortAsc={sortAsc} />
+									</th>
+									<th className="oa-th-sort" onClick={() => onSort('fill_rate')}>
+										Ocupare <SortIcon col="fill_rate" sortCol={sortCol} sortAsc={sortAsc} />
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{sortedComparison.map((ev) => {
+									const fillRate = Number(ev.fill_rate || 0);
+									return (
+										<tr key={ev.id}>
+											<td className="oa-td-title" title={ev.title}>{ev.title}</td>
+											<td className="oa-td-muted">{fmtDate(ev.start_date)}</td>
+											<td className="oa-td-money">{fmtRon(Number(ev.revenue || 0))}</td>
+											<td>{fmt(ev.tickets_sold)}</td>
+											<td>
+												<span className={`oa-fill-chip${fillRate >= 80 ? ' good' : fillRate >= 40 ? ' mid' : ''}`}>
+													{fmtPct(fillRate)}
+												</span>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</div>
+		</>
+	);
+};
+
 const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 	const navigate = useNavigate();
-	const isFreePlan = (user?.organizationPlan || 'gratuit') === 'gratuit';
+	const plan = user?.organizationPlan || 'gratuit';
+	const isFreePlan = plan === 'gratuit';
+	const isBusinessPlan = plan === 'business';
 	const [data, setData] = useState(null);
 	const [analyticsData, setAnalyticsData] = useState(null);
+	const [advancedData, setAdvancedData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [notifications, setNotifications] = useState([]);
+	const [sortCol, setSortCol] = useState('revenue');
+	const [sortAsc, setSortAsc] = useState(false);
+
+	const handleSort = (col) => {
+		if (sortCol === col) setSortAsc((v) => !v);
+		else { setSortCol(col); setSortAsc(false); }
+	};
 
 	useEffect(() => {
 		const load = async () => {
@@ -116,11 +283,13 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 					API.get('/organizer/notifications').catch(() => ({ data: { notifications: [] } }))
 				];
 				if (!isFreePlan) requests.push(API.get('/organizer/analytics'));
+				if (isBusinessPlan) requests.push(API.get('/organizer/analytics/advanced'));
 
-				const [dashRes, notifRes, analyticsRes] = await Promise.all(requests);
-				setData(dashRes.data);
-				setNotifications(notifRes.data?.notifications || []);
-				if (analyticsRes) setAnalyticsData(analyticsRes.data);
+				const results = await Promise.all(requests);
+				setData(results[0].data);
+				setNotifications(results[1].data?.notifications || []);
+				if (!isFreePlan && results[2]) setAnalyticsData(results[2].data);
+				if (isBusinessPlan && results[3]) setAdvancedData(results[3].data);
 			} catch (err) {
 				setError(err.response?.data?.message || 'Nu am putut încărca datele.');
 			} finally {
@@ -128,7 +297,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 			}
 		};
 		load();
-	}, [isFreePlan]);
+	}, [isFreePlan, isBusinessPlan]);
 
 	const stats = data?.stats || {};
 	const monthlyData = buildMonthlyData(analyticsData?.monthlyRevenue || []);
@@ -165,7 +334,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 	if (momDelta != null) {
 		insights.push({
 			icon: momDelta >= 0 ? FiTrendingUp : FiTrendingDown,
-			label: 'revenue față de luna trecută',
+			label: 'venituri față de luna trecută',
 			value: `${momDelta >= 0 ? '+' : ''}${momDelta}%`,
 			color: momDelta >= 0 ? '#16a34a' : '#dc2626'
 		});
@@ -181,7 +350,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 	if (topEvents[0]) {
 		insights.push({
 			icon: FiAward,
-			label: 'evenimentul cu cel mai mare revenue',
+			label: 'evenimentul cu cele mai mari venituri',
 			value: topEvents[0].title,
 			color: PRIMARY
 		});
@@ -192,14 +361,14 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 		<OrganizerShell
 			user={user}
 			handleLogout={handleLogout}
-			title="Analytics"
+			title="Statistici Evenimente"
 			subtitle="Performanța evenimentelor tale"
 			notifications={notifications}
 		>
 			{isFreePlan ? (
 				<div className="oa-locked">
 					<div className="oa-locked-icon"><FiLock /></div>
-					<h3 className="oa-locked-title">Analytics disponibil din planul Pro</h3>
+					<h3 className="oa-locked-title">Statistici Evenimente disponibile din planul Pro</h3>
 					<p className="oa-locked-desc">
 						Descoperă care evenimente aduc cei mai mulți bani, când cumpără lumea bilete
 						și cât de bine îți umpli capacitatea.<br />
@@ -219,7 +388,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 					<div className="oa-stats-grid oa-stats-grid--5">
 						<StatCard
 							icon={FiDollarSign}
-							label="Revenue total"
+							label="Venituri totale"
 							value={fmtRon(stats.totalRevenue)}
 							sub={momDelta != null ? 'față de luna trecută' : `${fmt(stats.soldTickets)} bilete vândute`}
 							delta={momDelta}
@@ -227,7 +396,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 						/>
 						<StatCard
 							icon={FiUsers}
-							label="Revenue per participant"
+							label="Venituri per participant"
 							value={fmtRon(stats.soldTickets > 0 ? stats.totalRevenue / stats.soldTickets : 0)}
 							sub="valoare medie bilet"
 						/>
@@ -271,7 +440,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 
 						<div className="oa-panel oa-panel-chart">
 							<h2 className="oa-panel-title">
-								Când cumpără lumea
+								Vânzări pe zile
 								<span className="oa-panel-subtitle"> ultimele 90 de zile</span>
 							</h2>
 							{dowData.every((d) => d.count === 0) ? (
@@ -345,7 +514,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 						<div className="oa-panel">
 							<h2 className="oa-panel-title">
 								Tipuri de bilete
-								<span className="oa-panel-subtitle"> după revenue</span>
+								<span className="oa-panel-subtitle"> după venituri</span>
 							</h2>
 							{ticketDisplay.length === 0 ? (
 								<p className="oa-empty">Niciun bilet vândut încă.</p>
@@ -376,6 +545,12 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 
 					</div>
 
+					{isBusinessPlan && advancedData && <BusinessAnalyticsSection
+						advancedData={advancedData}
+						sortCol={sortCol}
+						sortAsc={sortAsc}
+						onSort={handleSort}
+					/>}
 
 				</div>
 			)}

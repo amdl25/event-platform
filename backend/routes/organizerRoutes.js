@@ -3,6 +3,7 @@ import { authenticateToken, requireRole } from '../middleware/auth.js';
 import {
   getOrganizerDashboard,
   getOrganizerAnalytics,
+  getOrganizerAdvancedAnalytics,
   getOrganizerParticipants,
   getOrganizerEvents,
   toggleParticipantCheckIn,
@@ -19,6 +20,7 @@ router.use(authenticateToken, requireRole('organizer'));
 
 router.get('/dashboard', getOrganizerDashboard);
 router.get('/analytics', getOrganizerAnalytics);
+router.get('/analytics/advanced', getOrganizerAdvancedAnalytics);
 router.get('/participants', getOrganizerParticipants);
 router.patch('/participants/:participationId/check-in', toggleParticipantCheckIn);
 router.get('/notifications', getOrganizerNotifications);

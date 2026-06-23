@@ -666,6 +666,133 @@
   text-align: right;
 }
 
+.oa-business-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.oa-business-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.oa-business-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.oa-qoq-panel .oa-panel-title {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.oa-qoq-body {
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.oa-qoq-delta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oa-qoq-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.oa-qoq-delta.pos { color: #16a34a; }
+.oa-qoq-delta.neg { color: #dc2626; }
+
+.oa-qoq-label {
+  margin: 0;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.oa-qoq-no-data {
+  margin: 0;
+  font-size: 13px;
+  color: #bbb;
+}
+
+.oa-qoq-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oa-qoq-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.oa-qoq-row-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.oa-qoq-row-dot.current { background: #7c3aed; }
+.oa-qoq-row-dot.prev { background: #d8b4fe; }
+
+.oa-qoq-row-label { color: #888; flex: 1; }
+.oa-qoq-row-val { font-weight: 700; color: #111; white-space: nowrap; }
+
+.oa-comparison-table .oa-th-sort {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.oa-comparison-table .oa-th-sort:hover { color: #555; }
+
+.oa-sort-icon {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  margin-left: 3px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.oa-sort-icon.neutral { color: #ddd; }
+.oa-sort-icon.active { color: #7c3aed; }
+
+.oa-fill-chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.oa-fill-chip.mid { background: #fef3c7; color: #d97706; }
+.oa-fill-chip.good { background: #dcfce7; color: #16a34a; }
+
+
 @media (max-width: 1200px) {
   .oa-stats-grid--5 { grid-template-columns: repeat(3, 1fr); }
 }

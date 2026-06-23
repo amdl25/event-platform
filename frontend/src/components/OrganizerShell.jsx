@@ -5,7 +5,7 @@ import '../styles/OrganizerDashboard.css';
 
 const navItems = [
   { to: '/organizer/events', label: 'Evenimentele mele', icon: FiCalendar },
-  { to: '/organizer/analytics', label: 'Analytics', icon: FiTrendingUp },
+  { to: '/organizer/analytics', label: 'Statistici Evenimente', icon: FiTrendingUp },
   { to: '/organizer/billing', label: 'Abonament', icon: FiCreditCard },
   { to: '/organizer/settings', label: 'Setări', icon: FiSettings },
 ];

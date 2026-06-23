@@ -257,6 +257,88 @@ export const getOrganizerAnalytics = async (req, res) => {
   }
 };
 
+export const getOrganizerAdvancedAnalytics = async (req, res) => {
+  try {
+    const accountId = req.user?.id;
+    if (!accountId) return res.status(401).json({ message: 'Neautorizat.' });
+
+    const organization = await getOrganizerOrganization(accountId);
+    if (!organization) return res.status(404).json({ message: 'Organizația nu a fost găsită.' });
+
+    const orgId = organization.id;
+
+    const [yearlyRevenue] = await sequelize.query(`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', p."createdAt"), 'YYYY-MM') AS month,
+        SUM(e.price) AS revenue,
+        COUNT(p.id) AS ticket_count
+      FROM participation p
+      JOIN event e ON p.event_id = e.id
+      WHERE e.org_id = :orgId
+        AND p.status NOT IN ('canceled', 'rejected')
+        AND p."createdAt" >= NOW() - INTERVAL '12 months'
+      GROUP BY DATE_TRUNC('month', p."createdAt")
+      ORDER BY DATE_TRUNC('month', p."createdAt") ASC
+    `, { replacements: { orgId } });
+
+    const [eventComparison] = await sequelize.query(`
+      SELECT
+        e.id,
+        e.title,
+        e.start_date,
+        e.max_capacity,
+        e.current_occupancy,
+        e.price AS ticket_price,
+        COUNT(p.id)::int AS tickets_sold,
+        COALESCE(SUM(e.price), 0) AS revenue,
+        CASE WHEN e.max_capacity > 0
+          THEN ROUND(e.current_occupancy::numeric / e.max_capacity * 100)
+          ELSE 0 END AS fill_rate
+      FROM event e
+      LEFT JOIN participation p ON p.event_id = e.id
+      WHERE e.org_id = :orgId AND e.moderation_status != 'hidden'
+      GROUP BY e.id, e.title, e.start_date, e.max_capacity, e.current_occupancy, e.price
+      ORDER BY revenue DESC
+    `, { replacements: { orgId } });
+
+    const [[currentQ]] = await sequelize.query(`
+      SELECT COALESCE(SUM(e.price), 0) AS revenue
+      FROM participation p
+      JOIN event e ON p.event_id = e.id
+      WHERE e.org_id = :orgId
+        AND p.status NOT IN ('canceled', 'rejected')
+        AND p."createdAt" >= DATE_TRUNC('quarter', NOW())
+        AND p."createdAt" < DATE_TRUNC('quarter', NOW()) + INTERVAL '3 months'
+    `, { replacements: { orgId } });
+
+    const [[prevQ]] = await sequelize.query(`
+      SELECT COALESCE(SUM(e.price), 0) AS revenue
+      FROM participation p
+      JOIN event e ON p.event_id = e.id
+      WHERE e.org_id = :orgId
+        AND p.status NOT IN ('canceled', 'rejected')
+        AND p."createdAt" >= DATE_TRUNC('quarter', NOW()) - INTERVAL '3 months'
+        AND p."createdAt" < DATE_TRUNC('quarter', NOW())
+    `, { replacements: { orgId } });
+
+    const currentQRevenue = Number(currentQ?.revenue || 0);
+    const prevQRevenue = Number(prevQ?.revenue || 0);
+    const qoqDelta = prevQRevenue > 0
+      ? Math.round((currentQRevenue - prevQRevenue) / prevQRevenue * 100)
+      : null;
+
+    return res.json({
+      yearlyRevenue,
+      eventComparison,
+      currentQRevenue,
+      prevQRevenue,
+      qoqDelta
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 export const getOrganizerParticipants = async (req, res) => {
   try {
     const accountId = req.user?.id;

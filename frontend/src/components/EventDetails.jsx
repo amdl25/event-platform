@@ -86,12 +86,12 @@ const EventDetails = ({ event, user }) => {
               <article className="event-meta-card">
                 <span>LOCAȚIE</span>
                 <p><FiMapPin /> {event.location || 'Locatie nespecificata'}</p>
-                <small>{event.city || 'Bucuresti'}</small>
+                {event.city && <small>{event.city}</small>}
               </article>
               <article className="event-meta-card">
                 <span>ORGANIZATOR</span>
                 <p><FiUsers /> {event.organization ? event.organization.name : 'Vibe Archive'}</p>
-                <small>Comunitate de Artă Urbană</small>
+
               </article>
             </section>
 

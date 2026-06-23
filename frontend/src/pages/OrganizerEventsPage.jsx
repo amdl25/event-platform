@@ -1021,7 +1021,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 									<div className="organizer-create-datetime-grid">
 										<div className="organizer-create-datetime-col">
 											<span className="organizer-create-datetime-label">Început</span>
-											<input type="date" value={eventForm.startDate} onChange={(event) => handleCreateFormChange('startDate', event.target.value)} required />
+											<input type="date" value={eventForm.startDate} min={toLocalDateInput(new Date())} onChange={(event) => handleCreateFormChange('startDate', event.target.value)} required />
 											<div className="organizer-time-select-wrap" ref={startMenuRef}>
 												<button
 													type="button"
@@ -1053,7 +1053,7 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 
 										<div className="organizer-create-datetime-col">
 											<span className="organizer-create-datetime-label">Sfârșit</span>
-											<input type="date" value={eventForm.endDate} onChange={(event) => handleCreateFormChange('endDate', event.target.value)} required />
+											<input type="date" value={eventForm.endDate} min={eventForm.startDate || toLocalDateInput(new Date())} onChange={(event) => handleCreateFormChange('endDate', event.target.value)} required />
 											<div className="organizer-time-select-wrap" ref={endMenuRef}>
 												<button
 													type="button"
