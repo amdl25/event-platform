@@ -1,6 +1,12 @@
 import React, { forwardRef } from 'react';
-import QRCode from 'react-qr-code';
 import '../styles/TicketPdfRenderer.css';
+
+const getQrImageUrl = (qrValue, code) => {
+  const data = qrValue || code;
+  if (!data) return '';
+  if (data.startsWith('https://')) return data;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(data)}`;
+};
 
 const formatDateLabel = (dateValue) => {
   if (!dateValue) return 'Data necunoscuta';
@@ -45,7 +51,7 @@ const TicketPdfRenderer = forwardRef(({ payload }, ref) => {
             </div>
 
             <div className="ticket-pdf-qr">
-              <QRCode value={ticket.qrValue || ticket.code} size={110} />
+              <img src={getQrImageUrl(ticket.qrValue, ticket.code)} alt="QR" width={110} height={110} />
             </div>
           </article>
         ))}

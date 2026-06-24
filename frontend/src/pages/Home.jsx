@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import QRCode from 'react-qr-code';
 import { Sparkles } from 'lucide-react';
 import Hero from '../components/Hero';
 import CategoryBrowser from '../components/CategoryBrowser';
@@ -1058,11 +1057,9 @@ const Home = ({ user }) => {
                                 </div>
                               )}
                               <div className="home-ticket-modal-qr-card">
-                                <QRCode
-                                  value={nextTicketQrValue || codes[safeIdx] || 'ticket'}
-                                  size={220}
-                                  bgColor="#141821"
-                                  fgColor="#f8fafc"
+                                <img
+                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${encodeURIComponent(nextTicketQrValue || codes[safeIdx] || 'ticket')}&color=f8fafc&bgcolor=141821`}
+                                  alt="QR"
                                   style={{ width: '100%', height: '100%' }}
                                 />
                               </div>
