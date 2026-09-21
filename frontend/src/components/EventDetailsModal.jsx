@@ -324,16 +324,6 @@ const EventDetailsModal = ({
         payload.append('image_url', cleanImageUrl);
       }
 
-      try {
-        const entries = [];
-        for (const pair of payload.entries()) {
-          entries.push([pair[0], pair[1] instanceof File ? `(File:${pair[1].name})` : String(pair[1]).slice(0, 100)]);
-        }
-        console.log('EventDetailsModal: FormData entries ->', entries);
-      } catch (e) {
-        console.log('EventDetailsModal: could not enumerate FormData', e);
-      }
-
       const response = await API.patch(`/events/${event.id}`, payload);
 
       if (onSaved) {

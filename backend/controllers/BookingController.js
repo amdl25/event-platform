@@ -71,7 +71,15 @@ const extractTicketCodeFromQr = (qrUrl) => {
 	}
 };
 
-const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCode }) => ({
+const getTicketUnitPrice = (event, ticketType) => ticketType
+	? Number(ticketType.price || 0)
+	: Number(event.price || 0);
+
+const getPointsEarnedPerTicket = (event, ticketUnitPrice) => ticketUnitPrice > 0
+	? Number(event.points_value || 0)
+	: 0;
+
+const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCode, ticketUnitPrice, pointsPerTicket }) => ({
 	participationId: participation.id,
 	eventId: event.id,
 	code: ticketCode || extractTicketCodeFromQr(participation.ticket_qr) || 'TKT-UNKNOWN',
@@ -81,8 +89,8 @@ const buildTicketData = ({ participation, event, buyerName, buyerEmail, ticketCo
 	eventLocation: event.location,
 	buyerName: buyerName || participation.buyer_name,
 	buyerEmail: buyerEmail || participation.buyer_email,
-	price: Number(event.price) || 0,
-	points: Number(event.points_value || 0),
+	price: ticketUnitPrice,
+	points: pointsPerTicket,
 	organizationName: event.organization?.name || event.organizationName || event.orgName || 'Organizator'
 });
 
@@ -154,7 +162,9 @@ const createParticipations = async ({
 	buyerName,
 	buyerEmail,
 	quantity,
-	paymentSessionId
+	paymentSessionId,
+	ticketUnitPrice,
+	pointsPerTicket
 }) => {
 	const tickets = [];
 
@@ -171,7 +181,7 @@ const createParticipations = async ({
 			payment_session_id: paymentSessionId || null
 		}, { transaction });
 
-		tickets.push(buildTicketData({ participation, event, buyerName, buyerEmail, ticketCode }));
+		tickets.push(buildTicketData({ participation, event, buyerName, buyerEmail, ticketCode, ticketUnitPrice, pointsPerTicket }));
 	}
 
 	return tickets;
@@ -246,8 +256,11 @@ const completePurchase = async ({
 			}, { transaction });
 		}
 
-		if (accountId && event.org_id && Number(event.points_value || 0) > 0) {
-			const pointsEarned = Number(event.points_value || 0) * quantity;
+		const ticketUnitPrice = getTicketUnitPrice(event, selectedTicketType);
+		const pointsPerTicket = getPointsEarnedPerTicket(event, ticketUnitPrice);
+
+		if (accountId && event.org_id && pointsPerTicket > 0) {
+			const pointsEarned = pointsPerTicket * quantity;
 			const [wallet] = await LoyaltyWallet.findOrCreate({
 				where: {
 					account_id: accountId,
@@ -278,7 +291,9 @@ const completePurchase = async ({
 			buyerName,
 			buyerEmail,
 			quantity,
-			paymentSessionId
+			paymentSessionId,
+			ticketUnitPrice,
+			pointsPerTicket
 		});
 
 		if (selectedTicketType) {
@@ -329,7 +344,6 @@ const sendPurchaseEmailSafely = async ({ event, buyerName, buyerEmail, tickets, 
 
 		return Boolean(result?.success);
 	} catch (error) {
-		console.error('Auto Email Error:', error);
 		return false;
 	}
 };
@@ -369,7 +383,6 @@ export const sendTicketsByEmail = async (req, res) => {
 			});
 		}
 	} catch (error) {
-		console.error('Send Email Error:', error);
 		return res.status(500).json({
 			message: 'Error sending email',
 			error: error.message,
@@ -399,7 +412,6 @@ export const generateTicketsPdf = async (req, res) => {
 		res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}.pdf"`);
 		return res.status(200).send(pdfBuffer);
 	} catch (error) {
-		console.error('Generate Tickets PDF Error:', error);
 		return res.status(500).json({
 			message: 'Error generating PDF',
 			error: error.message,
@@ -480,7 +492,6 @@ const awardReferralBonus = async ({ referredBy, orgId, eventId }) => {
 			}, { transaction: t });
 		});
 	} catch (err) {
-		console.error('Referral bonus error:', err.message);
 	}
 };
 
@@ -631,7 +642,6 @@ export const createCheckoutSession = async (req, res) => {
 			pricing
 		});
 	} catch (error) {
-		console.error('Create Checkout Session Error:', error);
 		return res.status(500).json({
 			message: 'Eroare la inițializarea plății',
 			error: error.message,
@@ -750,7 +760,6 @@ export const confirmCheckoutSession = async (req, res) => {
 
 		return res.status(result.statusCode).json(result.payload);
 	} catch (error) {
-		console.error('Confirm Checkout Session Error:', error);
 		if (error.message === 'Evenimentul nu a fost găsit') {
 			return res.status(404).json({ message: error.message });
 		}

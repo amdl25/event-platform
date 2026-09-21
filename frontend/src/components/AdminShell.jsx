@@ -48,7 +48,7 @@ const AdminShell = ({ handleLogout, title, subtitle, children, actions = null, n
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <Link to="/admin/dashboard" className="admin-brand">
+        <Link to="/" className="admin-brand">
           <span className="admin-brand-event">Event</span>
           <span className="admin-brand-hub">Hub</span>
           <span className="admin-brand-badge">ADMIN</span>

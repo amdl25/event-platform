@@ -41,7 +41,9 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
 
   const budgetOptions = [
     { id: 'free', label: 'ACCES GRATUIT' },
-    { id: 'under50', label: 'SUB 50 LEI' },
+    { id: 'low', label: 'SUB 100 LEI' },
+    { id: 'mid', label: '100 - 300 LEI' },
+    { id: 'high', label: 'PESTE 300 LEI' },
     { id: 'any', label: 'BUGET FLEXIBIL' }
   ];
 
@@ -56,7 +58,7 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
     0: { title: 'Găsește experiența ideală', subtitle: 'Un ghid rapid pentru a descoperi evenimentele care ți se potrivesc.', actionLabel: 'ÎNCEPE EXPLORAREA' },
     1: { title: 'Destinația', subtitle: 'Unde cauți evenimente?' },
     2: { title: 'Interese', subtitle: 'Ce tip de experiență preferi?' },
-    3: { title: 'Buget', subtitle: 'Care este limita dorită?' },
+    3: { title: 'Buget', subtitle: 'Care este bugetul tău?' },
     4: { title: 'Timp', subtitle: 'Când vrei să ieși?' }
   };
 
@@ -111,7 +113,7 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
 
         const uniqueCities = Array.from(cityMap.values()).sort((a, b) => a.localeCompare(b, 'ro', { sensitivity: 'base' }));
         setCities(uniqueCities);
-      } catch (error) { console.error(error); }
+      } catch (error) { }
       finally { setLoading(false); }
     };
     fetchData();
@@ -147,9 +149,12 @@ const RecommendationWizard = ({ isOpen, onClose }) => {
   };
 
   const isBudgetMatched = (price) => {
+    const value = Number(price || 0);
     if (selectedBudget === 'any') return true;
-    if (selectedBudget === 'free') return Number(price || 0) === 0;
-    if (selectedBudget === 'under50') return Number(price || 0) <= 50;
+    if (selectedBudget === 'free') return value === 0;
+    if (selectedBudget === 'low') return value > 0 && value <= 100;
+    if (selectedBudget === 'mid') return value > 100 && value <= 300;
+    if (selectedBudget === 'high') return value > 300;
     return true;
   };
 

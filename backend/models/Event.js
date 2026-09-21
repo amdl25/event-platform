@@ -11,14 +11,12 @@ const Event = sequelize.define('Event', {
   max_capacity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   current_occupancy: { type: DataTypes.INTEGER, defaultValue: 0 },
   price: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0.00 },
-  
-  points_value: { 
-    type: DataTypes.INTEGER, 
+  points_value: {
+    type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  
-  image_url: { 
-    type: DataTypes.STRING, 
+  image_url: {
+    type: DataTypes.STRING,
     allowNull: true
   },
 
@@ -39,17 +37,16 @@ const Event = sequelize.define('Event', {
     allowNull: true
   },
   
-  creator_id: { 
-    type: DataTypes.UUID, 
+  creator_id: {
+    type: DataTypes.UUID,
     allowNull: true,
     references: { model: 'account', key: 'id' }
   },
-  org_id: { 
-    type: DataTypes.UUID, 
+  org_id: {
+    type: DataTypes.UUID,
     allowNull: true,
     references: { model: 'organization', key: 'id' }
   },
-  
   show_guest_list: {
     type: DataTypes.BOOLEAN,
     defaultValue: false

@@ -48,9 +48,11 @@ const EventCard = ({ event, variant = 'default' }) => {
                 <span>{event.location}</span>
               </div>
 
-              <p className="card-points-premium">
-                <span className="card-points-star" aria-hidden="true">★</span> +{event.points_value || 50} puncte
-              </p>
+              {Number(event.price || 0) > 0 ? (
+                <p className="card-points-premium">
+                  <span className="card-points-star" aria-hidden="true">★</span> +{Number(event.points_value || 0)} puncte
+                </p>
+              ) : null}
             </div>
           </div>
         </div>

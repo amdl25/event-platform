@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import API from '../api';
 
 export const useEvents = (userId, options = {}) => {
@@ -47,31 +47,3 @@ export const useCategories = (options = {}) => {
   });
 };
 
-export const useInvalidateEvents = () => {
-  const queryClient = useQueryClient();
-  return {
-    invalidateUserEvents: (userId) => {
-      queryClient.invalidateQueries({
-        queryKey: ['events', userId],
-      });
-    },
-    invalidateAllEvents: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['events-all'],
-      });
-    },
-    invalidateCategories: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['categories'],
-      });
-    },
-    invalidateAll: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['events'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['categories'],
-      });
-    },
-  };
-};

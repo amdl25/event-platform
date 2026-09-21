@@ -163,7 +163,6 @@ export const getUserCalendarEvents = async (req, res) => {
 
     res.json(calendarEvents);
   } catch (error) {
-    console.error('Eroare la preluarea evenimentelor calendar:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -225,32 +224,6 @@ export const getAllEvents = async (req, res) => {
 
     res.json(eventData);
   } catch (error) {
-
-            const ticketTypesToCreate = submittedTicketTypes.length > 0
-              ? submittedTicketTypes
-              : [{
-                  name: 'General Access',
-                  description: null,
-                  price: Number(payload.price) || 0,
-                  quantity: Number(payload.max_capacity) || 100,
-                  points_reward: Number(payload.points_value) || 0,
-                  display_order: 0,
-                  is_active: true
-                }];
-
-            await TicketType.bulkCreate(
-              ticketTypesToCreate.map((ticketType) => ({
-                event_id: newEvent.id,
-                name: ticketType.name,
-                description: ticketType.description,
-                price: Number(ticketType.price) || 0,
-                quantity: Number(ticketType.quantity) || 0,
-                sold_quantity: 0,
-                points_reward: Number(ticketType.points_reward) || 0,
-                display_order: Number(ticketType.display_order) || 0,
-                is_active: ticketType.is_active !== false
-              }))
-            );
     res.status(500).json({ message: error.message });
   }
 };
@@ -308,7 +281,6 @@ export const getEventById = async (req, res) => {
 
     res.json(event);
   } catch (error) {
-    console.error("Eroare la preluarea evenimentului:", error);
     res.status(500).json({ message: "Eroare internă de server" });
   }
 };
@@ -316,7 +288,6 @@ export const getEventById = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('updateEvent: incoming content-type=', req.headers?.['content-type'] || 'unknown');
     const creatorId = req.user?.id;
 
     if (!creatorId) {
@@ -376,11 +347,9 @@ export const updateEvent = async (req, res) => {
     }
 
     const uploadedImageUrl = req.file ? (req.file.url || null) : null;
-    console.log('updateEvent: req.file=', req.file ? { filename: req.file.filename, url: req.file.url, originalname: req.file.originalname } : null);
     const hasImageUrlField = Object.prototype.hasOwnProperty.call(req.body, 'image_url');
     const normalizedBodyImageUrl = typeof req.body.image_url === 'string' ? req.body.image_url.trim() : '';
     const nextImageUrl = uploadedImageUrl || (hasImageUrlField ? (normalizedBodyImageUrl || null) : event.image_url);
-    console.log('updateEvent: uploadedImageUrl=', uploadedImageUrl, 'hasImageUrlField=', hasImageUrlField, 'normalizedBodyImageUrl=', normalizedBodyImageUrl, 'nextImageUrl=', nextImageUrl);
 
     await event.update({
       title: req.body.title,
@@ -431,7 +400,6 @@ export const updateEvent = async (req, res) => {
 
     return res.status(200).json(updatedEvent);
   } catch (error) {
-    console.error('updateEvent failed:', error);
     return res.status(500).json({ message: serializeErrorMessage(error) });
   }
 };
@@ -631,7 +599,6 @@ export const createEvent = async (req, res) => {
 
     res.status(201).json(createdEvent || newEvent);
   } catch (error) {
-    console.error('createEvent failed:', error);
     res.status(500).json({ message: serializeErrorMessage(error) });
   }
 };

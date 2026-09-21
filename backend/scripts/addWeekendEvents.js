@@ -130,6 +130,7 @@ const run = async () => {
       { name: 'Participant (echipă 2-4 pers.)', price: 0, quantity: 100, sold_quantity: 40, points_reward: 300 },
     ]);
 
+
     await mkEvent({
       title: 'Yoga & Brunch în Aer Liber',
       description: 'Sesiune de yoga flow de 60 min urmată de un brunch sănătos cu produse bio locale. Saltele puse la dispoziție.',

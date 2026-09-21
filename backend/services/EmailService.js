@@ -14,7 +14,6 @@ const configureEmailClient = () => {
     });
   }
 
-  console.warn('⚠️  Email configuration not found. Set ENV vars: EMAIL_USER + EMAIL_PASSWORD (or EMAIL_PASS)');
   return null;
 };
 
@@ -103,7 +102,6 @@ export const sendTicketEmail = async (emailData) => {
   } = emailData;
 
   if (!transporter) {
-    console.warn('⚠️  Email transporter not configured. Skipping email send.');
     return { success: false, message: 'Email service not configured' };
   }
 
@@ -142,7 +140,6 @@ export const sendTicketEmail = async (emailData) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', result.response);
 
     return {
       success: true,
@@ -152,7 +149,6 @@ export const sendTicketEmail = async (emailData) => {
       rejected: result.rejected || []
     };
   } catch (error) {
-    console.error('❌ Error sending email:', error);
     return {
       success: false,
       message: error.message,
@@ -163,7 +159,6 @@ export const sendTicketEmail = async (emailData) => {
 
 export const sendContactEmail = async ({ name, email, message }) => {
   if (!transporter) {
-    console.warn('⚠️  Email transporter not configured. Skipping contact email.');
     return { success: false, message: 'Email service not configured' };
   }
 
@@ -189,7 +184,6 @@ export const sendContactEmail = async ({ name, email, message }) => {
     });
     return { success: true };
   } catch (error) {
-    console.error('❌ Error sending contact email:', error);
     return { success: false, message: error.message };
   }
 };

@@ -7,6 +7,7 @@ import LoyaltyWallet from './LoyaltyWallet.js';
 import LoyaltyTransaction from './LoyaltyTransaction.js';
 import TicketType from './TicketType.js';
 
+
 Account.hasMany(Organization, { foreignKey: 'owner_id', as: 'ownedOrganizations' });
 Organization.belongsTo(Account, { foreignKey: 'owner_id', as: 'owner' });
 
@@ -15,7 +16,6 @@ Event.belongsTo(Account, { foreignKey: 'creator_id', as: 'creator', onDelete: 'R
 
 Organization.hasMany(Event, { foreignKey: 'org_id', as: 'events' });
 Event.belongsTo(Organization, { foreignKey: 'org_id', as: 'organization', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-
 
 Account.belongsToMany(Event, { 
     through: { model: Participation, unique: false }, 
@@ -34,7 +34,6 @@ Account.hasMany(Participation, { foreignKey: 'account_id' });
 Participation.belongsTo(Account, { foreignKey: 'account_id' });
 Event.hasMany(Participation, { foreignKey: 'event_id' });
 Participation.belongsTo(Event, { foreignKey: 'event_id' });
-
 
 Account.belongsToMany(Category, { 
     through: 'user_interest', 
@@ -60,7 +59,6 @@ Category.belongsToMany(Event, {
     otherKey: 'event_id' 
 });
 
-
 Account.hasMany(LoyaltyWallet, { foreignKey: 'account_id', as: 'wallets' });
 LoyaltyWallet.belongsTo(Account, { foreignKey: 'account_id', as: 'account', onDelete: 'RESTRICT', onUpdate: 'CASCADE' });
 
@@ -72,7 +70,6 @@ LoyaltyTransaction.belongsTo(LoyaltyWallet, { foreignKey: { name: 'wallet_id', a
 
 Event.hasMany(LoyaltyTransaction, { foreignKey: 'event_id', as: 'loyaltyTransactions' });
 LoyaltyTransaction.belongsTo(Event, { foreignKey: 'event_id', as: 'event', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
-
 
 Event.hasMany(TicketType, { foreignKey: 'event_id', as: 'ticketTypes' });
 TicketType.belongsTo(Event, { foreignKey: 'event_id' });

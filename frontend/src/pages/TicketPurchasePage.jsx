@@ -11,8 +11,11 @@ const TicketPurchasePage = ({ user }) => {
   const mode = searchParams.get('mode') === 'user' ? 'user' : 'guest';
   const paymentStatus = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
+  const requestedTicketTypeId = searchParams.get('ticket_type_id');
+  const requestedQty = Number(searchParams.get('qty'));
 
   const [event, setEvent] = useState(null);
+  const [ticketTypes, setTicketTypes] = useState([]);
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [loadingPurchase, setLoadingPurchase] = useState(false);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
@@ -22,7 +25,9 @@ const TicketPurchasePage = ({ user }) => {
 
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(() => (
+    Number.isInteger(requestedQty) && requestedQty >= 1 && requestedQty <= 20 ? requestedQty : 1
+  ));
   const [usePoints, setUsePoints] = useState(false);
   const [pointsToUse, setPointsToUse] = useState(0);
   const [pricing, setPricing] = useState(null);
@@ -72,9 +77,12 @@ const TicketPurchasePage = ({ user }) => {
       try {
         const response = await API.get(`/events/${id}`);
         setEvent(response.data);
-        const ticketTypes = Array.isArray(response.data?.ticketTypes) ? response.data.ticketTypes : [];
-        if (ticketTypes.length > 0 && !selectedTicketTypeId) {
-          setSelectedTicketTypeId(ticketTypes[0].id);
+        const rawTicketTypes = Array.isArray(response.data?.ticketTypes) ? response.data.ticketTypes : [];
+        const sortedTicketTypes = [...rawTicketTypes].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+        setTicketTypes(sortedTicketTypes);
+        if (sortedTicketTypes.length > 0 && !selectedTicketTypeId) {
+          const requestedIsValid = sortedTicketTypes.some((tt) => String(tt.id) === String(requestedTicketTypeId));
+          setSelectedTicketTypeId(requestedIsValid ? requestedTicketTypeId : sortedTicketTypes[0].id);
         }
       } catch (err) {
         setError(err.response?.data?.message || 'Nu am putut încărca evenimentul.');
@@ -273,7 +281,9 @@ const TicketPurchasePage = ({ user }) => {
     }
   };
 
-  const unitPrice = Number(event?.price || 0);
+  const selectedTicketType = ticketTypes.find((tt) => String(tt.id) === String(selectedTicketTypeId)) || null;
+  const unitPrice = Number(selectedTicketType?.price ?? event?.price ?? 0);
+  const ticketTypeName = selectedTicketType?.name || 'Bilet General';
   const selectedQuantity = Math.max(1, Math.min(20, Number(quantity) || 1));
 
   const handleDecrementQuantity = () => {
@@ -318,7 +328,7 @@ const TicketPurchasePage = ({ user }) => {
 
           <div className="checkout-ticket-row">
             <div>
-              <strong>Bilet General</strong>
+              <strong>{ticketTypeName}</strong>
               <p>{unitPrice.toFixed(0)} RON / bilet</p>
             </div>
 
@@ -422,7 +432,7 @@ const TicketPurchasePage = ({ user }) => {
         <section className="checkout-card">
           <h3 className="checkout-summary-title">Sumar comandă</h3>
           <div className="checkout-summary-line">
-            <span>{selectedQuantity}x Bilet General</span>
+            <span>{selectedQuantity}x {ticketTypeName}</span>
             <span>{Number(pricing?.subtotal || unitPrice * selectedQuantity).toFixed(2)} RON</span>
           </div>
           {Number(pricing?.discount || 0) > 0 ? (

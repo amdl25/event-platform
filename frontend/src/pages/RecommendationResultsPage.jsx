@@ -43,9 +43,12 @@ const isWhenMatched = (eventDateValue, whenValue) => {
 };
 
 const isBudgetMatched = (budget, price) => {
+    const value = Number(price || 0);
     if (budget === 'any') return true;
-    if (budget === 'free') return Number(price || 0) === 0;
-    if (budget === 'under50') return Number(price || 0) <= 50;
+    if (budget === 'free') return value === 0;
+    if (budget === 'low') return value > 0 && value <= 100;
+    if (budget === 'mid') return value > 100 && value <= 300;
+    if (budget === 'high') return value > 300;
     return true;
 };
 

@@ -43,15 +43,13 @@ const DiscoveryFeed = () => {
     useEffect(() => {
         API.get('/categories')
             .then(res => setDbCategories(res.data))
-            .catch(err => console.error("Eroare categorii:", err));
+            .catch(() => {});
 
         API.get('/events')
             .then((response) => {
                 setEvents(Array.isArray(response.data) ? response.data : []);
             })
-            .catch((err) => {
-                console.error("Eroare la încarcarea evenimentelor:", err);
-            })
+            .catch(() => {})
             .finally(() => setLoading(false));
     }, []);
 

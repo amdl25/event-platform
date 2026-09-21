@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import BookingModal from './BookingModal';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +25,11 @@ const EventDetails = ({ event, user }) => {
   const eventEnd = getEventEndValue(event);
   const eventTimeRange = getEventTimeRangeLabel(eventStart, eventEnd);
 
-  const ticketTypes = Array.isArray(event.ticketTypes) ? event.ticketTypes : [];
+  const ticketTypes = useMemo(() => (
+    Array.isArray(event.ticketTypes)
+      ? [...event.ticketTypes].sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
+      : []
+  ), [event.ticketTypes]);
   
   React.useEffect(() => {
     if (ticketTypes.length > 0 && !selectedTicketTypeId) {
@@ -44,7 +48,7 @@ const EventDetails = ({ event, user }) => {
   const unitPrice = selectedTicketType ? Number(selectedTicketType.price || 0) : 0;
   const totalPrice = Number((unitPrice * quantity).toFixed(2));
   
-  const pointsPerTicket = selectedTicketType ? Number(selectedTicketType.points_reward || 0) : 0;
+  const pointsPerTicket = unitPrice > 0 && selectedTicketType ? Number(selectedTicketType.points_reward || 0) : 0;
   const earnedPoints = pointsPerTicket * quantity;
 
   const descriptionParagraphs = String(event.description || '')
@@ -57,7 +61,10 @@ const EventDetails = ({ event, user }) => {
   const onReserve = () => {
     if (isSoldOut) return;
     if (user?.id) {
-      navigate(`/purchase/${event.id}?mode=user`);
+      const params = new URLSearchParams({ mode: 'user' });
+      if (selectedTicketTypeId) params.set('ticket_type_id', selectedTicketTypeId);
+      if (quantity > 1) params.set('qty', String(quantity));
+      navigate(`/purchase/${event.id}?${params.toString()}`);
       return;
     }
     setIsBookingOpen(true);

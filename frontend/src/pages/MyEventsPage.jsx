@@ -26,6 +26,12 @@ const getDateParts = (dateValue) => {
   };
 };
 
+const isStillActive = (startValue, endValue) => {
+  const reference = endValue || startValue;
+  const referenceTime = new Date(reference).getTime();
+  return Number.isFinite(referenceTime) && referenceTime > Date.now();
+};
+
 const MyEventsPage = ({ user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -61,15 +67,13 @@ const MyEventsPage = ({ user }) => {
     loadEvents();
   }, [navigate, user?.id]);
 
-  const now = new Date();
-
   const activeCreatedEvents = useMemo(() =>
-    createdEvents.filter((e) => new Date(e.start_date) > now),
+    createdEvents.filter((e) => isStillActive(e.start_date, e.end_date)),
     [createdEvents]
   );
 
   const activeInvitedEvents = useMemo(() =>
-    invitedEvents.filter((e) => new Date(e.event?.start_date) > now),
+    invitedEvents.filter((e) => isStillActive(e.event?.start_date, e.event?.end_date)),
     [invitedEvents]
   );
 
@@ -211,6 +215,7 @@ const MyEventsPage = ({ user }) => {
               <div className="mep-grid">
                 {activeCreatedEvents.map((eventItem) => {
                   const isFuture = new Date(eventItem.start_date) > new Date();
+                  const isOngoing = !isFuture && isStillActive(eventItem.start_date, eventItem.end_date);
                   const { day, month } = getDateParts(eventItem.start_date);
                   const isCopied = copiedId === eventItem.id;
 
@@ -264,8 +269,8 @@ const MyEventsPage = ({ user }) => {
                             <span className="mep-date-day">{day}</span>
                             <span className="mep-date-month">{month}</span>
                           </div>
-                          <span className={`mep-status-chip${isFuture ? ' future' : ' past'}`}>
-                            {isFuture ? 'Viitor' : 'Trecut'}
+                          <span className={`mep-status-chip${isFuture ? ' future' : isOngoing ? ' ongoing' : ' past'}`}>
+                            {isFuture ? 'Viitor' : isOngoing ? 'În curs' : 'Trecut'}
                           </span>
                         </div>
                       </div>

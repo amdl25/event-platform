@@ -48,7 +48,6 @@ export const getPlatformSettings = () => {
       return JSON.parse(data);
     }
   } catch (error) {
-    console.error('Error reading platform settings:', error.message);
   }
   return {};
 };
@@ -61,7 +60,6 @@ export const updatePlatformSetting = (key, value) => {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
     return true;
   } catch (error) {
-    console.error('Error updating platform setting:', error.message);
     return false;
   }
 };
@@ -72,7 +70,6 @@ export const setPlatformSettings = (settings) => {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
     return true;
   } catch (error) {
-    console.error('Error setting platform settings:', error.message);
     return false;
   }
 };
@@ -95,7 +92,6 @@ export const addAuditLogEntry = ({ actor_id = null, actor_role = null, action, e
     fs.writeFileSync(AUDIT_LOG_FILE, JSON.stringify(logs, null, 2), 'utf8');
     return newEntry;
   } catch (error) {
-    console.error('Error adding audit log entry:', error.message);
     return null;
   }
 };
@@ -120,7 +116,6 @@ export const getAuditLogs = (limit = null, order = 'DESC') => {
       return logs;
     }
   } catch (error) {
-    console.error('Error reading audit logs:', error.message);
   }
   return [];
 };
@@ -131,7 +126,6 @@ export const clearAuditLogs = () => {
     fs.writeFileSync(AUDIT_LOG_FILE, JSON.stringify([], null, 2), 'utf8');
     return true;
   } catch (error) {
-    console.error('Error clearing audit logs:', error.message);
     return false;
   }
 };
@@ -142,7 +136,6 @@ const readNotifications = () => {
       return JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
     }
   } catch (error) {
-    console.error('Error reading notifications:', error.message);
   }
   return [];
 };
@@ -167,7 +160,6 @@ export const addNotification = ({ account_id, type, message }) => {
     writeNotifications(all);
     return entry;
   } catch (error) {
-    console.error('Error adding notification:', error.message);
     return null;
   }
 };
@@ -180,7 +172,6 @@ export const getNotificationsForAccount = (account_id, limit = 20) => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, limit);
   } catch (error) {
-    console.error('Error getting notifications:', error.message);
     return [];
   }
 };
@@ -191,6 +182,5 @@ export const markAllNotificationsRead = (account_id) => {
     const updated = all.map((n) => n.account_id === account_id ? { ...n, read: true } : n);
     writeNotifications(updated);
   } catch (error) {
-    console.error('Error marking notifications read:', error.message);
   }
 };

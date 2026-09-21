@@ -29,10 +29,10 @@ const run = async () => {
 
     if (catPetreceri) await ev.addCategory(catPetreceri);
 
-    console.log(`✅ Eveniment privat creat (id=${ev.id}) de ${creator.first_name} ${creator.last_name} pentru 25 iunie 2026 18:00`);
+    console.log(`Eveniment privat creat (id=${ev.id}) de ${creator.first_name} ${creator.last_name} pentru 25 iunie 2026 18:00`);
     process.exit(0);
   } catch (err) {
-    console.error('❌ Eroare:', err.message);
+    console.error('Eroare:', err.message);
     process.exit(1);
   }
 };

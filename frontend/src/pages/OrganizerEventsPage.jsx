@@ -251,7 +251,6 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 					}));
 				}
 			} catch (error) {
-				console.error('Eroare dashboard:', error);
 			} finally {
 				setLoading(false);
 			}
@@ -326,7 +325,6 @@ const OrganizerEventsPage = ({ user, handleLogout }) => {
 			setEventFormError('');
 			setShowCreateModal(true);
 		} catch (error) {
-			console.error('Eroare la încărcarea evenimentului pentru editare:', error);
 		}
 	};
 

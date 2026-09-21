@@ -31,6 +31,7 @@ const genParticipations = (eventId, count, eventDate) => {
     const daysBack = Math.floor(Math.random() * 25) + 1;
     const base = new Date(eventDate);
     base.setDate(base.getDate() - daysBack);
+
     if (Math.random() < 0.4) {
       const targetDow = weightedDay();
       const currentDow = base.getDay();
@@ -90,7 +91,7 @@ const mkPastEvent = async (data, orgId, ticketPrice, totalSeats, soldSeats) => {
 const run = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexiune DB OK\n');
+    console.log('Conexiune DB OK\n');
 
     const findOrg = async (email) => {
       const acc = await Account.findOne({ where: { email } });
@@ -111,12 +112,13 @@ const run = async () => {
       where: { org_id: orgTech.id },
     });
     if (existingCount >= 10) {
-      console.log(`ℹ️  TechHub are deja ${existingCount} evenimente. Datele de analytics par populate.`);
+      console.log(`ℹTechHub are deja ${existingCount} evenimente. Datele de analytics par populate.`);
       console.log('   Dacă vrei să refaci datele, rulează seed.js (ATENȚIE: resetează toată BD).');
       process.exit(0);
     }
 
-    console.log('📊 TechHub Romania (Business)...');
+
+    console.log('TechHub Romania (Business)...');
     const techEvents = [
       { month: new Date(2025, 6, 12), title: 'React Fundamentals Workshop',          price: 300, seats: 30, sold: 22 },
       { month: new Date(2025, 7, 16), title: 'Node.js & Express Bootcamp',           price: 450, seats: 25, sold: 18 },
@@ -147,7 +149,7 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${techEvents.length} evenimente + participări`);
+    console.log(`\n${techEvents.length} evenimente + participări`);
 
     console.log('📷 PixelPro Photography (Business)...');
     const photoEvents = [
@@ -176,9 +178,9 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${photoEvents.length} evenimente + participări`);
+    console.log(`\n${photoEvents.length} evenimente + participări`);
 
-    console.log('🏋️  FitLife Studio (Pro)...');
+    console.log('FitLife Studio (Pro)...');
     const fitEvents = [
       { month: new Date(2025, 7, 9),  title: 'CrossFit Challenge Weekend',           price: 120, seats: 40, sold: 32 },
       { month: new Date(2025, 9, 4),  title: 'Bootcamp Antrenament Funcțional',      price:  80, seats: 60, sold: 48 },
@@ -204,9 +206,9 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${fitEvents.length} evenimente + participări`);
+    console.log(`\n${fitEvents.length} evenimente + participări`);
 
-    console.log('🎭 Asociația Culturală Arta (Pro)...');
+    console.log('Asociația Culturală Arta (Pro)...');
     const artEvents = [
       { month: new Date(2025, 7, 23),  title: 'Expoziție: Identitate & Diversitate',       price:  0, seats: 200, sold: 145 },
       { month: new Date(2025, 9, 18),  title: 'Spectacol: Povestiri din Tranziție',        price: 50,  seats: 80,  sold: 64  },
@@ -231,9 +233,9 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${artEvents.length} evenimente + participări`);
+    console.log(`\n${artEvents.length} evenimente + participări`);
 
-    console.log('🎨 Cluj Creativ (Pro)...');
+    console.log('Cluj Creativ (Pro)...');
     const clujEvents = [
       { month: new Date(2025, 8, 27),  title: 'Designathon 24h – UI/UX Challenge',           price:   0, seats: 80,  sold: 62 },
       { month: new Date(2025, 10, 22), title: 'Meetup: Product Design Cluj',                  price:   0, seats: 100, sold: 78 },
@@ -258,9 +260,9 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${clujEvents.length} evenimente + participări`);
+    console.log(`\n${clujEvents.length} evenimente + participări`);
 
-    console.log('☕ The Coffee Hub (Gratuit)...');
+    console.log('The Coffee Hub (Gratuit)...');
     const cafeEvents = [
       { month: new Date(2025, 9, 11), title: 'Degustare Cafea Colombia Single Origin', price: 60, seats: 18, sold: 14 },
       { month: new Date(2026, 1, 7),  title: 'Curs Barista: Tehnici de Preparare',     price: 80, seats: 12, sold: 10 },
@@ -283,14 +285,14 @@ const run = async () => {
       await insertParticipations(participations);
       process.stdout.write('.');
     }
-    console.log(`\n   ✅ ${cafeEvents.length} evenimente + participări`);
+    console.log(`\n${cafeEvents.length} evenimente + participări`);
 
     const totalNew = techEvents.length + photoEvents.length + fitEvents.length + artEvents.length + clujEvents.length + cafeEvents.length;
 
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`🎉 Date de analytics adăugate cu succes! (${totalNew} evenimente noi)`);
+    console.log(`Date de analytics adăugate cu succes! (${totalNew} evenimente noi)`);
     console.log('');
-    console.log('📊 Ce a fost adăugat:');
+    console.log('Ce a fost adăugat:');
     console.log(`   TechHub Romania  [Business] — ${techEvents.length} ev. | Iul 2025 – Mai 2026`);
     console.log(`   PixelPro Studio  [Business] — ${photoEvents.length} ev. | Iul 2025 – Iun 2026`);
     console.log(`   FitLife Studio   [Pro]       — ${fitEvents.length} ev. | Aug 2025 – Iun 2026`);
@@ -298,12 +300,12 @@ const run = async () => {
     console.log(`   Cluj Creativ     [Pro]       — ${clujEvents.length} ev. | Sep 2025 – Iun 2026`);
     console.log(`   The Coffee Hub   [Gratuit]   — ${cafeEvents.length} ev. | Oct 2025 – Mai 2026`);
     console.log('');
-    console.log('✅ Logare cu admin@techhubromania.ro sau team@pixelprostudio.ro');
+    console.log('Logare cu admin@techhubromania.ro sau team@pixelprostudio.ro');
     console.log('   pentru a vedea Business Analytics.');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     process.exit(0);
   } catch (err) {
-    console.error('\n❌ Eroare:', err.message);
+    console.error('\nEroare:', err.message);
     process.exit(1);
   }
 };

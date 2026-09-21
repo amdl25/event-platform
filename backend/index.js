@@ -41,7 +41,6 @@ app.use('/contact', contactRoutes);
 
 
 app.use((error, req, res, next) => {
-  console.error('Unhandled backend error:', error);
   if (res.headersSent) return next(error);
   return res.status(error?.status || 500).json({ message: serializeErrorMessage(error) });
 });
@@ -49,18 +48,14 @@ app.use((error, req, res, next) => {
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conectare reusita la baza de date');
 
-  
 
-    
     const [walletIdExists] = await sequelize.query(`
       SELECT column_name FROM information_schema.columns 
       WHERE table_name = 'loyalty_wallet' AND column_name = 'id' LIMIT 1;
     `);
 
     if (walletIdExists.length === 0) {
-      console.log('Adding id column to loyalty_wallet');
       await sequelize.query(`ALTER TABLE loyalty_wallet ADD COLUMN id UUID DEFAULT gen_random_uuid();`);
       
       const [nullRows] = await sequelize.query(`SELECT account_id, org_id FROM loyalty_wallet WHERE id IS NULL;`);
@@ -78,7 +73,6 @@ const startServer = async () => {
     `);
 
     if (!pkDef || !pkDef.conname.includes('id')) {
-      console.log('Setting id as primary key on loyalty_wallet');
       if (pkDef?.conname) {
         await sequelize.query(`ALTER TABLE loyalty_wallet DROP CONSTRAINT ${pkDef.conname} CASCADE;`);
       }
@@ -94,8 +88,7 @@ const startServer = async () => {
       END IF;
     END $$;`);
 
-    await sequelize.sync(); 
-    console.log('Tabelele au fost create sau actualizate');
+    await sequelize.sync();
 
     await sequelize.query(`
       DO $$
@@ -108,8 +101,6 @@ const startServer = async () => {
         END IF;
       END $$;
     `);
-    console.log('Constraint-ul unic participation_account_id_event_id_key a fost verificat/eliminat');
-
     await sequelize.query(`ALTER TABLE event ALTER COLUMN creator_id DROP NOT NULL;`);
     await sequelize.query(`UPDATE event SET creator_id = NULL WHERE org_id IS NOT NULL;`);
 
@@ -130,8 +121,6 @@ const startServer = async () => {
       await sequelize.query(`ALTER TABLE loyalty_transaction DROP CONSTRAINT IF EXISTS loyalty_transaction_wallet_id_fkey;`);
       await sequelize.query(`ALTER TABLE loyalty_transaction ADD CONSTRAINT loyalty_transaction_wallet_id_fkey 
         FOREIGN KEY (wallet_id) REFERENCES loyalty_wallet(id) ON DELETE RESTRICT ON UPDATE CASCADE;`);
-    } else {
-      console.log(`Warning: ${nullCount} loyalty_transaction rows still have NULL wallet_id`);
     }
 
     if (hasLegacy) {
@@ -143,13 +132,9 @@ const startServer = async () => {
     await sequelize.query(`ALTER TABLE loyalty_transaction ADD CONSTRAINT loyalty_transaction_event_id_fkey 
       FOREIGN KEY (event_id) REFERENCES event(id) ON DELETE SET NULL ON UPDATE CASCADE;`);
 
-    console.log('Schema relatională a fost normalizată pentru loyalty_wallet și loyalty_transaction');
-
     app.listen(PORT, () => {
-      console.log(`Serverul ruleaza pe port ${PORT}`);
     });
   } catch (error) {
-    console.error('Eroare la conectare:', error);
   }
 };
 

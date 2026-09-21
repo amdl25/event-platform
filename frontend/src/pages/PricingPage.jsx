@@ -102,7 +102,7 @@ const PricingPage = () => {
         navigate(`/organizer/billing?plan=${planId}`);
         return;
       }
-    } catch { }
+    } catch {}
     navigate(`/register?redirect=${encodeURIComponent(`/organizer/billing?plan=${planId}`)}`);
   };
 

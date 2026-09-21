@@ -98,7 +98,6 @@ const CategoryPage = ({ user }) => {
                     setEvents(filteredByCategory);
                 }
             } catch (err) {
-                console.error(err);
             } finally {
                 setLoading(false);
             }

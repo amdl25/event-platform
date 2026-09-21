@@ -126,7 +126,6 @@
 .btn-finish-full:disabled {
     background: #e0e0e0 !important;
     color: #a0a0a0 !important;
-    cursor: not-allowed;
     box-shadow: none;
     transform: none;
 }

@@ -243,7 +243,6 @@ const Profile = ({ user }) => {
                 }
                 
             } catch (err) {
-                console.error("Eroare la încărcarea datelor de profil:", err);
             } finally {
                 setLoading(false);
             }
@@ -338,7 +337,6 @@ const Profile = ({ user }) => {
                 layoutMode: 'stack'
             });
         } catch (error) {
-            console.error('Eroare la exportul PDF al biletelor:', error);
         } finally {
             setDownloadingEventId('');
         }

@@ -111,7 +111,7 @@ const OrganizerBillingPage = ({ user, handleLogout }) => {
             localStorage.setItem('eventHubUser', JSON.stringify(stored));
             const planName = PLANS.find(p => p.id === activatedPlan)?.name || activatedPlan;
             sessionStorage.setItem('planUpgradeSuccess', planName);
-          } catch { }
+          } catch {}
           window.location.replace('/organizer/billing');
         })
         .catch(() => {

@@ -19,7 +19,6 @@ import TicketPurchasePage from './pages/TicketPurchasePage';
 import PurchaseConfirmationPage from './pages/PurchaseConfirmationPage';
 import RecommendationResultsPage from './pages/RecommendationResultsPage';
 import InviteEventPage from './pages/InviteEventPage';
-import OrganizerOverviewPage from './pages/OrganizerOverviewPage';
 import OrganizerEventsPage from './pages/OrganizerEventsPage';
 import OrganizerAnalyticsPage from './pages/OrganizerAnalyticsPage';
 import OrganizerBillingPage from './pages/OrganizerBillingPage';
@@ -110,9 +109,7 @@ function App() {
               element={
                 user?.role === 'organizer'
                   ? <Navigate to="/organizer/events" replace />
-                  : user?.role === 'admin'
-                    ? <Navigate to="/admin/dashboard" replace />
-                    : <Home user={user} />
+                  : <Home user={user} />
               }
             />
             <Route path="/category/:categoryName" element={<CategoryPage />} />

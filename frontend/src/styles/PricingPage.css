@@ -119,6 +119,7 @@
   white-space: nowrap;
 }
 
+ === CARD HEADER === */
 .pricing-card-header {
   margin-bottom: 24px;
 }
@@ -202,7 +203,6 @@
   color: #aaa;
   margin: 4px 0 0;
 }
-
 .pricing-cta {
   width: 100%;
   border: none;

@@ -36,8 +36,9 @@ const seedDatabase = async () => {
     const catComunitate  = await Category.create({ name: 'Comunitate & Familie' });
     const catPetreceri   = await Category.create({ name: 'Petreceri' });
     const catNatura      = await Category.create({ name: 'Natură & Aventură' });
-    console.log('✅ 9 categorii create (denumiri originale)');
+    console.log(' 9 categorii create (denumiri originale)');
 
+  
     const testUser = await Account.create({
       email: 'andrei@test.com',
       password_hash: await hash('parola123'),
@@ -66,6 +67,7 @@ const seedDatabase = async () => {
     });
     await userElena.addInterests([catArta, catSpectacole, catFood]);
     console.log('✅ 4 utilizatori creați');
+
 
     const organizer = await Account.create({
       email: 'contact@cafenea.ro',
@@ -169,7 +171,7 @@ const seedDatabase = async () => {
       verification_status: 'verified',
     });
 
-    console.log('✅ 7 organizatori + organizații create');
+    console.log(' 7 organizatori + organizații create');
 
     const plans = {
       [coffeeShop.id]: 'gratuit',
@@ -181,8 +183,9 @@ const seedDatabase = async () => {
       [orgTm.id]:      'gratuit',
     };
     fs.writeFileSync(ORG_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf8');
-    console.log('✅ Planuri scrise în orgPlans.json');
+    console.log(' Planuri scrise în orgPlans.json');
 
+   
     await mkEvent({
       title: 'Workshop: Arta Latte-ului',
       description: 'Învață să faci desene în cafea ca un profesionist.',
@@ -256,7 +259,7 @@ const seedDatabase = async () => {
       { name: 'Participant', price: 90.00, quantity: 12, sold_quantity: 11, points_reward: 120 },
     ]);
 
-    console.log('✅ 5 evenimente originale restaurate');
+    console.log(' 5 evenimente originale restaurate');
 
     const evAI = await mkEvent({
       title: 'AI Mastery Workshop: Build with Gemini',
@@ -685,7 +688,7 @@ const seedDatabase = async () => {
       { name: 'Acces Gratuit', price: 0, quantity: 500, sold_quantity: 210, points_reward: 50 },
     ]);
 
-    console.log('✅ 14 evenimente create (Cluj-Napoca, Timișoara, Iași, Brașov, Sibiu, Turda, Sinaia)');
+    console.log(' 14 evenimente create (Cluj-Napoca, Timișoara, Iași, Brașov, Sibiu, Turda, Sinaia)');
 
     const ts = Date.now();
     await Promise.all([
@@ -696,7 +699,7 @@ const seedDatabase = async () => {
       Participation.create({ account_id: userMihai.id, event_id: evMaraton.id,         buyer_name: 'Mihai Ionescu',        buyer_email: 'mihai@test.com',  status: 'going', invite_status: 'accepted', ticket_qr: `TK-MIHAI-MARA-${ts}` }),
       Participation.create({ account_id: userElena.id, event_id: evVernisajOriginal.id, buyer_name: 'Elena Constantin',    buyer_email: 'elena@test.com',  status: 'going', invite_status: 'accepted', ticket_qr: `TK-ELENA-VERN-${ts}` }),
     ]);
-    console.log('✅ 6 participări demo create');
+    console.log('6 participări demo create');
 
     await Promise.all([
       LoyaltyWallet.create({ account_id: testUser.id,  org_id: coffeeShop.id, points_balance: 50 }),
@@ -706,13 +709,13 @@ const seedDatabase = async () => {
       LoyaltyWallet.create({ account_id: userElena.id, org_id: orgArt.id,    points_balance: 650 }),
       LoyaltyWallet.create({ account_id: userElena.id, org_id: coffeeShop.id, points_balance: 200 }),
     ]);
-    console.log('✅ 6 loyalty wallets create\n');
+    console.log('6 loyalty wallets create\n');
 
-    console.log('🎉 Baza de date populată cu succes!\n');
+    console.log(' Baza de date populată cu succes!\n');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📋 Categorii: Muzică | Artă & Cultură | Spectacole | Sport | Food & Drinks | Workshop-uri | Comunitate & Familie | Petreceri | Natură & Aventură\n');
-    console.log('🏙️  Orașe: București | Cluj-Napoca | Timișoara | Iași | Brașov | Sibiu | Sinaia | Turda\n');
-    console.log('📧 Conturi (parola: parola123)');
+    console.log('Categorii: Muzică | Artă & Cultură | Spectacole | Sport | Food & Drinks | Workshop-uri | Comunitate & Familie | Petreceri | Natură & Aventură\n');
+    console.log('Orașe: București | Cluj-Napoca | Timișoara | Iași | Brașov | Sibiu | Sinaia | Turda\n');
+    console.log('Conturi (parola: parola123)');
     console.log('  andrei@test.com          contact@cafenea.ro → The Coffee Hub [Gratuit]');
     console.log('  ana@test.com             admin@techhubromania.ro → TechHub Romania [Business]');
     console.log('  mihai@test.com           contact@artaculturala.ro → Asoc. Culturală [Pro]');
@@ -723,7 +726,7 @@ const seedDatabase = async () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Eroare la seeding:', error);
+    console.error('Eroare la seeding:', error);
     process.exit(1);
   }
 };

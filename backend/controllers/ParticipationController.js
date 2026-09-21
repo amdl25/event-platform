@@ -40,6 +40,7 @@ export const getMyTickets = async (req, res) => {
             title: event.title,
             location: event.location,
             startDate: event.start_date,
+            endDate: event.end_date,
             image_url: event.image_url,
             pointsValue: Number(event.points_value || 0),
             organizationName: event.organization?.name || 'Organizator'

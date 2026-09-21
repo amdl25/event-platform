@@ -50,7 +50,6 @@ const SearchResults = () => {
 
       setResults(filtered);
     } catch (err) {
-      console.error("Eroare la căutare:", err);
     } finally {
       setLoading(false);
     }

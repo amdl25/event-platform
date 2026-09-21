@@ -88,7 +88,7 @@ const PurchaseConfirmationPage = () => {
         eventId: ticket.eventId || eventData.id || null,
         date: ticket.eventDate || eventData.start_date,
         location: ticket.eventLocation || eventData.location || 'Locatie nespecificata',
-        points: Number(eventData.points_value || 0),
+        points: Number(ticket.points || 0),
         organizationName: ticket.organizationName || eventData.organizationName || 'Organizator'
       }))
     };
@@ -107,7 +107,6 @@ const PurchaseConfirmationPage = () => {
         layoutMode: 'stack'
       });
     } catch (err) {
-      console.error('PDF generation error:', err);
       setError('Eroare la generarea PDF-ului.');
     } finally {
       setDownloading(false);
@@ -166,7 +165,6 @@ const PurchaseConfirmationPage = () => {
     <div className="pcp-page">
       <div className="pcp-wrapper">
       <div className="pcp-container">
-
         <div className="pcp-header">
           <div className="pcp-check-circle">
             <FiCheck strokeWidth={2.5} />

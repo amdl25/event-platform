@@ -208,7 +208,7 @@ const CreatePersonalEvent = ({ user }) => {
   return (
     <div className="create-event-page">
       <div className="container-max create-grid">
-        
+      
         <aside className="create-sidebar">
           <div className="event-preview-card">
             <label className="preview-image-box">

@@ -41,13 +41,8 @@ const Login = ({ onLogin }) => {
     setError('');
     setIsSubmitting(true);
 
-    console.log("1. Încep procedura de Login...");
-    console.log("2. Date trimise:", formData);
-    console.log("3. URL de bază folosit:", API.defaults.baseURL);
-
     try {
         const res = await API.post('/auth/login', { email, password });
-        console.log("4. Serverul a răspuns!", res.data);
         onLogin(res.data);
         
         const pendingInvitation = sessionStorage.getItem('pendingInvitation');
@@ -58,7 +53,11 @@ const Login = ({ onLogin }) => {
         } else {
           const params = new URLSearchParams(location.search);
           const redirect = params.get('redirect');
-          const fallback = res.data?.role === 'organizer' ? '/organizer/events' : '/';
+          const fallback = res.data?.role === 'organizer'
+            ? '/organizer/events'
+            : res.data?.role === 'admin'
+              ? '/admin/dashboard'
+              : '/';
           navigate(redirect || fallback);
         }
     } catch (err) {
@@ -108,6 +107,7 @@ const Login = ({ onLogin }) => {
             onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
           />
           {passwordError ? <div className="auth-field-error">{passwordError}</div> : null}
+          {}
           {error && <div className="auth-error-msg">{error}</div>}
 
           <button 

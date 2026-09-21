@@ -14,11 +14,9 @@ const EventDetailsPage = ({ user }) => {
       setLoading(true);
       try {
         const response = await API.get(`/events/${id}`);
-        
         setEvent(response.data);
         recordEventCategoryClick(response.data);
       } catch (err) {
-        console.error("Eroare la încărcarea evenimentului:", err);
       } finally {
         setLoading(false);
       }

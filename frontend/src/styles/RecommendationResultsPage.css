@@ -229,6 +229,39 @@
   transform: translateY(0);
 }
 
+.recommendation-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 30px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-size: 0.93rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.recommendation-retry-btn:hover {
+  border-color: #d1d5db;
+  background: #fafafa;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.recommendation-retry-btn:active {
+  transform: translateY(0);
+}
+
+.recommendation-retry-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 @media (max-width: 1200px) {
   .recommendation-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

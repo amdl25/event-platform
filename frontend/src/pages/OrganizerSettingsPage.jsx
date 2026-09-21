@@ -68,7 +68,6 @@ const OrganizerSettingsPage = ({ user, handleLogout }) => {
           officialPhone: statusRes.data?.officialPhone || ''
         }));
       } catch (error) {
-        console.error('Nu am putut încărca statusul:', error);
       } finally {
         setLoading(false);
       }

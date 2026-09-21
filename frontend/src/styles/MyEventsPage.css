@@ -276,6 +276,11 @@
   color: #888;
 }
 
+.mep-status-chip.ongoing {
+  background: rgba(255, 247, 237, 0.92);
+  color: #c2410c;
+}
+
 .mep-status-chip.pending {
   background: rgba(255, 247, 237, 0.92);
   color: #c2410c;

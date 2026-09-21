@@ -116,10 +116,13 @@ const getRecommendationDateLabel = (event) => {
 const getMinTicketPoints = (event) => {
   const ticketTypes = Array.isArray(event?.ticketTypes) ? event.ticketTypes : [];
   const pointCandidates = ticketTypes
+    .filter((ticketType) => Number(ticketType?.price ?? 0) > 0)
     .map((ticketType) => Number(ticketType?.points_reward ?? ticketType?.pointsReward ?? 0))
     .filter((value) => Number.isFinite(value) && value > 0);
 
   if (pointCandidates.length > 0) return Math.min(...pointCandidates);
+
+  if (Number(event?.price ?? 0) <= 0) return 0;
 
   const fallbackPoints = Number(event?.points_value ?? event?.pointsValue ?? 0);
   return Number.isFinite(fallbackPoints) && fallbackPoints > 0 ? fallbackPoints : 0;
@@ -151,6 +154,18 @@ const isWithinWindow = (startTimestamp, nowTimestamp, windowHours) => {
   if (!Number.isFinite(startTimestamp)) return false;
   const diff = startTimestamp - nowTimestamp;
   return diff >= 0 && diff <= windowHours * 60 * 60 * 1000;
+};
+
+const isInStackWindow = (startTimestamp, endTimestamp, nowTimestamp, windowHours) => {
+  if (!Number.isFinite(startTimestamp)) return false;
+  const effectiveEnd = Number.isFinite(endTimestamp) ? endTimestamp : startTimestamp;
+  if (effectiveEnd < nowTimestamp) return false;
+
+  const now = new Date(nowTimestamp);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (startTimestamp < startOfToday) return false;
+
+  return startTimestamp - nowTimestamp <= windowHours * 60 * 60 * 1000;
 };
 
 const buildStackCandidate = ({ kind, event, ticket = null, privateMeta = null }) => {
@@ -263,7 +278,8 @@ const Home = ({ user }) => {
             if (hasOrgIdCamelField && ticket?.event?.orgId == null) return false;
 
             const startTs = toTimestamp(ticket?.event?.startDate);
-            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+            const endTs = toTimestamp(ticket?.event?.endDate);
+            return isInStackWindow(startTs, endTs, nowTimestamp, STACK_WINDOW_HOURS);
           })
           .map((ticket) => buildStackCandidate({
             kind: 'public-ticket',
@@ -272,6 +288,7 @@ const Home = ({ user }) => {
               title: ticket?.event?.title,
               location: ticket?.event?.location,
               startDate: ticket?.event?.startDate,
+              endDate: ticket?.event?.endDate,
               image_url: ticket?.event?.image_url,
               organizationName: ticket?.event?.organizationName,
               pointsValue: ticket?.event?.pointsValue,
@@ -297,7 +314,8 @@ const Home = ({ user }) => {
         const privateCreatedCandidates = privateCreated
           .filter((entry) => {
             const startTs = toTimestamp(entry?.start_date);
-            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+            const endTs = toTimestamp(entry?.end_date);
+            return isInStackWindow(startTs, endTs, nowTimestamp, STACK_WINDOW_HOURS);
           })
           .map((entry) => buildStackCandidate({
             kind: 'private-host',
@@ -325,7 +343,8 @@ const Home = ({ user }) => {
         const privateInvitedCandidates = privateInvited
           .filter((entry) => {
             const startTs = toTimestamp(entry?.event?.start_date);
-            return Number.isFinite(startTs) && isWithinWindow(startTs, nowTimestamp, STACK_WINDOW_HOURS);
+            const endTs = toTimestamp(entry?.event?.end_date);
+            return isInStackWindow(startTs, endTs, nowTimestamp, STACK_WINDOW_HOURS);
           })
           .map((entry) => buildStackCandidate({
             kind: 'private-invited',
@@ -486,38 +505,8 @@ const Home = ({ user }) => {
 
         const topRecommendations = scored.slice(0, 3);
 
-        if (topRecommendations.length > 0) {
-          console.group('[Home] Recomandări pentru tine - explicații');
-          topRecommendations.slice(0, 3).forEach((item, index) => {
-            console.group(`Top ${index + 1}: ${item.event?.title || 'Eveniment'} | scor ${item.score.toFixed(2)}`);
-
-            const formula = item.contributions
-              .map((contribution) => `${contribution.points.toFixed(1)} (${contribution.label})`)
-              .join(' + ');
-
-            console.info(
-              `[Home][Recomandare] ${item.event?.title || 'Eveniment'} => ${formula || '0'} = ${item.score.toFixed(2)}`
-            );
-            console.log(`Formula scor: ${formula || '0'} = ${item.score.toFixed(2)}`);
-
-            if (item.contributions.length === 0) {
-              console.log('Motiv: fără semnale puternice; scor minim/fallback.');
-            } else {
-              item.contributions.forEach((contribution) => {
-                console.log(`Motiv: ${contribution.label} | +${contribution.points.toFixed(1)} | ${contribution.detail}`);
-              });
-            }
-
-            item.reasons.forEach((reason) => console.log(`- ${reason}`));
-            console.log('Debug semnale:', item.debug);
-            console.groupEnd();
-          });
-          console.groupEnd();
-        }
-
         setRecommendedEvents(topRecommendations.map((item) => item.event));
       } catch (error) {
-        console.error('Eroare la încărcarea home personalizat:', error);
       } finally {
         setIsHomeLoading(false);
       }
@@ -601,7 +590,6 @@ const Home = ({ user }) => {
         fileName: `bilet-${toSafeFileSlug(primaryStackEvent.event?.title || primaryStackEvent.ticketCode || 'eveniment')}`
       });
     } catch (error) {
-      console.error('Eroare la exportul PDF al biletului:', error);
     } finally {
       setDownloadingPdf(false);
     }

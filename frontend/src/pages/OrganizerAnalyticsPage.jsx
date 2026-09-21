@@ -544,7 +544,7 @@ const OrganizerAnalyticsPage = ({ user, handleLogout }) => {
 						</div>
 
 					</div>
-
+					
 					{isBusinessPlan && advancedData && <BusinessAnalyticsSection
 						advancedData={advancedData}
 						sortCol={sortCol}

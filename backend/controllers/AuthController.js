@@ -29,7 +29,6 @@ const buildAuthPayload = (user, organization = null, token = null) => ({
 });
 
 export const register = async (req, res) => {
-  console.log('Am primit o cerere de register:', req.body);
   try {
     const {
       email,
@@ -91,14 +90,11 @@ export const register = async (req, res) => {
       isNewUser: true
     });
   } catch (error) {
-    console.error('Eroare la register:', error);
     return res.status(500).json({ message: 'Eroare la crearea contului' });
   }
 };
 
 export const login = async (req, res) => {
-  console.log('Am primit o cerere de login:', req.body);
-  
   try {
     const { email, password } = req.body;
 
@@ -123,7 +119,6 @@ export const login = async (req, res) => {
     return res.status(200).json(buildAuthPayload(user, organizer, token));
 
   } catch (error) {
-    console.error('Eroare la login:', error);
     return res.status(500).json({ message: 'Eroare internă de server' });
   }
 };
@@ -152,7 +147,6 @@ export const getOrganizerStatus = async (req, res) => {
       verificationNotes: organization.verification_notes
     });
   } catch (error) {
-    console.error('Eroare la status organizator:', error);
     return res.status(500).json({ message: 'Eroare la obținerea statusului organizatorului.' });
   }
 };
@@ -197,53 +191,7 @@ export const submitOrganizerVerification = async (req, res) => {
       officialPhone: organization.official_phone
     });
   } catch (error) {
-    console.error('Eroare la trimiterea verificării organizatorului:', error);
     return res.status(500).json({ message: 'Eroare la trimiterea profilului business.' });
-  }
-};
-
-export const reviewOrganizerVerification = async (req, res) => {
-  try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ message: 'Nu ai permisiunea de a valida organizatori.' });
-    }
-
-    const { organizationId } = req.params;
-    const { action, notes } = req.body;
-
-    if (!['approve', 'reject'].includes(action)) {
-      return res.status(400).json({ message: 'Action invalid. Folosește approve/reject.' });
-    }
-
-    const organization = await Organization.findByPk(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: 'Organizația nu a fost găsită.' });
-    }
-
-    const isApproved = action === 'approve';
-    await organization.update({
-      verification_status: isApproved ? 'verified' : 'rejected',
-      verification_notes: notes?.trim() || null,
-      verified_at: isApproved ? new Date() : null,
-      admin_status: isApproved ? 'active' : 'suspended'
-    });
-
-    addNotification({
-      account_id: organization.owner_id,
-      type: isApproved ? 'verification_approved' : 'verification_rejected',
-      message: isApproved
-        ? `Organizația "${organization.name}" a fost verificată și aprobată. Poți publica evenimente acum.`
-        : `Organizația "${organization.name}" a fost respinsă.${notes?.trim() ? ` Motiv: ${notes.trim()}` : ''}`
-    });
-
-    return res.status(200).json({
-      message: isApproved ? 'Organizația a fost verificată.' : 'Organizația a fost respinsă.',
-      verificationStatus: organization.verification_status,
-      verificationNotes: organization.verification_notes
-    });
-  } catch (error) {
-    console.error('Eroare la review organizator:', error);
-    return res.status(500).json({ message: 'Eroare la validarea organizatorului.' });
   }
 };
 
@@ -287,7 +235,6 @@ export const getPendingOrganizations = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Eroare la obținerea organizațiilor pending:', error);
     return res.status(500).json({ message: 'Eroare la încărcarea cozii de verificare.' });
   }
 };
@@ -333,7 +280,6 @@ export const verifyOrganizationByAdmin = async (req, res) => {
       verifiedAt: organization.verified_at
     });
   } catch (error) {
-    console.error('Eroare la verificarea organizației de către admin:', error);
     return res.status(500).json({ message: 'Eroare la procesarea verificării.' });
   }
 };

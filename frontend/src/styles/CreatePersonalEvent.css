@@ -133,7 +133,6 @@
   font-weight: 500;
   outline: none;
 }
-
 .group-content { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .time-row { display: flex; align-items: center; gap: 10px; font-weight: 600; }
 .label-fixed { width: 50px; color: #888; font-size: 0.9rem; }

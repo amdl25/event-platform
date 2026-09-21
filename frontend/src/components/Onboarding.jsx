@@ -10,7 +10,7 @@ const Onboarding = ({ user, onFinish }) => {
   useEffect(() => {
     API.get('/categories')
       .then(res => setCategories(res.data))
-      .catch(err => console.error("Eroare categorii:", err));
+      .catch(() => {});
   }, []);
 
   const toggleInterest = (id) => {
@@ -28,7 +28,6 @@ const Onboarding = ({ user, onFinish }) => {
       });
       onFinish();
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,6 @@ const Onboarding = ({ user, onFinish }) => {
         interests: []
       });
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
       onFinish();
