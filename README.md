@@ -117,4 +117,3 @@ The frontend calls the API at `http://localhost:5000` by default. Set `VITE_API_
 
 ## Notes
 - Demo data is in Romanian.
-- Never commit your `.env` file.
